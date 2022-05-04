@@ -1,0 +1,59 @@
+Solr Field	EAD Value / Xpath Expr	Source	Comment
+eadid	eadheader/eadid	document.rb	
+author	eadheader/filedesc/titlestmt/author	document.rb	
+unittitle	archdesc[@level='collection']/did/unittitle	document.rb	
+unitid	archdesc[@level='collection']/did/unitid	document.rb	
+abstract	archdesc[@level='collection']/did/abstract	document.rb	
+creator	archdesc[@level='collection']/did/origination[@label='creator']/*[#{creator_fields_to_xpath}]	document.rb	
+unitdate_normal	archdesc[@level='collection']/did/unitdate/@normal	document.rb	
+unitdate	archdesc[@level='collection']/did/unitdate[not(@type)]	document.rb	
+unitdate_bulk	archdesc[@level='collection']/did/unitdate[@type='bulk']	document.rb	
+unitdate_inclusive	archdesc[@level='collection']/did/unitdate[@type='inclusive']	document.rb	
+scopecontent	archdesc[@level='collection']/scopecontent/p	document.rb	
+bioghist	archdesc[@level='collection']/bioghist/p	document.rb	
+acqinfo	archdesc[@level='collection']/acqinfo/p	document.rb	
+custodhist	archdesc[@level='collection']/custodhist/p	document.rb	
+appraisal	archdesc[@level='collection']/appraisal/p	document.rb	
+phystech	archdesc[@level='collection']/phystech/p	document.rb	
+chronlist	archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()	document.rb	
+corpname	archdesc[@level='collection']/*[name() != 'dsc']//corpname	document.rb	
+famname	archdesc[@level='collection']/*[name() != 'dsc']//famname	document.rb	
+function	archdesc[@level='collection']/*[name() != 'dsc']//function	document.rb	
+genreform	archdesc[@level='collection']/*[name() != 'dsc']//genreform	document.rb	
+geogname	archdesc[@level='collection']/*[name() != 'dsc']//geogname	document.rb	
+name	archdesc[@level='collection']/*[name() != 'dsc']//name	document.rb	
+occupation	archdesc[@level='collection']/*[name() != 'dsc']//occupation	document.rb	
+persname	archdesc[@level='collection']/*[name() != 'dsc']//persname	document.rb	
+subject	archdesc[@level='collection']/*[name() != 'dsc']//subject	document.rb	
+title	archdesc[@level='collection']/*[name() != 'dsc']//title	document.rb	
+note	archdesc[@level='collection']/*[name() != 'dsc']//note	document.rb	
+repository	"ENV['EAD'].split(""\/"")[-1]"	document.rb	See behaviors.rb
+format	Archival Collection	document.rb	
+format	0	document.rb	
+creator	//*[local-name()!='repository']/corpname	document.rb	
+	//*[local-name()!='repository']/famname		
+	//*[local-name()!='repository']/persname		
+name	//*[local-name()!='repository']/corpname	document.rb	
+	//famname		
+	//persname		
+place	"""//geogname"""	document.rb	scrubbed out subfield demarcators
+subject	//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']	document.rb	scrubbed out subfield demarcators
+dao	//dao	document.rb	
+material_type	//genreform	document.rb	
+heading	unittitle	document.rb	
+date_range	get_date_range_facets,	document.rb	See behaviors/dates.rb
+unitdate_start	start_dates.compact,	behaviors/dates.rb	See behaviors/dates.rb
+unitdate_end	end_dates.compact,	behaviors/dates.rb	See behaviors/dates.rb
+unitdate	ead_date_display,	behaviors/dates.rb	See behaviors/dates.rb
+language	language,	behaviors.rb	
+id	//eadid + node.attr(“id”)		
+ead	//eadid	behaviors.rb	
+parent	"node.parent.attr(""id"")"	behaviors.rb	
+parent	parent_id_list(node)	behaviors.rb	
+parent_unittitles	parent_unittitle_list(node)	behaviors.rb	
+component_level	parent_id_list(node).length + 1	behaviors.rb	
+component_children	component_children?(node)	behaviors.rb	
+collection	//archdesc/did/unittitle	behaviors.rb	
+collection_unitid	//archdesc/did/unitid	behaviors.rb	
+chronlist			
+series			

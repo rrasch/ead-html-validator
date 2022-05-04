@@ -1,0 +1,10 @@
+language	language,	behaviors.rb
+language	language,	behaviors.rb
+ead	//eadid	behaviors.rb
+parent	node.parent.attr("id")	behaviors.rb
+parent	parent_id_list(node)	behaviors.rb
+parent_unittitles	parent_unittitle_list(node)	behaviors.rb
+component_level	parent_id_list(node).length + 1	behaviors.rb
+component_children	component_children?(node)	behaviors.rb
+collection	//archdesc/did/unittitle	behaviors.rb
+collection_unitid	//archdesc/did/unitid	behaviors.rb
