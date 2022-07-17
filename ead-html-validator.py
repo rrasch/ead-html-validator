@@ -93,6 +93,8 @@ soup = BeautifulSoup(open(args.html_file), 'html.parser')
 
 find_text = ET.XPath("//text()")
 
+num_err = 0
+
 #for field in sorted(xpath.keys()):
 for field in xpath.keys():
     print(field)
@@ -118,7 +120,14 @@ for field in xpath.keys():
         print(node[0].text)
 
     results = soup.find(text=node[0].text)
+    print(type(results).__name__)
+    print(dir(results))
+    print(results
+
     if not results:
-        print(f"can't find {field}")
-        exit(1)
+        num_err += 1
+        logging.warning(f"can't find {field} in html")
+        continue
+
+    exit(1)
 
