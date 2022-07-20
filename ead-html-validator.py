@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from lxml import etree as ET
 
 import argparse
+import ead
 import csv
 import logging
 import subprocess
@@ -48,6 +49,9 @@ def get_xpaths(tsv_file):
         for row in read_tsv:
             #print(row)
             xpath[row[0]] = row[1]
+            #print(f"    def {row[0]}(self):")
+            #print(f'        xpath("{row[1]}")')
+            #print()
     return xpath
 
 xpath = get_xpaths("ead_fields.tsv")
@@ -78,6 +82,7 @@ logging.debug("htmlt file: %s", args.html_file)
 
 validate(args.ead_file)
 
+
 nsmap = {"e": "urn:isbn:1-931666-22-9"}
 
 tree = ET.parse(args.ead_file)
@@ -89,9 +94,20 @@ logging.debug(root)
 
 logging.debug(root.tag)
 
+my_ead = ead.Ead(args.ead_file)
+print(my_ead.eadid())
+print(my_ead.author())
+print(my_ead.unittitle())
+print(my_ead.unitid())
+print(my_ead.abstract())
+
+
 soup = BeautifulSoup(open(args.html_file), 'html.parser')
 
 find_text = ET.XPath("//text()")
+print("foo")
+#print(root.find_text)
+exit()
 
 num_err = 0
 
@@ -122,7 +138,7 @@ for field in xpath.keys():
     results = soup.find(text=node[0].text)
     print(type(results).__name__)
     print(dir(results))
-    print(results
+    print(results)
 
     if not results:
         num_err += 1
