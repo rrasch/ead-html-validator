@@ -6,6 +6,7 @@ from lxml import etree as ET
 
 import argparse
 import ead
+import eadhtml
 import csv
 import logging
 import subprocess
@@ -104,9 +105,13 @@ print(my_ead.abstract())
 
 soup = BeautifulSoup(open(args.html_file), 'html.parser')
 
-find_text = ET.XPath("//text()")
-print("foo")
+#find_text = ET.XPath("//text()")
 #print(root.find_text)
+
+ehtml = eadhtml.EADHTML(args.html_file)
+
+ehtml.abstract()
+
 exit()
 
 num_err = 0

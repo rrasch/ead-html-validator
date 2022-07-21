@@ -1,33 +1,11 @@
-from lxml import etree as ET
+from bs4 import BeautifulSoup
 import logging
-import util
 
-class Ead:
+class EADHTML:
 
-    def __init__(self, ead_file):
-        print(f"ead_file={ead_file}")
-
-        nsmap = {"e": "urn:isbn:1-931666-22-9"}
-
-        self.tree = ET.parse(ead_file)
-        logging.debug(self.tree)
-        self.root = self.tree.getroot()
-        logging.debug(self.root)
-        util.remove_namespace(self.root, nsmap['e'])
-        logging.debug(self.root)
-
-        logging.debug(self.root.tag)
-    
-    def __str__(self):
-        return (
-            f"Leader({self.ldr_str}):\n"
-            f"record length {self.record_len}\n"
-            f"record status = {self.record_status}\n"
-            f"record type = {self.record_type}\n"
-            f"bib level = {self.bib_level}\n"
-            f"control type = {self.control_type}\n"
-            f"char_coding_scheme = {self.char_coding_scheme}\n"
-        )
+    def __init__(self, html_file):
+        logging.debug(f"html_file={html_file}")
+        self.soup = BeautifulSoup(open(html_file), 'html.parser')
 
     def eadid(self):
         return self.root.xpath("eadheader/eadid")[0].text
@@ -45,14 +23,9 @@ class Ead:
         return self.root.xpath("archdesc[@level='collection']/did/unitid")[0].text
 
     def abstract(self):
-        find_text = ET.XPath("//text()")
-        node = self.root.xpath("archdesc[@level='collection']/did/abstract")[0]
-        for t in node.itertext():
-            print(f"text='{t}'")
-        text = ''.join(node.itertext())
-        return ' '.join(text.split())
-        #return util.stringify_children(node)
-        #return ""
+        results = self.soup.find_all('div', class_='formattednote abstract')
+        print(results[0].p.get_text())
+
 
 #     def creator(self):
 #         return self.root.xpath("archdesc[@level='collection']/did/origination[@label='creator']/*[#{creator_fields_to_return self.root.xpath}]")
