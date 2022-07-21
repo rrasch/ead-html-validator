@@ -100,11 +100,15 @@ print(my_ead.eadid())
 print(my_ead.author())
 print(my_ead.unittitle())
 print(my_ead.unitid())
+#print(my_ead.langcode())
+
 print(my_ead.abstract())
 
 print(my_ead.bioghist())
 
 print(my_ead.scopecontent())
+
+my_ead.creator()
 
 soup = BeautifulSoup(open(args.html_file), 'html.parser')
 

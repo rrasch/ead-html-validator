@@ -44,6 +44,9 @@ class Ead:
     def unitid(self):
         return self.root.xpath("archdesc[@level='collection']/did/unitid")[0].text
 
+    def langcode(self):
+        return self.root.xpath("archdesc[@level='collection']/did/langmaterial/language/@langcode")[0].text
+
     def abstract(self):
         find_text = ET.XPath("//text()")
         node = self.root.xpath("archdesc[@level='collection']/did/abstract")[0]
@@ -54,8 +57,14 @@ class Ead:
         #return util.stringify_children(node)
         #return ""
 
-#     def creator(self):
-#         return self.root.xpath("archdesc[@level='collection']/did/origination[@label='creator']/*[#{creator_fields_to_return self.root.xpath}]")
+    def creator(self):
+        creators = []
+        for field in ['corpname', 'famname', 'persname']:
+            for node in self.root.xpath(f"archdesc[@level='collection']/did/origination[@label='Creator' or @label='creator']/{field}"):
+                print(node)
+                creators.append(node.text.strip())
+        print(creators)
+        return creators
 
     def unitdate_normal(self):
         return self.root.xpath("archdesc[@level='collection']/did/unitdate/@normal")
@@ -69,24 +78,24 @@ class Ead:
 #     def unitdate_inclusive(self):
 #         return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='inclusive']")
 
-    def scopecontent(self):
-        return self.root.xpath("archdesc[@level='collection']/scopecontent/p")[0].text
+    def acqinfo(self):
+        return self.root.xpath("archdesc[@level='collection']/acqinfo/p")[0].text
+
+    def appraisal(self):
+        return self.root.xpath("archdesc[@level='collection']/appraisal/p")[0].text
 
     def bioghist(self):
         return self.root.xpath("archdesc[@level='collection']/bioghist/p")[0].text
 
-#     def acqinfo(self):
-#         return self.root.xpath("archdesc[@level='collection']/acqinfo/p")
-# 
-#     def custodhist(self):
-#         return self.root.xpath("archdesc[@level='collection']/custodhist/p")
-# 
-#     def appraisal(self):
-#         return self.root.xpath("archdesc[@level='collection']/appraisal/p")
-# 
-#     def phystech(self):
-#         return self.root.xpath("archdesc[@level='collection']/phystech/p")
-# 
+    def custodhist(self):
+        return self.root.xpath("archdesc[@level='collection']/custodhist/p")[0].text
+
+    def phystech(self):
+        return self.root.xpath("archdesc[@level='collection']/phystech/p")[0].text
+
+    def scopecontent(self):
+        return self.root.xpath("archdesc[@level='collection']/scopecontent/p")[0].text
+
 #     def chronlist(self):
 #         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()")
 # 
@@ -131,11 +140,10 @@ class Ead:
 # 
 #     def format(self):
 #         return self.root.xpath("0")
-# 
+
 #     def creator(self):
+#         creator = []
 #         return self.root.xpath("//*[local-name()!='repository']/corpname")
-# 
-#     def (self):
 #         return self.root.xpath("//*[local-name()!='repository']/famname")
 # 
 #     def (self):
