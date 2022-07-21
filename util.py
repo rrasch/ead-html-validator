@@ -13,15 +13,13 @@ def remove_namespace(doc, namespace):
 # https://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
 def stringify_children(node):
     s = node.text
-    print(s)
     if s is None:
         s = ''
-    print('rasan')
     for child in node:
-        #s += ET.tostring(child, encoding='unicode')
         print(child)
-        print(child.text)
-        s += child.text
-        time.sleep(3)
-    exit(1)
+        #s += ET.tostring(child, encoding='unicode')
+        buf = child.text
+        if buf:
+            s += buf
+    print(s)
     return s

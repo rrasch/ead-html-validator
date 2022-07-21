@@ -102,6 +102,9 @@ print(my_ead.unittitle())
 print(my_ead.unitid())
 print(my_ead.abstract())
 
+print(my_ead.bioghist())
+
+print(my_ead.scopecontent())
 
 soup = BeautifulSoup(open(args.html_file), 'html.parser')
 
@@ -110,7 +113,13 @@ soup = BeautifulSoup(open(args.html_file), 'html.parser')
 
 ehtml = eadhtml.EADHTML(args.html_file)
 
-ehtml.abstract()
+print(ehtml.author())
+print(ehtml.abstract())
+print(ehtml.unitid())
+print(ehtml.bioghist())
+print(ehtml.extent())
+
+print(ehtml.arrangement())
 
 exit()
 

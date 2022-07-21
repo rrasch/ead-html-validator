@@ -68,13 +68,13 @@ class Ead:
 # 
 #     def unitdate_inclusive(self):
 #         return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='inclusive']")
-# 
-#     def scopecontent(self):
-#         return self.root.xpath("archdesc[@level='collection']/scopecontent/p")
-# 
-#     def bioghist(self):
-#         return self.root.xpath("archdesc[@level='collection']/bioghist/p")
-# 
+
+    def scopecontent(self):
+        return self.root.xpath("archdesc[@level='collection']/scopecontent/p")[0].text
+
+    def bioghist(self):
+        return self.root.xpath("archdesc[@level='collection']/bioghist/p")[0].text
+
 #     def acqinfo(self):
 #         return self.root.xpath("archdesc[@level='collection']/acqinfo/p")
 # 
