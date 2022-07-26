@@ -103,7 +103,8 @@ print(my_ead.url())
 print(my_ead.author())
 print(my_ead.unittitle())
 print(my_ead.unitid())
-#print(my_ead.langcode())
+print(my_ead.langcode())
+print(my_ead.language())
 
 print(my_ead.abstract())
 

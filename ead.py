@@ -54,7 +54,11 @@ class Ead:
         return self.root.xpath("archdesc[@level='collection']/did/unitid")[0].text
 
     def langcode(self):
-        return self.root.xpath("archdesc[@level='collection']/did/langmaterial/language/@langcode")[0].text
+        #return self.root.xpath("archdesc[@level='collection']/did/langmaterial/language/@langcode")[0].text
+        return self.root.xpath("//langusage/language/@langcode")[0]
+
+    def language(self):
+        return self.root.xpath("//langusage/language")[0].text
 
     def abstract(self):
         find_text = ET.XPath("//text()")
@@ -206,37 +210,19 @@ class Ead:
 #     def unitdate(self):
 #         return self.root.xpath("ead_date_display,")
 # 
-#     def language(self):
-#         return self.root.xpath("language,")
-# 
-#     def id(self):
-#         return self.root.xpath("//eadid + node.attr(“id”)")
-# 
-#     def ead(self):
-#         return self.root.xpath("//eadid")
-# 
-#     def parent(self):
-#         return self.root.xpath("node.parent.attr("id")")
-# 
-#     def parent(self):
-#         return self.root.xpath("parent_id_list(node)")
 # 
 #     def parent_unittitles(self):
 #         return self.root.xpath("parent_unittitle_list(node)")
-# 
-#     def component_level(self):
-#         return self.root.xpath("parent_id_list(node).length + 1")
-# 
-#     def component_children(self):
-#         return self.root.xpath("component_children?(node)")
-# 
-#     def collection(self):
-#         return self.root.xpath("//archdesc/did/unittitle")
-# 
-#     def collection_unitid(self):
-#         return self.root.xpath("//archdesc/did/unitid")
-# 
-# 
+
+    def collection(self):
+        #eturn self.root.xpath("//archdesc/did/unittitle")
+        return unittitle()
+
+    def collection_unitid(self):
+        #return self.root.xpath("//archdesc/did/unitid")
+        return self.unitid()
+
+
 #     def series(self):
 #         return self.root.xpath("")
 
