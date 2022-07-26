@@ -17,20 +17,29 @@ class Ead:
         logging.debug(self.root)
 
         logging.debug(self.root.tag)
-    
+   
+    def get_archdesc(self, field):
+        return self.root.xpath(f"archdesc[@level='collection']/{field}/p")[0].text
+
+    def get_archdesc_nodsc(self, field):
+        nodes = self.root.xpath(f"archdesc[@level='collection']/*[name() != 'dsc']//{field}")
+        values = set()
+        for node in nodes:
+            values.add(node.text)
+        #return list(values)
+        return ', '.join(list(values))
+
     def __str__(self):
         return (
-            f"Leader({self.ldr_str}):\n"
-            f"record length {self.record_len}\n"
-            f"record status = {self.record_status}\n"
-            f"record type = {self.record_type}\n"
-            f"bib level = {self.bib_level}\n"
-            f"control type = {self.control_type}\n"
-            f"char_coding_scheme = {self.char_coding_scheme}\n"
+            f"EAD({self.eadid}):\n"
+            f"url = {self.url}\n"
         )
 
     def eadid(self):
         return self.root.xpath("eadheader/eadid")[0].text
+
+    def url(self):
+        return self.root.xpath("eadheader/eadid/@url")[0]
 
     def author(self):
         authors = []
@@ -69,14 +78,14 @@ class Ead:
     def unitdate_normal(self):
         return self.root.xpath("archdesc[@level='collection']/did/unitdate/@normal")
 
-#     def unitdate(self):
-#         return self.root.xpath("archdesc[@level='collection']/did/unitdate[not(@type)]")
-# 
-#     def unitdate_bulk(self):
-#         return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='bulk']")
-# 
-#     def unitdate_inclusive(self):
-#         return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='inclusive']")
+    def unitdate(self):
+        return self.root.xpath("archdesc[@level='collection']/did/unitdate[not(@type)]")
+
+    def unitdate_bulk(self):
+        return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='bulk']")
+
+    def unitdate_inclusive(self):
+        return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='inclusive']")
 
     def acqinfo(self):
         return self.root.xpath("archdesc[@level='collection']/acqinfo/p")[0].text
@@ -93,45 +102,54 @@ class Ead:
     def phystech(self):
         return self.root.xpath("archdesc[@level='collection']/phystech/p")[0].text
 
+    def prefercite(self):
+        return self.root.xpath("archdesc[@level='collection']/prefercit/p")[0].text
+
     def scopecontent(self):
         return self.root.xpath("archdesc[@level='collection']/scopecontent/p")[0].text
 
-#     def chronlist(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()")
-# 
-#     def corpname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//corpname")
-# 
-#     def famname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//famname")
-# 
-#     def function(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//function")
-# 
-#     def genreform(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//genreform")
-# 
-#     def geogname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//geogname")
-# 
-#     def name(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//name")
-# 
-#     def occupation(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//occupation")
-# 
-#     def persname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//persname")
-# 
-#     def subject(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//subject")
-# 
-#     def title(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//title")
-# 
-#     def note(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//note")
-# 
+    def separatedmaterial(self):
+        return self.get_archdesc("separatedmaterial")
+    
+    def userestrict(self):
+        return self.get_archdesc("userestrict")
+
+    def chronlist(self):
+        return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()")
+
+    def corpname(self):
+        return self.get_archdesc_nodsc('corpname')
+
+    def famname(self):
+        return self.get_archdesc_nodsc('famname')
+
+    def function(self):
+        return self.get_archdesc_nodsc('function')
+
+    def genreform(self):
+        return self.get_archdesc_nodsc('genreform')
+
+    def geogname(self):
+        return self.get_archdesc_nodsc('geogname')
+
+    def name(self):
+        return self.get_archdesc_nodsc('name')
+
+    def note(self):
+        return self.get_archdesc_nodsc('note')
+
+    def occupation(self):
+        return self.get_archdesc_nodsc('occupation')
+
+    def persname(self):
+        return self.get_archdesc_nodsc('persname')
+
+    def subject(self):
+        return self.get_archdesc_nodsc('subject')
+
+    def title(self):
+        return self.get_archdesc_nodsc('title')
+
 #     def repository(self):
 #         return self.root.xpath("ENV['EAD'].split("\/")[-1]")
 # 
@@ -157,22 +175,25 @@ class Ead:
 # 
 #     def (self):
 #         return self.root.xpath("//persname")
-# 
-#     def place(self):
-#         return self.root.xpath("//geogname")
-# 
+
+    def place(self):
+        #return self.root.xpath("//geogname")
+        return self.get_archdesc_nodsc('geogname')
+
 #     def subject(self):
 #         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
 # 
 #     def dao(self):
 #         return self.root.xpath("//dao")
 # 
-#     def material_type(self):
-#         return self.root.xpath("//genreform")
-# 
-#     def heading(self):
-#         return self.root.xpath("unittitle")
-# 
+    def material_type(self):
+        #return self.root.xpath("//genreform")
+        return self.get_archdesc_nodsc('geogname')
+
+    def heading(self):
+        #return self.root.xpath("unittitle")
+        return self.unittile()
+
 #     def date_range(self):
 #         return self.root.xpath("get_date_range_facets,")
 # 
@@ -215,8 +236,6 @@ class Ead:
 #     def collection_unitid(self):
 #         return self.root.xpath("//archdesc/did/unitid")
 # 
-#     def chronlist(self):
-#         return self.root.xpath("")
 # 
 #     def series(self):
 #         return self.root.xpath("")

@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import logging
+import re
 
 class EADHTML:
 
@@ -23,9 +24,12 @@ class EADHTML:
     def unitid(self):
         return self.soup.find_all('div', class_='unit_id')[0].div.get_text()
 
-
-#     def creator(self):
-#         return self.root.xpath("archdesc[@level='collection']/did/origination[@label='creator']/*[#{creator_fields_to_return self.root.xpath}]")
+    def creator(self):
+        creators = []
+        for node in self.soup.find_all('div', class_=re.compile('(corp|fam|pers)name role-Donor')):
+            creator = node.get_text()
+            creators.append(creator)
+        return creators
 
     def unitdate_normal(self):
         return self.root.xpath("archdesc[@level='collection']/did/unitdate/@normal")

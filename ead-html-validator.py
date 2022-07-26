@@ -2,6 +2,8 @@
 
 from bs4 import BeautifulSoup
 #from xml.etree import ElementTree as ET
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 from lxml import etree as ET
 
 import argparse
@@ -97,6 +99,7 @@ logging.debug(root.tag)
 
 my_ead = ead.Ead(args.ead_file)
 print(my_ead.eadid())
+print(my_ead.url())
 print(my_ead.author())
 print(my_ead.unittitle())
 print(my_ead.unitid())
@@ -108,6 +111,14 @@ print(my_ead.bioghist())
 
 print(my_ead.scopecontent())
 
+#print(my_ead.subject())
+
+print(my_ead.geogname())
+print(my_ead.genreform())
+print(my_ead.occupation())
+print(my_ead.subject())
+exit()
+
 my_ead.creator()
 
 soup = BeautifulSoup(open(args.html_file), 'html.parser')
@@ -117,6 +128,7 @@ soup = BeautifulSoup(open(args.html_file), 'html.parser')
 
 ehtml = eadhtml.EADHTML(args.html_file)
 
+print(ehtml.creator())
 print(ehtml.author())
 print(ehtml.abstract())
 print(ehtml.unitid())
