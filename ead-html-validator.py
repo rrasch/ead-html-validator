@@ -118,6 +118,7 @@ print(my_ead.geogname())
 print(my_ead.genreform())
 print(my_ead.occupation())
 print(my_ead.subject())
+print(my_ead.component())
 exit()
 
 my_ead.creator()

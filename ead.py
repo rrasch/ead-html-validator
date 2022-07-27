@@ -222,7 +222,12 @@ class Ead:
         #return self.root.xpath("//archdesc/did/unitid")
         return self.unitid()
 
-
 #     def series(self):
 #         return self.root.xpath("")
+
+    def component(self):
+        components = self.root.xpath("//c[not(ancestor::c)]")
+        for c in components:
+            print(c.attrib['id'])
+        return components
 
