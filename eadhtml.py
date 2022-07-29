@@ -8,6 +8,9 @@ class EADHTML:
         logging.debug(f"html_file={html_file}")
         self.soup = BeautifulSoup(open(html_file), 'html.parser')
 
+    def find_component(self, id):
+        return self.soup.find_all(id=id)
+
     def get_formatted_note(self, field):
         return self.soup.find_all('div', class_=f'formattednote {field}')[0].div.p.get_text()
 

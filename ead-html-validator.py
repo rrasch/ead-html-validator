@@ -11,6 +11,7 @@ import ead
 import eadhtml
 import csv
 import logging
+import os.path
 import subprocess
 
 
@@ -71,8 +72,8 @@ parser = argparse.ArgumentParser(
     description="Validate.")
 parser.add_argument("ead_file", metavar="EAD_FILE",
     help="ead file")
-parser.add_argument("html_file", metavar="HTML_FILE",
-    help="html file")
+parser.add_argument("html_dir", metavar="HTML_DIR",
+    help="html directory")
 parser.add_argument("-d", "--debug",
     help="Enable debugging messages", action="store_true")
 args = parser.parse_args()
@@ -81,7 +82,7 @@ if args.debug:
     logging.getLogger().setLevel(logging.DEBUG)
 
 logging.debug("ead file: %s", args.ead_file)
-logging.debug("htmlt file: %s", args.html_file)
+logging.debug("html dir: %s", args.html_dir)
 
 validate(args.ead_file)
 
@@ -121,16 +122,25 @@ print(my_ead.occupation())
 print(my_ead.subject())
 
 
-def validate_component(c):
+def validate_component(c, dirpath):
     for sub_c in c.sub_components():
         print(sub_c)
         print(sub_c.id())
         print(sub_c.level())
-        validate_component(sub_c)
+
+        html_file = os.path.join(dirpath, "index.html")
+        ehtml = eadhtml.EADHTML(html_file)
+        chtml = ehtml.find_component(c.id())
+        print(chtml)
+
+        if (True):
+            new_dirpath = os.path.join(dirpath, c.id())
+
+        validate_component(sub_c, new_dirpath)
 
 components = my_ead.component()
 
-validate_component(components[0])
+validate_component(components[0], args.html_dir)
 
 
 
@@ -138,12 +148,14 @@ exit()
 
 my_ead.creator()
 
-soup = BeautifulSoup(open(args.html_file), 'html.parser')
+html_file = os.path.join(args.html_dir, 'index.html')
+
+soup = BeautifulSoup(html_file, 'html.parser')
 
 #find_text = ET.XPath("//text()")
 #print(root.find_text)
 
-ehtml = eadhtml.EADHTML(args.html_file)
+ehtml = eadhtml.EADHTML(html_file)
 
 print(ehtml.creator())
 print(ehtml.author())
