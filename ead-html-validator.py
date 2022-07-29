@@ -98,6 +98,7 @@ logging.debug(root)
 logging.debug(root.tag)
 
 my_ead = ead.Ead(args.ead_file)
+
 print(my_ead.eadid())
 print(my_ead.url())
 print(my_ead.author())
@@ -118,7 +119,21 @@ print(my_ead.geogname())
 print(my_ead.genreform())
 print(my_ead.occupation())
 print(my_ead.subject())
-print(my_ead.component())
+
+
+def validate_component(c):
+    for sub_c in c.sub_components():
+        print(sub_c)
+        print(sub_c.id())
+        print(sub_c.level())
+        validate_component(sub_c)
+
+components = my_ead.component()
+
+validate_component(components[0])
+
+
+
 exit()
 
 my_ead.creator()
@@ -161,7 +176,7 @@ for field in xpath.keys():
     node = root.xpath(expr)
     print(node)
 
-    
+
 
     print(type(node[0]).__name__)
     if isinstance(node[0], ET._Element):

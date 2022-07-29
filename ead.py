@@ -1,4 +1,5 @@
 from lxml import etree as ET
+import component
 import logging
 import util
 
@@ -226,8 +227,9 @@ class Ead:
 #         return self.root.xpath("")
 
     def component(self):
-        components = self.root.xpath("//c[not(ancestor::c)]")
-        for c in components:
+        components = []
+        for c in self.root.xpath("//c[not(ancestor::c)]"):
             print(c.attrib['id'])
+            components.append(component.Component(c))
         return components
 
