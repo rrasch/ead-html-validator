@@ -3,6 +3,13 @@ class Component:
     def __init__(self, c):
        self.c = c
 
+    def components(self):
+        comp = []
+        for child in self.c:
+            if child.tag = 'c':
+                comp.append(child)
+        return comp
+
     def id(self):
         return self.c.xpath("/c/@id")
 
