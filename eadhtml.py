@@ -10,7 +10,7 @@ class EADHTML:
         self.soup = BeautifulSoup(open(html_file), 'html.parser')
 
     def find_component(self, id):
-        return comphtml.CompHTML(self.soup.find_all(re.compile('h\d'), id=id)[0].parent)
+        return comphtml.CompHTML(self.soup.find_all(re.compile('h\d'), id=id)[0].parent, id)
 
     def get_formatted_note(self, field):
         return self.soup.find_all('div', class_=f'formattednote {field}')[0].div.p.get_text()

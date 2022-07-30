@@ -139,6 +139,8 @@ def validate_component(c, dirpath):
     ehtml = eadhtml.EADHTML(html_file)
     chtml = ehtml.find_component(c.id())
     print(chtml)
+    print(chtml.id())
+    print(chtml.level())
 
     for sub_c in c.sub_components():
         # print(sub_c)
