@@ -123,25 +123,36 @@ print(my_ead.subject())
 
 
 def validate_component(c, dirpath):
+
+    print('----')
+    print(c.id())
+    print(c.level())
+    print(c.title())
+    print()
+
+    new_dirpath = dirpath
+
+    if (c.level() == "series"):
+        new_dirpath = os.path.join(new_dirpath, "contents", c.id())
+
+    html_file = os.path.join(new_dirpath, "index.html")
+    ehtml = eadhtml.EADHTML(html_file)
+    chtml = ehtml.find_component(c.id())
+    print(chtml)
+
     for sub_c in c.sub_components():
-        print(sub_c)
-        print(sub_c.id())
-        print(sub_c.level())
-
-        html_file = os.path.join(dirpath, "index.html")
-        ehtml = eadhtml.EADHTML(html_file)
-        chtml = ehtml.find_component(c.id())
-        print(chtml)
-
-        if (True):
-            new_dirpath = os.path.join(dirpath, c.id())
-
+        # print(sub_c)
+        # print(sub_c.id())
+        # print(sub_c.level())
         validate_component(sub_c, new_dirpath)
+
 
 components = my_ead.component()
 
-validate_component(components[0], args.html_dir)
+# validate_component(components[1], args.html_dir)
 
+for c in my_ead.component():
+    validate_component(c, args.html_dir)
 
 
 exit()

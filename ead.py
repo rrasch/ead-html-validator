@@ -229,8 +229,8 @@ class Ead:
     def component(self):
         components = []
         for c in self.root.xpath("//c[not(ancestor::c)]"):
-            print(c.attrib['id'])
-            print(c.attrib['level'])
+            # print(c.attrib['id'])
+            # print(c.attrib['level'])
             components.append(component.Component(c))
         return components
 

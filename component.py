@@ -17,7 +17,7 @@ class Component:
         return self.c.attrib['level']
 
     def title(self):
-        return self.c.xpath("unittile")[0].text
+        return self.c.xpath("did/unittitle")[0].text
 
 #     def unitdate(self):
 #         return ""
