@@ -141,6 +141,8 @@ def validate_component(c, dirpath):
     print(chtml)
     print(chtml.id())
     print(chtml.level())
+    print(chtml.title())
+    print("extent: %s" % chtml.extent())
 
     for sub_c in c.sub_components():
         # print(sub_c)
