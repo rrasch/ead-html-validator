@@ -18,7 +18,7 @@ class Ead:
         logging.debug(self.root)
 
         logging.debug(self.root.tag)
-   
+
     def get_archdesc(self, field):
         return self.root.xpath(f"archdesc[@level='collection']/{field}/p")[0].text
 
