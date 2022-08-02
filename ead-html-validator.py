@@ -9,6 +9,7 @@ from lxml import etree as ET
 import argparse
 import ead
 import eadhtml
+import constants
 import csv
 import logging
 import os.path
@@ -99,6 +100,12 @@ logging.debug(root)
 logging.debug(root.tag)
 
 my_ead = ead.Ead(args.ead_file)
+
+for method_name in constants.EAD_FIELDS:
+    method = getattr(my_ead, method_name)
+    print(f"calling {method_name}()")
+    val = method()
+    print(f"val={val}")
 
 print(my_ead.eadid())
 print(my_ead.url())
