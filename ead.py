@@ -248,7 +248,8 @@ class Ead:
 
     def collection(self):
         # eturn self.root.xpath("//archdesc/did/unittitle")
-        return unittitle()
+        pass
+        #return unittitle()
 
     def collection_unitid(self):
         # return self.root.xpath("//archdesc/did/unitid")
