@@ -1,47 +1,46 @@
 class Component:
-
     def __init__(self, c):
-       self.c = c
+        self.c = c
 
     def sub_components(self):
         sub_comps = []
         for child in self.c:
-            if child.tag == 'c':
+            if child.tag == "c":
                 sub_comps.append(Component(child))
         return sub_comps
 
     def id(self):
-        return self.c.attrib['id']
+        return self.c.attrib["id"]
 
     def level(self):
-        return self.c.attrib['level']
+        return self.c.attrib["level"]
 
     def title(self):
         return self.c.xpath("did/unittitle")[0].text
 
-#     def unitdate(self):
-#         return ""
-# 
-#     def corpname(self):
-#         return ""
-# 
-#     def famname(self):
-#         return ""
-# 
-#     def genreform(self):
-#         return ""
-# 
-#     def geogname(self):
-#         return ""
-# 
-#     def name(self):
-#         return ""
-# 
-#     def persname(self):
-#         return ""
-# 
-#     def subject(self):
-#         return ""
+    #     def unitdate(self):
+    #         return ""
+    #
+    #     def corpname(self):
+    #         return ""
+    #
+    #     def famname(self):
+    #         return ""
+    #
+    #     def genreform(self):
+    #         return ""
+    #
+    #     def geogname(self):
+    #         return ""
+    #
+    #     def name(self):
+    #         return ""
+    #
+    #     def persname(self):
+    #         return ""
+    #
+    #     def subject(self):
+    #         return ""
 
     def dimenison(self):
         return self.c.xpath("did/physdesc/dimensions")[0].text
@@ -144,4 +143,3 @@ class Component:
 
     def userestrict_heading(self):
         return self.c.xpath("userestrict/head")[0].text
-

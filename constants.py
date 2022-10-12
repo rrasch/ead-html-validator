@@ -1,10 +1,9 @@
-EAD_FIELDS = '''
+EAD_FIELDS = """
 creator
 author
 abstract
-'''.split()
+""".split()
 
-COMP_FIELDS = '''
+COMP_FIELDS = """
 unititle
-'''.split()
-
+""".split()
