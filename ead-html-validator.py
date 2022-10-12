@@ -7,12 +7,13 @@ from lxml import etree as ET
 # from xml.etree import ElementTree as ET
 
 import argparse
+import constants
 import ead
 import eadhtml
-import constants
+import inspect
 import logging
 import os.path
-
+import time
 import util
 
 
@@ -77,17 +78,27 @@ def main():
     html_file = os.path.join(args.html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
 
-    ead_methods = [
-        method for method in dir(my_ead) if not method.startswith("_")
-    ]
+    ead_methods = []
+    for attr in dir(my_ead):
+        obj = getattr(my_ead, attr)
+
+        if attr.startswith("_") or not callable(obj):
+            continue
+
+        if len(inspect.signature(obj).parameters) > 0:
+            continue
+
+        ead_methods.append(attr)
+
 
     for method_name in sorted(ead_methods):
         ead_method = getattr(my_ead, method_name)
         # ehtml_method = getattr(ehtml, method_name)
 
         logging.debug(f"calling ead.{method_name}()")
+        time.sleep(1)
         ead_retval = ead_method()
-        print(f"retval={ead_retval}")
+        logging.debug(f"retval={ead_retval}")
 
         # logging.debug(f"calling eadhtml.{method_name}()")
         # ehtml_retval = ehtml_method()

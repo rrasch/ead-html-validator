@@ -12,8 +12,10 @@ class Ead:
 
         self.tree = ET.parse(ead_file)
         logging.debug(self.tree)
+
         self.root = self.tree.getroot()
         logging.debug(self.root)
+
         util.remove_namespace(self.root, nsmap["e"])
         logging.debug(self.root)
 
