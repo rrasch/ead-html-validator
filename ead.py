@@ -6,7 +6,7 @@ import util
 
 class Ead:
     def __init__(self, ead_file):
-        print(f"ead_file={ead_file}")
+        logging.debug(f"ead_file={ead_file}")
 
         nsmap = {"e": "urn:isbn:1-931666-22-9"}
 
@@ -72,7 +72,7 @@ class Ead:
         find_text = ET.XPath("//text()")
         node = self.root.xpath("archdesc[@level='collection']/did/abstract")[0]
         for t in node.itertext():
-            print(f"text='{t}'")
+            logging.debug(f"text='{t}'")
         text = "".join(node.itertext())
         return " ".join(text.split())
         # return util.stringify_children(node)
@@ -84,9 +84,9 @@ class Ead:
             for node in self.root.xpath(
                 f"archdesc[@level='collection']/did/origination[@label='Creator' or @label='creator']/{field}"
             ):
-                print(node)
+                logging.debug(node)
                 creators.append(node.text.strip())
-        print(creators)
+        logging.debug(creators)
         return creators
 
     def unitdate_normal(self):
@@ -229,8 +229,7 @@ class Ead:
         return self.get_archdesc_nodsc("geogname")
 
     def heading(self):
-        # return self.root.xpath("unittitle")
-        return self.unittile()
+        return self.unittitle()
 
     #     def date_range(self):
     #         return self.root.xpath("get_date_range_facets,")
@@ -263,7 +262,7 @@ class Ead:
     def component(self):
         components = []
         for c in self.root.xpath("//c[not(ancestor::c)]"):
-            # print(c.attrib['id'])
-            # print(c.attrib['level'])
+            # logging.debug(c.attrib['id'])
+            # logging.debug(c.attrib['level'])
             components.append(component.Component(c))
         return components
