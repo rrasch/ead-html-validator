@@ -1,5 +1,6 @@
 from lxml import etree as ET
 import csv
+import inspect
 import logging
 import subprocess
 
@@ -59,4 +60,19 @@ def get_xpaths(tsv_file):
     return xpath
 
 
+def get_methods(obj):
+    methods = {}
+
+    for attr_name in sorted(dir(obj)):
+        attr_val = getattr(obj, attr_name)
+
+        if attr_name.startswith("_") or not callable(attr_val):
+            continue
+
+        if len(inspect.signature(attr_val).parameters) > 0:
+            continue
+
+        methods[attr_name] = attr_val
+
+    return methods
 

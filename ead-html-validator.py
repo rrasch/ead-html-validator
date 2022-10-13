@@ -89,8 +89,7 @@ def main():
         ead_methods.append(attr)
 
 
-    for method_name in sorted(ead_methods):
-        ead_method = getattr(my_ead, method_name)
+    for method_name, ead_method in util.get_methods(my_ead).items():
         # ehtml_method = getattr(ehtml, method_name)
 
         logging.debug(f"calling ead.{method_name}()")
