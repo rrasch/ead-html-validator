@@ -8,6 +8,7 @@ class EADHTML:
     def __init__(self, html_file):
         logging.debug(f"html_file={html_file}")
         self.soup = BeautifulSoup(open(html_file), "html.parser")
+        self.html_file = html_file
 
     def find_component(self, id):
         return comphtml.CompHTML(
@@ -15,9 +16,10 @@ class EADHTML:
         )
 
     def get_formatted_note(self, field):
-        return self.soup.find_all("div", class_=f"formattednote {field}")[
-            0
-        ].div.p.get_text()
+        note = self.soup.find_all("div", class_=f"md-group formattednote {field}")[0]
+        #text = note.div.p.get_text()
+        text = note.find('p').get_text()
+        return text
 
     def eadid(self):
         return self.root.xpath("eadheader/eadid")[0].text
@@ -80,8 +82,8 @@ class EADHTML:
     # <div class="formattednote userestrict" id ="aspace_2d8e669a800c026aefc9d7e76ca578c9">
 
     def abstract(self):
-        results = self.soup.find_all("div", class_="formattednote abstract")
-        return results[0].p.get_text()
+        logging.debug(self.html_file)
+        return self.get_formatted_note("abstract")
 
     def accessrestrict(self):
         return self.get_formatted_note("accessrestrict")
@@ -102,9 +104,7 @@ class EADHTML:
         return self.get_formatted_note("bibliography")
 
     def bioghist(self):
-        return self.soup.find_all("div", class_="formattednote bioghist")[
-            0
-        ].div.p.get_text()
+        return self.get_formatted_note("bioghist")
 
     def custodhist(self):
         return self.get_formatted_note("custodhist")
@@ -116,9 +116,7 @@ class EADHTML:
         return self.get_formatted_note("editionstmt")
 
     def extent(self):
-        return self.soup.find_all("div", class_="formattednote extent")[
-            0
-        ].div.get_text()
+        return self.get_formatted_note("extent")
 
     def notestmt(self):
         return self.get_formatted_note("notestmt")
@@ -142,9 +140,7 @@ class EADHTML:
         return self.get_formatted_note("revisiondesc")
 
     def scopecontent(self):
-        return self.soup.find_all("div", class_="formattednote scopecontent")[
-            0
-        ].div.p.get_text()
+        return self.get_formatted_note("scopecontent")
 
     def separatedmaterial(self):
         return self.get_formatted_note("separatedmaterial")
@@ -153,9 +149,11 @@ class EADHTML:
         return self.get_formatted_note("userestrict")
 
 
-#     def chronlist(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()")
-#
+    def chronlist(self):
+        logging.debug(self.html_file)
+        exit(1)
+        return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()")
+
 #     def corpname(self):
 #         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//corpname")
 #
