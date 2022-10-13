@@ -200,11 +200,11 @@ class Ead:
     #     def format(self):
     #         return self.root.xpath("0")
 
-    def creator_foo(self):
+    def creators(self):
         creator_tags = ["corpname", "famname", "persname"]
         creator_expr = " or ".join([f"name() = '{tag}'" for tag in creator_tags])
         logging.debug(creator_expr)
-        creator_xpath = "archdesc[@level='collection']/did/" + "origination[lower-case(@label)='creator']/" + f"*[{creator_expr}]"
+        creator_xpath = f"archdesc[@level='collection']/did/origination[@label='creator' or @label='Creator']/*[{creator_expr}]"
         logging.debug(creator_xpath)
         return self.get_text(creator_xpath)
 
