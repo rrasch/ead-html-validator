@@ -90,15 +90,15 @@ def main():
 
 
     for method_name, ead_method in util.get_methods(my_ead).items():
-        # ehtml_method = getattr(ehtml, method_name)
+        ehtml_method = getattr(ehtml, method_name)
 
         logging.debug(f"calling ead.{method_name}()")
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
-        # logging.debug(f"calling eadhtml.{method_name}()")
-        # ehtml_retval = ehtml_method()
-        # print(f"retval={ehtml_retval}")
+        logging.debug(f"calling eadhtml.{method_name}()")
+        ehtml_retval = ehtml_method()
+        print(f"retval={ehtml_retval}")
 
     # for c in my_ead.component():
     #     validate_component(c, args.html_dir)
