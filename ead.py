@@ -1,4 +1,6 @@
+import elementpath
 from lxml import etree as ET
+
 import component
 import logging
 import util
@@ -32,7 +34,8 @@ class Ead:
         )
         values = set()
         for node in nodes:
-            values.add(node.text)
+            #values.add(node.text)
+            values.add("".join(node.itertext()).strip())
         # return list(values)
         return ", ".join(list(values))
 
@@ -135,7 +138,7 @@ class Ead:
         ].text
 
     def prefercite(self):
-        return self.root.xpath("archdesc[@level='collection']/prefercit/p")[
+        return self.root.xpath("archdesc[@level='collection']/prefercite/p")[
             0
         ].text
 
@@ -188,20 +191,23 @@ class Ead:
     def title(self):
         return self.get_archdesc_nodsc("title")
 
-    #     def repository(self):
-    #         return self.root.xpath("ENV['EAD'].split("\/")[-1]")
-    #
+    def repository(self):
+        return self.get_archdesc_nodsc("repository")
+
     #     def format(self):
     #         return self.root.xpath("Archival Collection")
     #
     #     def format(self):
     #         return self.root.xpath("0")
 
-    #     def creator(self):
-    #         creator = []
-    #         return self.root.xpath("//*[local-name()!='repository']/corpname")
-    #         return self.root.xpath("//*[local-name()!='repository']/famname")
-    #
+    def creator_foo(self):
+        creator_tags = ["corpname", "famname", "persname"]
+        creator_expr = " or ".join([f"name() = '{tag}'" for tag in creator_tags])
+        logging.debug(creator_expr)
+        creator_xpath = "archdesc[@level='collection']/did/" + "origination[lower-case(@label)='creator']/" + f"*[{creator_expr}]"
+        logging.debug(creator_xpath)
+        return self.get_text(creator_xpath)
+
     #     def (self):
     #         return self.root.xpath("//*[local-name()!='repository']/persname")
     #
@@ -215,18 +221,38 @@ class Ead:
     #         return self.root.xpath("//persname")
 
     def place(self):
-        # return self.root.xpath("//geogname")
-        return self.get_archdesc_nodsc("geogname")
+        places = set()
+        for geo in self.root.xpath("//geogname"):
+            places.add(" ".join(geo.text.split()))
+        return list(places)
 
-    #     def subject(self):
-    #         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
-    #
-    #     def dao(self):
-    #         return self.root.xpath("//dao")
-    #
+
+    def get_text(self, expr, return_list=True):
+        node_text_list = set()
+
+        for node in self.root.xpath(expr):
+            words = []
+            for text in node.itertext():
+                words.extend(text.split())
+            node_text_list.add(" ".join(words))
+
+        if return_list:
+            return list(node_text_list)
+        else:
+            return ", ".join(list(node_text_list))
+
+    def subject(self):
+        return self.get_text("""
+                             //*[local-name()='subject'
+                              or local-name()='function'
+                              or local-name()='occupation']
+                             """)
+
+    def dao(self):
+        return self.get_text("//dao")
+
     def material_type(self):
-        # return self.root.xpath("//genreform")
-        return self.get_archdesc_nodsc("geogname")
+        return self.get_text("//genreform")
 
     def heading(self):
         return self.unittitle()

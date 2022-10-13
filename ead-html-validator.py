@@ -3,8 +3,6 @@
 
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
-from lxml import etree as ET
-# from xml.etree import ElementTree as ET
 
 import argparse
 import constants
@@ -96,7 +94,6 @@ def main():
         # ehtml_method = getattr(ehtml, method_name)
 
         logging.debug(f"calling ead.{method_name}()")
-        time.sleep(1)
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
