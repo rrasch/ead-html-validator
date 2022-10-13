@@ -194,12 +194,6 @@ class Ead:
     def repository(self):
         return self.get_archdesc_nodsc("repository")
 
-    #     def format(self):
-    #         return self.root.xpath("Archival Collection")
-    #
-    #     def format(self):
-    #         return self.root.xpath("0")
-
     def creators(self):
         creator_tags = ["corpname", "famname", "persname"]
         creator_expr = " or ".join([f"name() = '{tag}'" for tag in creator_tags])
@@ -208,17 +202,12 @@ class Ead:
         logging.debug(creator_xpath)
         return self.get_text(creator_xpath)
 
-    #     def (self):
-    #         return self.root.xpath("//*[local-name()!='repository']/persname")
-    #
-    #     def name(self):
-    #         return self.root.xpath("//*[local-name()!='repository']/corpname")
-    #
-    #     def (self):
-    #         return self.root.xpath("//famname")
-    #
-    #     def (self):
-    #         return self.root.xpath("//persname")
+    def name(self):
+        fields = ["famname", "persname"]
+        names = set(self.get_text("//*[local-name()!='repository']/corpname"))
+        for field in fields:
+            names.union(self.get_text(f"//{field}"))
+        return list(names)
 
     def place(self):
         places = set()
