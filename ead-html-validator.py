@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 
 
 from fuzzywuzzy import fuzz
@@ -8,11 +8,15 @@ import argparse
 import constants
 import ead
 import eadhtml
+import functools
 import inspect
 import logging
 import os.path
 import time
 import util
+
+
+print = functools.partial(print, flush=True)
 
 
 def validate(xml_file):
@@ -98,7 +102,7 @@ def main():
 
         logging.debug(f"calling eadhtml.{method_name}()")
         ehtml_retval = ehtml_method()
-        print(f"retval={ehtml_retval}")
+        logging.debug(f"retval={ehtml_retval}")
 
     # for c in my_ead.component():
     #     validate_component(c, args.html_dir)
