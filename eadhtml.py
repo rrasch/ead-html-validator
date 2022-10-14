@@ -128,15 +128,15 @@ class EADHTML:
     def userestrict(self):
         return self.get_formatted_note("userestrict")
 
-
     def chronlist(self):
-        items = []
+        items = {}
         clist = self.soup.find("span", class_="ead-chronlist")
-        for item in clist.find("span", class_="ead-chronitem"):
-            print(item.get_text())
-            items.append(item.get_text())
-        logging.debug(items)
-        exit(1)
+        for item in clist.find_all("span", class_="ead-chronitem"):
+            date = item.find("span", class_="ead-date").get_text()
+            group = item.find("span", class_="ead-eventgrp")
+            events = [ event.get_text() for event in group.find_all("span", class_="ead-event") ]
+            items[date] = events
+        return items
 
 #     def corpname(self):
 #         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//corpname")
