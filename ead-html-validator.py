@@ -80,19 +80,6 @@ def main():
     html_file = os.path.join(args.html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
 
-    ead_methods = []
-    for attr in dir(my_ead):
-        obj = getattr(my_ead, attr)
-
-        if attr.startswith("_") or not callable(obj):
-            continue
-
-        if len(inspect.signature(obj).parameters) > 0:
-            continue
-
-        ead_methods.append(attr)
-
-
     for method_name, ead_method in util.get_methods(my_ead).items():
         ehtml_method = getattr(ehtml, method_name)
 
