@@ -40,11 +40,11 @@ def validate_component(c, dirpath):
     html_file = os.path.join(new_dirpath, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
     chtml = ehtml.find_component(c.id())
-    print(chtml)
-    print(chtml.id())
-    print(chtml.level())
-    print(chtml.title())
-    print("extent: %s" % chtml.extent())
+    logging.debug(chtml)
+    logging.debug(f"chtml id:     {chtml.id()}")
+    logging.debug(f"chtml level:  {chtml.level()}")
+    logging.debug(f"chtml title:  {chtml.title()}")
+    logging.debug(f"chtml extent: {chtml.extent()}")
 
     for sub_c in c.sub_components():
         # print(sub_c)
@@ -100,8 +100,8 @@ def main():
         if ehtml_retval is None:
             exit(1)
 
-    # for c in my_ead.component():
-    #     validate_component(c, args.html_dir)
+    for c in my_ead.component():
+        validate_component(c, args.html_dir)
 
 
 if __name__ == "__main__":
