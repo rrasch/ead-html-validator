@@ -104,6 +104,9 @@ class EADHTML:
     def extent(self):
         return self.get_formatted_note("extent")
 
+    def note(self):
+        return self.notestmt()
+
     def notestmt(self):
         return self.get_formatted_note("notestmt")
 
@@ -167,7 +170,10 @@ class EADHTML:
         return self.control_access_group("geogname")
 
     def name(self):
-        pass
+        return "TODO"
+
+    def names(self):
+        return "TODO"
 
     def occupation(self):
         return self.control_access_group("occupation")
@@ -180,9 +186,6 @@ class EADHTML:
 
     def title(self):
         return self.title.text
-
-    def note(self):
-        pass
 
     def repository(self):
         pass
@@ -209,13 +212,13 @@ class EADHTML:
         pass
 
     def material_type(self):
-        pass
+        return self.genreform()
 
     def heading(self):
-        pass
+        return self.unittitle()
 
     def langcode(self):
-        pass
+        return self.language()
 
 #     def date_range(self):
 #         return self.root.xpath("get_date_range_facets,")
@@ -230,7 +233,7 @@ class EADHTML:
         pass
 
     def language(self):
-        pass
+        return self.soup.find("div", class_="langusage").span.text
 
 #     def id(self):
 #         return self.root.xpath("//eadid + node.attr(“id”)")
