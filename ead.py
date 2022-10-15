@@ -263,9 +263,7 @@ class Ead:
     #         return self.root.xpath("parent_unittitle_list(node)")
 
     def collection(self):
-        # eturn self.root.xpath("//archdesc/did/unittitle")
-        pass
-        #return unittitle()
+        return self.unittitle()
 
     def collection_unitid(self):
         # return self.root.xpath("//archdesc/did/unitid")

@@ -21,8 +21,14 @@ class EADHTML:
         text = note.find('p').get_text()
         return text
 
+    def eadnum(self):
+        return self.soup.find("span", class_="ead-num").get_text()
+
+    def url(self):
+        return self.soup.find("link", rel="canonical")["href"]
+
     def eadid(self):
-        return self.root.xpath("eadheader/eadid")[0].text
+        return self.url().rstrip("/").split("/")[-1]
 
     def author(self):
         results = self.soup.find_all("div", class_="author")
@@ -32,7 +38,7 @@ class EADHTML:
         return None
 
     def unitid(self):
-        return self.soup.find_all("div", class_="unit_id")[0].div.get_text()
+        return self.soup.find("div", class_="md-group unit_id").div.get_text()
 
     def creator(self):
         creators = []
@@ -43,20 +49,23 @@ class EADHTML:
             creators.append(creator)
         return creators
 
+    def creators(self):
+        return self.creator()
+
     def unitdate_normal(self):
-        return self.root.xpath(
-            "archdesc[@level='collection']/did/unitdate/@normal"
-        )
+        pass
 
     #     def unitdate(self):
     #         return self.root.xpath("archdesc[@level='collection']/did/unitdate[not(@type)]")
     #
-    #     def unitdate_bulk(self):
-    #         return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='bulk']")
-    #
-    #     def unitdate_inclusive(self):
-    #         return self.root.xpath("archdesc[@level='collection']/did/unitdate[@type='inclusive']")
+    def unitdate_bulk(self):
+        pass
 
+    def unitdate_inclusive(self):
+        pass
+
+    def root(self):
+        pass
 
     def abstract(self):
         logging.debug(self.html_file)
@@ -138,54 +147,46 @@ class EADHTML:
             items[date] = events
         return items
 
-#     def corpname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//corpname")
-#
-#     def famname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//famname")
-#
-#     def function(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//function")
-#
-#     def genreform(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//genreform")
-#
-#     def geogname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//geogname")
-#
-#     def name(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//name")
-#
-#     def occupation(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//occupation")
-#
-#     def persname(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//persname")
-#
-#     def subject(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//subject")
-#
-#     def title(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//title")
-#
-#     def note(self):
-#         return self.root.xpath("archdesc[@level='collection']/*[name() != 'dsc']//note")
-#
-#     def repository(self):
-#         return self.root.xpath("ENV['EAD'].split("\/")[-1]")
-#
-#     def format(self):
-#         return self.root.xpath("Archival Collection")
-#
-#     def format(self):
-#         return self.root.xpath("0")
-#
-#     def creator(self):
-#         return self.root.xpath("//*[local-name()!='repository']/corpname")
-#
-#     def (self):
-#         return self.root.xpath("//*[local-name()!='repository']/famname")
-#
+    def control_access_group(self, field):
+        group = self.soup.find("div", class_=f"controlaccess-{field}-group")
+        return [ div.get_text() for div in group.find_all("div") ]
+
+    def corpname(self):
+        return self.control_access_group("corpname")
+
+    def famname(self):
+        return list(self.soup.find("div", class_=re.compile("^famname")).stripped_strings)[0]
+
+    def function(self):
+        return self.control_access_group("function")
+
+    def genreform(self):
+        return self.control_access_group("genreform")
+
+    def geogname(self):
+        return self.control_access_group("geogname")
+
+    def name(self):
+        pass
+
+    def occupation(self):
+        return self.control_access_group("occupation")
+
+    def persname(self):
+        return self.control_access_group("persname")
+
+    def subject(self):
+        return self.control_access_group("subject")
+
+    def title(self):
+        return self.title.text
+
+    def note(self):
+        pass
+
+    def repository(self):
+        pass
+
 #     def (self):
 #         return self.root.xpath("//*[local-name()!='repository']/persname")
 #
@@ -198,21 +199,24 @@ class EADHTML:
 #     def (self):
 #         return self.root.xpath("//persname")
 #
-#     def place(self):
-#         return self.root.xpath("//geogname")
-#
+    def place(self):
+        pass
+
 #     def subject(self):
 #         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
-#
-#     def dao(self):
-#         return self.root.xpath("//dao")
-#
-#     def material_type(self):
-#         return self.root.xpath("//genreform")
-#
-#     def heading(self):
-#         return self.root.xpath("unittitle")
-#
+
+    def dao(self):
+        pass
+
+    def material_type(self):
+        pass
+
+    def heading(self):
+        pass
+
+    def langcode(self):
+        pass
+
 #     def date_range(self):
 #         return self.root.xpath("get_date_range_facets,")
 #
@@ -221,13 +225,13 @@ class EADHTML:
 #
 #     def unitdate_end(self):
 #         return self.root.xpath("end_dates.compact,")
-#
-#     def unitdate(self):
-#         return self.root.xpath("ead_date_display,")
-#
-#     def language(self):
-#         return self.root.xpath("language,")
-#
+
+    def unitdate(self):
+        pass
+
+    def language(self):
+        pass
+
 #     def id(self):
 #         return self.root.xpath("//eadid + node.attr(“id”)")
 #
@@ -248,15 +252,18 @@ class EADHTML:
 #
 #     def component_children(self):
 #         return self.root.xpath("component_children?(node)")
-#
-#     def collection(self):
-#         return self.root.xpath("//archdesc/did/unittitle")
-#
-#     def collection_unitid(self):
-#         return self.root.xpath("//archdesc/did/unitid")
-#
-#     def chronlist(self):
-#         return self.root.xpath("")
-#
+
+    def unittitle(self):
+        return self.soup.main.find(re.compile("h\d"), class_="page-title").get_text()
+
+    def collection(self):
+        return self.unittitle()
+
+    def collection_unitid(self):
+        return self.unitid()
+
+    def component(self):
+        return "TODO"
+
 #     def series(self):
 #         return self.root.xpath("")

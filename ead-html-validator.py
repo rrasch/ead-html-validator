@@ -12,6 +12,7 @@ import functools
 import inspect
 import logging
 import os.path
+import re
 import time
 import util
 
@@ -87,9 +88,17 @@ def main():
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
+        match = re.search(r"^(dao|component)", method_name)
+        if match:
+            print(f"Skipping {method_name}...")
+            continue
+
         logging.debug(f"calling eadhtml.{method_name}()")
         ehtml_retval = ehtml_method()
         logging.debug(f"retval={ehtml_retval}")
+
+        if ehtml_retval is None:
+            exit(1)
 
     # for c in my_ead.component():
     #     validate_component(c, args.html_dir)
