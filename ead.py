@@ -1,4 +1,3 @@
-import elementpath
 from lxml import etree as ET
 
 import component
@@ -34,13 +33,13 @@ class Ead:
         )
         values = set()
         for node in nodes:
-            #values.add(node.text)
+            # values.add(node.text)
             values.add("".join(node.itertext()).strip())
         # return list(values)
         return ", ".join(list(values))
 
     def __str__(self):
-        return f"EAD({self.eadid}):\n" f"url = {self.url}\n"
+        return f"EAD({self.eadid}):\nurl = {self.url}\n"
 
     def eadid(self):
         return self.root.xpath("eadheader/eadid")[0].text
@@ -65,27 +64,26 @@ class Ead:
         ].text
 
     def langcode(self):
-        # return self.root.xpath("archdesc[@level='collection']/did/langmaterial/language/@langcode")[0].text
         return self.root.xpath("//langusage/language/@langcode")[0]
 
     def language(self):
         return self.root.xpath("//langusage/language")[0].text
 
     def abstract(self):
-        find_text = ET.XPath("//text()")
         node = self.root.xpath("archdesc[@level='collection']/did/abstract")[0]
         for t in node.itertext():
             logging.debug(f"text='{t}'")
         text = "".join(node.itertext())
         return " ".join(text.split())
         # return util.stringify_children(node)
-        # return ""
 
     def creator(self):
         creators = []
         for field in ["corpname", "famname", "persname"]:
             for node in self.root.xpath(
-                f"archdesc[@level='collection']/did/origination[@label='Creator' or @label='creator']/{field}"
+                "archdesc[@level='collection']/did/"
+                "origination[@label='Creator'"
+                f" or @label='creator']/{field}"
             ):
                 logging.debug(node)
                 creators.append(node.text.strip())
@@ -155,7 +153,8 @@ class Ead:
 
     def chronlist(self):
         return self.root.xpath(
-            "archdesc[@level='collection']/*[name() != 'dsc']//chronlist/chronitem//text()"
+            "archdesc[@level='collection']/*[name() !="
+            " 'dsc']//chronlist/chronitem//text()"
         )
 
     def corpname(self):
@@ -196,13 +195,19 @@ class Ead:
 
     def creators(self):
         creator_tags = ["corpname", "famname", "persname"]
-        creator_expr = " or ".join([f"name() = '{tag}'" for tag in creator_tags])
+        creator_expr = " or ".join(
+            [f"name() = '{tag}'" for tag in creator_tags]
+        )
         logging.debug(creator_expr)
-        creator_xpath = f"archdesc[@level='collection']/did/origination[@label='creator' or @label='Creator']/*[{creator_expr}]"
+        creator_xpath = (
+            "archdesc[@level='collection']/did/"
+            "origination[@label='creator' or"
+            f" @label='Creator']/*[{creator_expr}]"
+        )
         logging.debug(creator_xpath)
         return self.get_text(creator_xpath)
 
-    def name(self):
+    def names(self):
         fields = ["famname", "persname"]
         names = set(self.get_text("//*[local-name()!='repository']/corpname"))
         for field in fields:
@@ -214,7 +219,6 @@ class Ead:
         for geo in self.root.xpath("//geogname"):
             places.add(" ".join(geo.text.split()))
         return list(places)
-
 
     def get_text(self, expr, return_list=True):
         node_text_list = set()
@@ -230,12 +234,14 @@ class Ead:
         else:
             return ", ".join(list(node_text_list))
 
-    def subject(self):
-        return self.get_text("""
-                             //*[local-name()='subject'
-                              or local-name()='function'
-                              or local-name()='occupation']
-                             """)
+    def subjects(self):
+        return self.get_text(
+            """
+            //*[local-name()='subject'
+            or local-name()='function'
+            or local-name()='occupation']
+            """
+        )
 
     def dao(self):
         return self.get_text("//dao")
