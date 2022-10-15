@@ -77,6 +77,6 @@ def get_methods(obj):
     return methods
 
 
-def clean(text):
+def clean_text(text):
     return " ".join(text.split())
 

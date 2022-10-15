@@ -176,7 +176,7 @@ class Ead:
         return self.get_archdesc_nodsc("name")
 
     def note(self):
-        return self.get_archdesc_nodsc("note")
+        return self.root.xpath("eadheader/filedesc/notestmt/note/p")[0].text
 
     def occupation(self):
         return self.get_archdesc_nodsc("occupation")

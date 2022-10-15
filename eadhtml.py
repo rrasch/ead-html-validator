@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from util import clean_text
 import comphtml
 import logging
 import re
@@ -18,8 +19,10 @@ class EADHTML:
     def get_formatted_note(self, field):
         note = self.soup.find_all("div", class_=f"md-group formattednote {field}")[0]
         #text = note.div.p.get_text()
-        text = note.find('p').get_text()
-        return text
+        for tag in ['div', 'p']:
+            note_child = getattr(note, tag)
+            if note_child is not None:
+                return note_child.get_text().strip()
 
     def eadnum(self):
         return self.soup.find("span", class_="ead-num").get_text()
@@ -53,16 +56,13 @@ class EADHTML:
         return self.creator()
 
     def unitdate_normal(self):
-        pass
+        return self.unitdate()
 
-    #     def unitdate(self):
-    #         return self.root.xpath("archdesc[@level='collection']/did/unitdate[not(@type)]")
-    #
     def unitdate_bulk(self):
-        pass
+        return list(filter(lambda date: "bulk" in date, self.unitdate()))
 
     def unitdate_inclusive(self):
-        pass
+        return list(filter(lambda date: "inclusive" in date, self.unitdate()))
 
     def root(self):
         pass
@@ -105,9 +105,6 @@ class EADHTML:
         return self.get_formatted_note("extent")
 
     def note(self):
-        return self.notestmt()
-
-    def notestmt(self):
         return self.get_formatted_note("notestmt")
 
     def odd(self):
@@ -184,11 +181,15 @@ class EADHTML:
     def subject(self):
         return self.control_access_group("subject")
 
+    def subjects(self):
+        return self.subject()
+
     def title(self):
-        return self.title.text
+        #return self.soup.title.text
+        return list({title.get_text() for title in self.soup.find_all(class_="ead-title")})
 
     def repository(self):
-        pass
+        return self.soup.find("div", class_="md-group repository").div.get_text()
 
 #     def (self):
 #         return self.root.xpath("//*[local-name()!='repository']/persname")
@@ -203,7 +204,7 @@ class EADHTML:
 #         return self.root.xpath("//persname")
 #
     def place(self):
-        pass
+        return self.control_access_group("geogname")
 
 #     def subject(self):
 #         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
@@ -222,15 +223,15 @@ class EADHTML:
 
 #     def date_range(self):
 #         return self.root.xpath("get_date_range_facets,")
-#
-#     def unitdate_start(self):
-#         return self.root.xpath("start_dates.compact,")
-#
-#     def unitdate_end(self):
-#         return self.root.xpath("end_dates.compact,")
+
+    def unitdate_start(self):
+        return self.unitdate()[0]
+
+    def unitdate_end(self):
+        return self.unitdate()[-1]
 
     def unitdate(self):
-        pass
+        return [date.get_text() for date in self.soup.find("div", "md-group unit_date").find_all("div")]
 
     def language(self):
         return self.soup.find("div", class_="langusage").span.text
