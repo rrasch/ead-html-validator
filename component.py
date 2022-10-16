@@ -2,6 +2,13 @@ class Component:
     def __init__(self, c):
         self.c = c
 
+    def get_val(self, xpath_expr):
+        value = self.c.xpath(xpath_expr)
+        if value:
+            return value[0].text
+        else:
+            return None
+
     def sub_components(self):
         sub_comps = []
         for child in self.c:
@@ -16,7 +23,7 @@ class Component:
         return self.c.attrib["level"]
 
     def title(self):
-        return self.c.xpath("did/unittitle")[0].text
+        return self.get_val("did/unittitle")
 
     #     def unitdate(self):
     #         return ""
@@ -43,103 +50,104 @@ class Component:
     #         return ""
 
     def dimenison(self):
-        return self.c.xpath("did/physdesc/dimensions")[0].text
+        return self.get_val("did/physdesc/dimensions")
 
     def langcode(self):
-        return self.c.xpath("did/langmaterial/language/@langcode")[0].text
+        return self.get_val("did/langmaterial/language/@langcode")
 
     def language(self):
-        return self.c.xpath("did/langmaterial")[0].text
+        return self.get_val("did/langmaterial")
 
     def unittitle(self):
-        return self.c.xpath("unittile")[0].text
+        return self.get_val("unittile")
 
     def accessrestrict(self):
-        return self.c.xpath("accessrestrict/p")[0].text
+        return self.get_val("accessrestrict/p")
 
     def accessrestrict_heading(self):
-        return self.c.xpath("accessrestrict/head")[0].text
+        return self.get_val("accessrestrict/head")
 
     def accruals(self):
-        return self.c.xpath("accruals/p")[0].text
+        return self.get_val("accruals/p")
 
     def accruals_heading(self):
-        return self.c.xpath("accruals/head")[0].text
+        return self.get_val("accruals/head")
 
     def acqinfo(self):
-        return self.c.xpath("acqinfo/p")[0].text
+        return self.get_val("acqinfo/p")
 
     def acqinfo_heading(self):
-        return self.c.xpath("acqinfo/head")[0].text
+        return self.get_val("acqinfo/head")
 
     def altformavail(self):
-        return self.c.xpath("altformavail/p")[0].text
+        return self.get_val("altformavail/p")
 
     def altformavail_heading(self):
-        return self.c.xpath("altformavail/head")[0].text
+        return self.get_val("altformavail/head")
 
     def appraisal(self):
-        return self.c.xpath("appraisal/p")[0].text
+        return self.get_val("appraisal/p")
 
     def appraisal_heading(self):
-        return self.c.xpath("appraisal/head")[0].text
+        return self.get_val("appraisal/head")
 
     def arrangement(self):
-        return self.c.xpath("arrangement/p")[0].text
+        return self.get_val("arrangement/p")
 
     def arrangement_heading(self):
-        return self.c.xpath("arrangement/head")[0].text
+        return self.get_val("arrangement/head")
 
     def custodhist(self):
-        return self.c.xpath("custodhist/p")[0].text
+        return self.get_val("custodhist/p")
 
     def custodhist_heading(self):
-        return self.c.xpath("custodhist/head")[0].text
+        return self.get_val("custodhist/head")
 
     def fileplan(self):
-        return self.c.xpath("fileplan/p")[0].text
+        return self.get_val("fileplan/p")
 
     def fileplan_heading(self):
-        return self.c.xpath("fileplan/head")[0].text
+        return self.get_val("fileplan/head")
 
     def originalsloc(self):
-        return self.c.xpath("originalsloc/p")[0].text
+        return self.get_val("originalsloc/p")
 
     def originalsloc_heading(self):
-        return self.c.xpath("originalsloc/head")[0].text
+        return self.get_val("originalsloc/head")
 
     def phystech(self):
-        return self.c.xpath("phystech/p")[0].text
+        return self.get_val("phystech/p")
 
     def phystech_heading(self):
-        return self.c.xpath("phystech/head")[0].text
+        return self.get_val("phystech/head")
 
     def processinfo(self):
-        return self.c.xpath("processinfo/p")[0].text
+        return self.get_val("processinfo/p")
 
     def processinfo_heading(self):
-        return self.c.xpath("processinfo/head")[0].text
+        return self.get_val("processinfo/head")
 
     def relatedmaterial(self):
-        return self.c.xpath("relatedmaterial/p")[0].text
+        return self.get_val("relatedmaterial/p")
 
     def relatedmaterial_heading(self):
-        return self.c.xpath("relatedmaterial/head")[0].text
+        return self.get_val("relatedmaterial/head")
 
     def separatedmaterial(self):
-        return self.c.xpath("separatedmaterial/p")[0].text
+        return self.get_val("separatedmaterial/p")
 
     def separatedmaterial_heading(self):
-        return self.c.xpath("separatedmaterial/head")[0].text
+        return self.get_val("separatedmaterial/head")
 
     def scopecontent(self):
-        return self.c.xpath("scopecontent/p")[0].text
+        return self.get_val("scopecontent/p")
 
     def scopecontent_heading(self):
-        return self.c.xpath("scopecontent/head")[0].text
+        return self.get_val("scopecontent/head")
 
     def userestrict(self):
-        return self.c.xpath("userestrict/p")[0].text
+        return self.get_val("userestrict/p")
 
     def userestrict_heading(self):
-        return self.c.xpath("userestrict/head")[0].text
+        return self.get_val("userestrict/head")
+

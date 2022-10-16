@@ -38,6 +38,7 @@ def validate_component(c, dirpath):
         new_dirpath = os.path.join(new_dirpath, "contents", c.id())
 
     html_file = os.path.join(new_dirpath, "index.html")
+    logging.debug(f"HTML file: {html_file}")
     ehtml = eadhtml.EADHTML(html_file)
     chtml = ehtml.find_component(c.id())
     logging.debug(chtml)
@@ -45,6 +46,12 @@ def validate_component(c, dirpath):
     logging.debug(f"chtml level:  {chtml.level()}")
     logging.debug(f"chtml title:  {chtml.title()}")
     logging.debug(f"chtml extent: {chtml.extent()}")
+
+    # XXX: Should this be replaced by constants?
+    for method_name, comp_method in util.get_methods(c).items():
+        logging.debug(f"calling Component.{method_name}()")
+        comp_retval = comp_method()
+        logging.debug(f"retval={comp_retval}")
 
     for sub_c in c.sub_components():
         # print(sub_c)
@@ -84,7 +91,7 @@ def main():
     for method_name, ead_method in util.get_methods(my_ead).items():
         ehtml_method = getattr(ehtml, method_name)
 
-        logging.debug(f"calling ead.{method_name}()")
+        logging.debug(f"calling EAD.{method_name}()")
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
@@ -93,7 +100,7 @@ def main():
             print(f"Skipping {method_name}...")
             continue
 
-        logging.debug(f"calling eadhtml.{method_name}()")
+        logging.debug(f"calling EADHTML.{method_name}()")
         ehtml_retval = ehtml_method()
         logging.debug(f"retval={ehtml_retval}")
 
