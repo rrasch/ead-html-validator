@@ -8,7 +8,7 @@ class Component:
     def get_val(self, xpath_expr):
         value = self.c.xpath(xpath_expr)
         if value:
-            return (value[0].text or "").strip()
+            return re.sub(r"\s+", " ", value[0].text).strip()
         else:
             return None
 
@@ -56,7 +56,7 @@ class Component:
     #         return ""
 
     def dimenison(self):
-        return self.get_val("did/physdesc/dimensions")
+        return self.get_text("did/physdesc/dimensions")
 
     def langcode(self):
         return self.get_val("did/langmaterial/language/@langcode")
@@ -64,18 +64,22 @@ class Component:
     def language(self):
         return self.get_text("did/langmaterial")
 
-    def get_text(self, xpath_expr):
-        node = self.c.xpath(xpath_expr)
-        if node is None:
+    def get_text(self, xpath_expr, sep=""):
+        nodes = self.c.xpath(xpath_expr)
+        if nodes is None:
             return None
         # words = []
         # for text in node[0].itertext():
         #     words.extend(text.split())
         # text = " ".join(words)
-        text = " ".join(node[0].itertext())
+        text_list = []
+        for node in nodes:
+            text_list.append(" ".join(node.itertext()))
+        text = sep.join(text_list)
         text = re.sub(r'\s+', ' ', text)
         # text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
-        text = re.sub(rf'\s([{re.escape(string.punctuation)}](?:\s|$))', '\1', text)
+        text = re.sub(rf'\s([{re.escape(string.punctuation)}](?:\s|$))', r'\1', text)
+        text = text.strip()
         return text
 
     def unittitle(self):
@@ -85,7 +89,7 @@ class Component:
         return self.get_val("accessrestrict/p")
 
     def accessrestrict_heading(self):
-        return self.get_val("accessrestrict/head")
+        return self.get_text("accessrestrict/head")
 
     def accruals(self):
         return self.get_val("accruals/p")
@@ -117,11 +121,26 @@ class Component:
     def arrangement_heading(self):
         return self.get_val("arrangement/head")
 
+    def bioghist(self):
+        return self.get_val("bioghist/p")
+
+    def bioghist_heading(self):
+        return self.get_val("bioghist/head")
+
+    def corpname(self):
+        return self.get_val("controlaccess/corpname")
+
     def custodhist(self):
         return self.get_val("custodhist/p")
 
     def custodhist_heading(self):
         return self.get_val("custodhist/head")
+
+    def extent(self):
+        return self.get_text("did/physdesc/extent")
+
+    def famname(self):
+        return self.get_text("controlaccess/famname")
 
     def fileplan(self):
         return self.get_val("fileplan/p")
@@ -129,11 +148,41 @@ class Component:
     def fileplan_heading(self):
         return self.get_val("fileplan/head")
 
+    def function(self):
+        return self.get_val("controlaccess/function")
+
+    def genreform(self):
+        return self.get_val("controlaccess/genreform")
+
+    def geogname(self):
+        return self.get_val("controlaccess/geogname")
+
+    def occupation(self):
+        return self.get_val("controlaccess/occupation")
+
+    def odd(self):
+        return self.get_text("odd/p")
+
+    def odd_heading(self):
+        return self.get_text("odd/head")
+
     def originalsloc(self):
         return self.get_val("originalsloc/p")
 
     def originalsloc_heading(self):
         return self.get_val("originalsloc/head")
+
+    def otherfindaid(self):
+        return self.get_val("otherfindaid/p")
+
+    def otherfindaid_heading(self):
+        return self.get_val("otherfindaid/head")
+
+    def physfacet(self):
+        return self.get_val("did/physdesc/physfacet")
+
+    def physloc(self):
+        return self.get_text("did/physloc", "; ")
 
     def phystech(self):
         return self.get_val("phystech/p")
@@ -164,6 +213,9 @@ class Component:
 
     def scopecontent_heading(self):
         return self.get_val("scopecontent/head")
+
+    def subject(self):
+        return self.get_val("controlaccess/subject")
 
     def userestrict(self):
         return self.get_val("userestrict/p")

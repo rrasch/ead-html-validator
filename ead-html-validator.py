@@ -41,7 +41,7 @@ def validate_component(c, dirpath):
     logging.debug(f"HTML file: {html_file}")
     ehtml = eadhtml.EADHTML(html_file)
     chtml = ehtml.find_component(c.id())
-    logging.debug(chtml)
+    # logging.debug(chtml)
     logging.debug(f"chtml id:     {chtml.id()}")
     logging.debug(f"chtml level:  {chtml.level()}")
     logging.debug(f"chtml title:  {chtml.title()}")
