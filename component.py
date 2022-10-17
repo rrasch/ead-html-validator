@@ -1,4 +1,5 @@
 import re
+import string
 
 class Component:
     def __init__(self, c):
@@ -73,7 +74,8 @@ class Component:
         # text = " ".join(words)
         text = " ".join(node[0].itertext())
         text = re.sub(r'\s+', ' ', text)
-        text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
+        # text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
+        text = re.sub(rf'\s([{re.escape(string.punctuation)}](?:\s|$))', '\1', text)
         return text
 
     def unittitle(self):
