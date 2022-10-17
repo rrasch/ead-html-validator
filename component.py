@@ -5,7 +5,7 @@ class Component:
     def get_val(self, xpath_expr):
         value = self.c.xpath(xpath_expr)
         if value:
-            return value[0].text
+            return (value[0].text or "").strip()
         else:
             return None
 
@@ -23,7 +23,10 @@ class Component:
         return self.c.attrib["level"]
 
     def title(self):
-        return self.get_val("did/unittitle")
+        return self.unittitle()
+
+    def unitid(self):
+        return self.get_val("did/unitid")
 
     #     def unitdate(self):
     #         return ""
@@ -56,10 +59,19 @@ class Component:
         return self.get_val("did/langmaterial/language/@langcode")
 
     def language(self):
-        return self.get_val("did/langmaterial")
+        return self.get_text("did/langmaterial")
+
+    def get_text(self, xpath_expr):
+        node = self.c.xpath(xpath_expr)
+        if node is None:
+            return None
+        words = []
+        for text in node[0].itertext():
+            words.extend(text.split())
+        return " ".join(words)
 
     def unittitle(self):
-        return self.get_val("unittile")
+        return self.get_text("did/unittitle")
 
     def accessrestrict(self):
         return self.get_val("accessrestrict/p")

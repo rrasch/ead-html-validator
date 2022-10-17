@@ -17,7 +17,9 @@ class EADHTML:
         )
 
     def get_formatted_note(self, field):
-        note = self.soup.find_all("div", class_=f"md-group formattednote {field}")[0]
+        note = self.soup.find("div", class_=f"md-group formattednote {field}")
+        if note is None:
+            return None
         #text = note.div.p.get_text()
         for tag in ['div', 'p']:
             note_child = getattr(note, tag)
@@ -136,6 +138,9 @@ class EADHTML:
 
     def userestrict(self):
         return self.get_formatted_note("userestrict")
+
+    def altformavail(self):
+        return self.get_formatted_note("altformavail")
 
     def chronlist(self):
         items = {}

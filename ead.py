@@ -151,6 +151,9 @@ class Ead:
     def userestrict(self):
         return self.get_archdesc("userestrict")
 
+    def altformavail(self):
+        return self.get_archdesc("altformavail")
+
     def chronlist(self):
         return self.root.xpath(
             "archdesc[@level='collection']/*[name() !="

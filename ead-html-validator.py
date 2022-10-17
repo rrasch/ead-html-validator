@@ -47,11 +47,15 @@ def validate_component(c, dirpath):
     logging.debug(f"chtml title:  {chtml.title()}")
     logging.debug(f"chtml extent: {chtml.extent()}")
 
+    logging.debug(f"component tag: {c.c.tag}")
+
     # XXX: Should this be replaced by constants?
     for method_name, comp_method in util.get_methods(c).items():
         logging.debug(f"calling Component.{method_name}()")
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
+
+    exit(1)
 
     for sub_c in c.sub_components():
         # print(sub_c)
@@ -95,7 +99,7 @@ def main():
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
-        match = re.search(r"^(dao|component)", method_name)
+        match = re.search(r"^(dao|component|altformavail)$", method_name)
         if match:
             print(f"Skipping {method_name}...")
             continue
