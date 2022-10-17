@@ -1,3 +1,5 @@
+import re
+
 class Component:
     def __init__(self, c):
         self.c = c
@@ -65,10 +67,14 @@ class Component:
         node = self.c.xpath(xpath_expr)
         if node is None:
             return None
-        words = []
-        for text in node[0].itertext():
-            words.extend(text.split())
-        return " ".join(words)
+        # words = []
+        # for text in node[0].itertext():
+        #     words.extend(text.split())
+        # text = " ".join(words)
+        text = " ".join(node[0].itertext())
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
+        return text
 
     def unittitle(self):
         return self.get_text("did/unittitle")
