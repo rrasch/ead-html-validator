@@ -55,6 +55,11 @@ def validate_component(c, dirpath):
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
 
+        chtml_method = getattr(chtml, method_name)
+        logging.debug(f"calling CompHTML.{method_name}()")
+        chtml_retval = chtml_method()
+        logging.debug(f"retval={chtml_retval}")
+
     exit(1)
 
     for sub_c in c.sub_components():

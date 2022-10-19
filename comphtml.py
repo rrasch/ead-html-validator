@@ -12,6 +12,16 @@ class CompHTML:
         # return str(self.c)
         return self.c.prettify()
 
+    def get_formatted_note(self, field):
+        note = self.c.find("div", class_=f"md-group formattednote {field}")
+        if note is None:
+            return None
+        #text = note.div.p.get_text()
+        for tag in ['div', 'p']:
+            note_child = getattr(note, tag)
+            if note_child is not None:
+                return note_child.get_text().strip()
+
     def id(self):
         return self.id_
 
@@ -66,13 +76,13 @@ class CompHTML:
     #
     #     def unittitle(self):
     #         return self.c.find(re.compile('h\d'), class_='unittitle').text
-    #
-    #     def accessrestrict(self):
-    #         return self.c.xpath("accessrestrict/p")[0].text
-    #
-    #     def accessrestrict_heading(self):
-    #         return self.c.xpath("accessrestrict/head")[0].text
-    #
+
+    def accessrestrict(self):
+        return self.get_formatted_note("accessrestrict")
+
+#     def accessrestrict_heading(self):
+#         return self.c.xpath("accessrestrict/head")[0].text
+# 
     #     def accruals(self):
     #         return self.c.xpath("accruals/p")[0].text
     #
