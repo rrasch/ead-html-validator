@@ -1,5 +1,7 @@
+import constants as cs
 import re
 import string
+
 
 class Component:
     def __init__(self, c):
@@ -19,51 +21,9 @@ class Component:
                 sub_comps.append(Component(child))
         return sub_comps
 
-    def id(self):
-        return self.c.attrib["id"]
-
-    def level(self):
-        return self.c.attrib["level"]
-
-    def title(self):
-        return self.unittitle()
-
-    def unitid(self):
-        return self.get_val("did/unitid")
-
-    #     def unitdate(self):
-    #         return ""
-    #
-    #     def corpname(self):
-    #         return ""
-    #
-    #     def famname(self):
-    #         return ""
-    #
-    #     def genreform(self):
-    #         return ""
-    #
-    #     def geogname(self):
-    #         return ""
-    #
     #     def name(self):
     #         return ""
     #
-    #     def persname(self):
-    #         return ""
-    #
-    #     def subject(self):
-    #         return ""
-
-    def dimenison(self):
-        return self.get_text("did/physdesc/dimensions")
-
-    def langcode(self):
-        return self.get_val("did/langmaterial/language/@langcode")
-
-    def language(self):
-        return self.get_text("did/langmaterial")
-
     def get_text(self, xpath_expr, sep=""):
         nodes = self.c.xpath(xpath_expr)
         if nodes is None:
@@ -76,14 +36,13 @@ class Component:
         for node in nodes:
             text_list.append(" ".join(node.itertext()))
         text = sep.join(text_list)
-        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r"\s+", " ", text)
         # text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
-        text = re.sub(rf'\s([{re.escape(string.punctuation)}](?:\s|$))', r'\1', text)
+        text = re.sub(
+            rf"\s([{re.escape(string.punctuation)}](?:\s|$))", r"\1", text
+        )
         text = text.strip()
         return text
-
-    def unittitle(self):
-        return self.get_text("did/unittitle")
 
     def accessrestrict(self):
         return self.get_val("accessrestrict/p")
@@ -130,11 +89,31 @@ class Component:
     def corpname(self):
         return self.get_val("controlaccess/corpname")
 
+    def creator(self):
+        # return self.get_text("did/origination[@label='Creator']")
+        return self.get_text(
+            "did/origination[@label='Creator']/*[substring(name(),"
+            " string-length(name()) - string-length('name') + 1) = 'name']",
+            sep="|"
+        )
+
     def custodhist(self):
         return self.get_val("custodhist/p")
 
     def custodhist_heading(self):
         return self.get_val("custodhist/head")
+
+    def dao_desc(self):
+        return self.get_val("did/dao/daodesc/p")
+
+    def dao_link(self):
+        return self.c.xpath(f"did/dao/@*[local-name()='href']")[0]
+
+    def dao_title(self):
+        return self.c.xpath(f"did/dao/@*[local-name()='title']")[0]
+
+    def dimenison(self):
+        return self.get_text("did/physdesc/dimensions")
 
     def extent(self):
         return self.get_text("did/physdesc/extent")
@@ -157,6 +136,18 @@ class Component:
     def geogname(self):
         return self.get_val("controlaccess/geogname")
 
+    def id(self):
+        return self.c.attrib["id"]
+
+    def langcode(self):
+        return self.get_val("did/langmaterial/language/@langcode")
+
+    def language(self):
+        return self.get_text("did/langmaterial")
+
+    def level(self):
+        return self.c.attrib["level"]
+
     def occupation(self):
         return self.get_val("controlaccess/occupation")
 
@@ -178,6 +169,9 @@ class Component:
     def otherfindaid_heading(self):
         return self.get_val("otherfindaid/head")
 
+    def persname(self):
+        return self.get_val("controlaccess/persname")
+
     def physfacet(self):
         return self.get_val("did/physdesc/physfacet")
 
@@ -189,6 +183,12 @@ class Component:
 
     def phystech_heading(self):
         return self.get_val("phystech/head")
+
+    def prefercite(self):
+        return self.get_val("prefercite/p")
+
+    def prefercite_heading(self):
+        return self.get_val("prefercite/head")
 
     def processinfo(self):
         return self.get_val("processinfo/p")
@@ -217,9 +217,20 @@ class Component:
     def subject(self):
         return self.get_val("controlaccess/subject")
 
+    def title(self):
+        return self.unittitle()
+
+    def unitdate(self):
+        return self.get_val("did/unitdate")
+
+    def unitid(self):
+        return self.get_val("did/unitid")
+
+    def unittitle(self):
+        return self.get_text("did/unittitle")
+
     def userestrict(self):
         return self.get_val("userestrict/p")
 
     def userestrict_heading(self):
         return self.get_val("userestrict/head")
-

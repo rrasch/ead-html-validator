@@ -7,3 +7,5 @@ abstract
 COMP_FIELDS = """
 unititle
 """.split()
+
+XLINK_NS = "http://www.w3.org/1999/xlink"
