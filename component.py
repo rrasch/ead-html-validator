@@ -112,7 +112,7 @@ class Component:
     def dao_title(self):
         return self.c.xpath(f"did/dao/@*[local-name()='title']")[0]
 
-    def dimenison(self):
+    def dimensions(self):
         return self.get_text("did/physdesc/dimensions")
 
     def extent(self):

@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import inspect
 import logging
 import re
 
@@ -13,17 +14,126 @@ class CompHTML:
         return self.c.prettify()
 
     def get_formatted_note(self, field):
-        note = self.c.find("div", class_=f"md-group formattednote {field}")
+        return self.c.find("div", class_=f"md-group formattednote {field}")
+
+    def get_formatted_note_heading(self, field):
+        note = self.get_formatted_note(field)
         if note is None:
             return None
-        #text = note.div.p.get_text()
-        for tag in ['div', 'p']:
-            note_child = getattr(note, tag)
-            if note_child is not None:
-                return note_child.get_text().strip()
+        return note.find(
+            re.compile(r"^h\d$"), class_="formattednote-header"
+        ).get_text()
+
+    def get_formatted_note_text(self, field):
+        note = self.get_formatted_note(field)
+        if note is None:
+            return None
+        return note.div.p.get_text()
+
+    def get_control_group(self, field):
+        return self.c.find(
+            "div", class_=f"controlaccess-{field}-group"
+        ).div.get_text()
+
+    def accessrestrict(self):
+        return self.get_formatted_note_text("accessrestrict")
+
+    def accessrestrict_heading(self):
+        return self.get_formatted_note_heading("accessrestrict")
+
+    def accruals(self):
+        return self.get_formatted_note_text("accruals")
+
+    def accruals_heading(self):
+        return self.get_formatted_note_text("accruals")
+
+    def acqinfo(self):
+        field = inspect.currentframe().f_code.co_name
+        return self.get_formatted_note_text(field)
+
+    def acqinfo_heading(self):
+        field = inspect.currentframe().f_code.co_name[: -len("_heading")]
+        return self.get_formatted_note_heading(field)
+
+    def altformavail(self):
+        pass
+
+    def altformavail_heading(self):
+        pass
+
+    def appraisal(self):
+        return self.get_formatted_note_text("appraisal")
+
+    def appraisal_heading(self):
+        return self.get_formatted_note_heading("appraisal")
+
+    def arrangement(self):
+        return self.get_formatted_note_text("arrangement")
+
+    def arrangement_heading(self):
+        return self.get_formatted_note_heading("arrangement")
+
+    def bioghist(self):
+        return self.get_formatted_note_text("bioghist")
+
+    def bioghist_heading(self):
+        return self.get_formatted_note_heading("bioghist")
+
+    def corpname(self):
+        pass
+
+    def creator(self):
+        pass
+
+    def custodhist(self):
+        return self.get_formatted_note_text("custodhist")
+
+    def custodhist_heading(self):
+        return self.get_formatted_note_heading("custodhist")
+
+    def dao_desc(self):
+        pass
+
+    def dao_link(self):
+        pass
+
+    def dao_title(self):
+        pass
+
+    def dimensions(self):
+        return self.physdesc("dimensions")
+
+    def extent(self):
+        return self.physdesc("extent")
+
+    def famname(self):
+        pass
+
+    def fileplan(self):
+        return self.get_formatted_note_text("fileplan")
+
+    def fileplan_heading(self):
+        return self.get_formatted_note_heading("fileplan")
+
+    def function(self):
+        return self.get_control_group("function")
+
+    def genreform(self):
+        return self.get_control_group("genreform")
+
+    def geogname(self):
+        return self.get_control_group("geogname")
 
     def id(self):
         return self.id_
+
+    def langcode(self):
+        pass
+
+    def language(self):
+        return self.c.find(
+            "div", class_="md-group langmaterial"
+        ).span.get_text()
 
     def level(self):
         # div = self.c.find_all("div", class_=re.compile('^level'))[0]
@@ -38,101 +148,29 @@ class CompHTML:
             lvl = None
         return lvl
 
-    def title(self):
-        return self.c.find(re.compile("h\d"), class_="unittitle").text
+    def occupation(self):
+        return self.get_control_group("occupation")
 
-    #     def unitdate(self):
-    #         return ""
-    #
-    #     def corpname(self):
-    #         return ""
-    #
-    #     def famname(self):
-    #         return ""
-    #
-    #     def genreform(self):
-    #         return ""
-    #
-    #     def geogname(self):
-    #         return ""
-    #
-    #     def name(self):
-    #         return ""
-    #
-    #     def persname(self):
-    #         return ""
-    #
-    #     def subject(self):
-    #         return ""
+    def odd(self):
+        return self.get_formatted_note_text("odd")
 
-    #     def dimenison(self):
-    #         return self.c.xpath("did/physdesc/dimensions")[0].text
-    #
-    #     def langcode(self):
-    #         return self.c.xpath("did/langmaterial/language/@langcode")[0].text
-    #
-    #     def language(self):
-    #         return self.c.xpath("did/langmaterial")[0].text
-    #
-    #     def unittitle(self):
-    #         return self.c.find(re.compile('h\d'), class_='unittitle').text
+    def odd_heading(self):
+        return self.get_formatted_note_heading("odd")
 
-    def accessrestrict(self):
-        return self.get_formatted_note("accessrestrict")
+    def originalsloc(self):
+        return self.get_formatted_note_text("originalsloc")
 
-#     def accessrestrict_heading(self):
-#         return self.c.xpath("accessrestrict/head")[0].text
-# 
-    #     def accruals(self):
-    #         return self.c.xpath("accruals/p")[0].text
-    #
-    #     def accruals_heading(self):
-    #         return self.c.xpath("accruals/head")[0].text
-    #
-    #     def acqinfo(self):
-    #         return self.c.xpath("acqinfo/p")[0].text
-    #
-    #     def acqinfo_heading(self):
-    #         return self.c.xpath("acqinfo/head")[0].text
-    #
-    #     def altformavail(self):
-    #         return self.c.xpath("altformavail/p")[0].text
-    #
-    #     def altformavail_heading(self):
-    #         return self.c.xpath("altformavail/head")[0].text
-    #
-    #     def appraisal(self):
-    #         return self.c.xpath("appraisal/p")[0].text
-    #
-    #     def appraisal_heading(self):
-    #         return self.c.xpath("appraisal/head")[0].text
-    #
-    #     def arrangement(self):
-    #         return self.c.xpath("arrangement/p")[0].text
-    #
-    #     def arrangement_heading(self):
-    #         return self.c.xpath("arrangement/head")[0].text
-    #
-    #     def custodhist(self):
-    #         return self.c.xpath("custodhist/p")[0].text
-    #
-    #     def custodhist_heading(self):
-    #         return self.c.xpath("custodhist/head")[0].text
+    def originalsloc_heading(self):
+        return self.get_formatted_note_heading("originalsloc")
 
-    def extent(self):
-        return self.physdesc("extent")
+    def otherfindaid(self):
+        return self.get_formatted_note_text("otherfindaid")
 
-    #     def fileplan(self):
-    #         return self.c.xpath("fileplan/p")[0].text
-    #
-    #     def fileplan_heading(self):
-    #         return self.c.xpath("fileplan/head")[0].text
-    #
-    #     def originalsloc(self):
-    #         return self.c.xpath("originalsloc/p")[0].text
-    #
-    #     def originalsloc_heading(self):
-    #         return self.c.xpath("originalsloc/head")[0].text
+    def otherfindaid_heading(self):
+        return self.get_formatted_note_heading("otherfindaid")
+
+    def persname(self):
+        pass
 
     def physdesc(self, field):
         phys_desc = self.c.find("div", class_=re.compile("physdesc"))
@@ -140,42 +178,82 @@ class CompHTML:
             return None
         header = phys_desc.find(re.compile("h\d"), class_=re.compile(field))
         sib = header.find_next_sibling("div")
-        print(sib)
         return sib.text
 
+    def physfacet(self):
+        return self.physdesc("physfacet")
 
-#     def phystech(self):
-#         return self.c.xpath("phystech/p")[0].text
-#
-#     def phystech_heading(self):
-#         return self.c.xpath("phystech/head")[0].text
-#
-#     def processinfo(self):
-#         return self.c.xpath("processinfo/p")[0].text
-#
-#     def processinfo_heading(self):
-#         return self.c.xpath("processinfo/head")[0].text
-#
-#     def relatedmaterial(self):
-#         return self.c.xpath("relatedmaterial/p")[0].text
-#
-#     def relatedmaterial_heading(self):
-#         return self.c.xpath("relatedmaterial/head")[0].text
-#
-#     def separatedmaterial(self):
-#         return self.c.xpath("separatedmaterial/p")[0].text
-#
-#     def separatedmaterial_heading(self):
-#         return self.c.xpath("separatedmaterial/head")[0].text
-#
-#     def scopecontent(self):
-#         return self.c.xpath("scopecontent/p")[0].text
-#
-#     def scopecontent_heading(self):
-#         return self.c.xpath("scopecontent/head")[0].text
-#
-#     def userestrict(self):
-#         return self.c.xpath("userestrict/p")[0].text
-#
-#     def userestrict_heading(self):
-#         return self.c.xpath("userestrict/head")[0].text
+    def physloc(self):
+        return "".join(
+            [
+                span.get_text()
+                for span in self.get_formatted_note("physloc").find_all("span")
+            ]
+        )
+
+    def physloc_heading(self):
+        return self.get_formatted_note_heading("physloc")
+
+    def phystech(self):
+        return self.get_formatted_note_text("phystech")
+
+    def phystech_heading(self):
+        return self.get_formatted_note_heading("phystech")
+
+    def prefercite(self):
+        return self.get_formatted_note_text("prefercite")
+
+    def prefercite_heading(self):
+        return self.get_formatted_note_heading("prefercite")
+
+    def processinfo(self):
+        return self.get_formatted_note_text("processinfo")
+
+    def processinfo_heading(self):
+        return self.get_formatted_note_heading("processinfo")
+
+    def relatedmaterial(self):
+        return self.get_formatted_note_text("relatedmaterial")
+
+    def relatedmaterial_heading(self):
+        return self.get_formatted_note_heading("relatedmaterial")
+
+    def separatedmaterial(self):
+        return self.get_formatted_note_text("separatedmaterial")
+
+    def separatedmaterial_heading(self):
+        return self.get_formatted_note_heading("separatedmaterial")
+
+    def scopecontent(self):
+        return self.get_formatted_note_text("scopecontent")
+
+    def scopecontent_heading(self):
+        return self.get_formatted_note_heading("scopecontent")
+
+    def sub_components(self):
+        pass
+
+    def subject(self):
+        return self.get_control_group("subject")
+
+    def title(self):
+        return self.c.find(re.compile("h\d"), class_="unittitle").text
+
+    def unitdate(self):
+        return (
+            self.c.find(re.compile(r"^h\d$"), class_="unittitle")
+            .find("span", class_="dates")
+            .get_text()
+        )
+
+    def unitid(self):
+        pass
+
+    def unittitle(self):
+        return self.title()
+
+    def userestrict(self):
+        return self.get_formatted_note_text("userestrict")
+
+    def userestrict_heading(self):
+        return self.get_formatted_note_heading("userestrict")
