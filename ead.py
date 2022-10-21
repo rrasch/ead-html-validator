@@ -90,25 +90,34 @@ class Ead:
         logging.debug(creators)
         return creators
 
+#     def unitdate_parse(self, expr):
+#         dates = self.root.xpath(
+#             f"archdesc[@level='collection']/did/unitdate{expr}"
+#         )
+#         return [date.text for date in dates]
+
     def unitdate_normal(self):
         return self.root.xpath(
             "archdesc[@level='collection']/did/unitdate/@normal"
         )
 
     def unitdate(self):
-        return self.root.xpath(
+        dates = self.root.xpath(
             "archdesc[@level='collection']/did/unitdate[not(@type)]"
         )
+        return [date.text for date in dates]
 
     def unitdate_bulk(self):
-        return self.root.xpath(
+        dates =self.root.xpath(
             "archdesc[@level='collection']/did/unitdate[@type='bulk']"
         )
+        return [date.text for date in dates]
 
     def unitdate_inclusive(self):
-        return self.root.xpath(
+        dates = self.root.xpath(
             "archdesc[@level='collection']/did/unitdate[@type='inclusive']"
         )
+        return [date.text for date in dates]
 
     def acqinfo(self):
         return self.root.xpath("archdesc[@level='collection']/acqinfo/p")[
