@@ -3,6 +3,7 @@ from util import clean_text
 import comphtml
 import logging
 import re
+import util
 
 
 class EADHTML:
@@ -156,7 +157,7 @@ class EADHTML:
         return items
 
     def chronlist_heading(self):
-        return (
+        return util.clean_text(
             self.soup.find("span", class_="ead-chronlist")
             .find("span", class_="ead-head")
             .get_text()

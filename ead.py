@@ -170,9 +170,12 @@ class Ead:
         return items
 
     def chronlist_heading(self):
-        return self.root.xpath(
-            "archdesc[@level='collection']/*[name() !='dsc']//chronlist/head"
-        )[0].text
+        return util.clean_text(
+            self.root.xpath(
+                "archdesc[@level='collection']/*[name()"
+                " !='dsc']//chronlist/head"
+            )[0].text
+        )
 
     def corpname(self):
         return self.get_archdesc_nodsc("corpname")
