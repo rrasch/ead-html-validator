@@ -32,7 +32,7 @@ def validate(xml_file):
     return util.do_cmd(["xmllint", "--noout", "--schema", "ead.xsd", xml_file])
 
 
-def validate_component(c, dirpath):
+def validate_component(c, dirpath, errors):
 
     print("----")
     print(c.id())
@@ -68,11 +68,14 @@ def validate_component(c, dirpath):
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
 
+        if not compare(comp_retval, chtml_retval):
+            errors.append(f"'{comp_retval}' != '{chtml_retval}'")
+
     for sub_c in c.sub_components():
         # print(sub_c)
         # print(sub_c.id())
         # print(sub_c.level())
-        validate_component(sub_c, new_dirpath)
+        validate_component(sub_c, new_dirpath, errors)
 
 
 def main():
@@ -130,7 +133,7 @@ def main():
             exit(1)
 
     for c in my_ead.component():
-        validate_component(c, args.html_dir)
+        validate_component(c, args.html_dir, errors)
 
     for error in errors:
         print(f"ERROR: {error}")
