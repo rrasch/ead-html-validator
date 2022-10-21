@@ -20,6 +20,14 @@ import util
 print = functools.partial(print, flush=True)
 
 
+def compare(val1, val2):
+    if type(val1) is not list:
+        val1 = [val1]
+    if type(val2) is not list:
+        val2 = [val2]
+    return val1 == val2
+
+
 def validate(xml_file):
     return util.do_cmd(["xmllint", "--noout", "--schema", "ead.xsd", xml_file])
 
@@ -112,6 +120,9 @@ def main():
         logging.debug(f"calling EADHTML.{method_name}()")
         ehtml_retval = ehtml_method()
         logging.debug(f"retval={ehtml_retval}")
+
+        if not compare(ead_retval, ehtml_retval):
+            raise ValueError(f"{ead_retval} != {ehtml_retval}")
 
         if ehtml_retval is None:
             exit(1)
