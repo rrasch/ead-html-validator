@@ -9,7 +9,10 @@ import util
 class EADHTML:
     def __init__(self, html_file):
         logging.debug(f"html_file={html_file}")
-        self.soup = BeautifulSoup(open(html_file), "html.parser")
+        self.soup = BeautifulSoup(
+            open(html_file), "html.parser", multi_valued_attributes=None
+        )
+        # self.soup = BeautifulSoup(open(html_file), "html.parser")
         self.html_file = html_file
 
     def find_component(self, id):
@@ -37,7 +40,7 @@ class EADHTML:
         return self.url().rstrip("/").split("/")[-1]
 
     def author(self):
-        results = self.soup.find_all("div", class_="author")
+        results = self.soup.find_all("div", class_="md-group author")
         return results[0].div.get_text()
 
     def unittitile(self):

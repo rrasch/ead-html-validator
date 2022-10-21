@@ -65,6 +65,11 @@ def validate_component(c, dirpath, errors):
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
 
+        match = re.search(r"^(sub_components)$", method_name)
+        if match:
+            print(f"Skipping {method_name}...")
+            continue
+
         chtml_method = getattr(chtml, method_name)
         logging.debug(f"calling CompHTML.{method_name}()")
         chtml_retval = chtml_method()

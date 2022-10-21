@@ -152,7 +152,7 @@ class Component:
         return self.get_val("did/langmaterial/language/@langcode")
 
     def language(self):
-        return self.get_text("did/langmaterial")
+        return self.get_text("did/langmaterial/language")
 
     def level(self):
         return self.c.attrib["level"]

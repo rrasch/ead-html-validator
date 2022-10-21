@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString, Tag
 import inspect
 import logging
 import re
@@ -23,7 +23,7 @@ class CompHTML:
         return self.formatted_note_text("accruals")
 
     def accruals_heading(self):
-        return self.formatted_note_text("accruals")
+        return self.formatted_note_heading("accruals")
 
     def acqinfo(self):
         field = inspect.currentframe().f_code.co_name
@@ -252,7 +252,16 @@ class CompHTML:
         return self.control_group("subject")
 
     def title(self):
-        return self.c.find(re.compile("h\d"), class_="unittitle").text
+        # return self.c.find(re.compile("h\d"), class_="unittitle").text
+        text = ""
+        unit_title = self.c.find(re.compile("h\d"), class_="unittitle")
+        for child in unit_title:
+            if not (
+                isinstance(child, Tag)
+                and child.get("class") in ["dates", "delim"]
+            ):
+                text += child.get_text()
+        return text
 
     def unitdate(self):
         date = self.c.find(re.compile(r"^h\d$"), class_="unittitle").find(
