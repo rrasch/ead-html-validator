@@ -105,6 +105,8 @@ def main():
     html_file = os.path.join(args.html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
 
+    errors = []
+
     for method_name, ead_method in util.get_methods(my_ead).items():
         ehtml_method = getattr(ehtml, method_name)
 
@@ -122,13 +124,16 @@ def main():
         logging.debug(f"retval={ehtml_retval}")
 
         if not compare(ead_retval, ehtml_retval):
-            raise ValueError(f"{ead_retval} != {ehtml_retval}")
+            errors.append(f"{ead_retval} != {ehtml_retval}")
 
         if ehtml_retval is None:
             exit(1)
 
     for c in my_ead.component():
         validate_component(c, args.html_dir)
+
+    for error in errors:
+        print(f"ERROR: {error}")
 
 
 if __name__ == "__main__":
