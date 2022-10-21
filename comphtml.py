@@ -13,47 +13,25 @@ class CompHTML:
         # return str(self.c)
         return self.c.prettify()
 
-    def get_formatted_note(self, field):
-        return self.c.find("div", class_=f"md-group formattednote {field}")
-
-    def get_formatted_note_heading(self, field):
-        note = self.get_formatted_note(field)
-        if note is None:
-            return None
-        return note.find(
-            re.compile(r"^h\d$"), class_="formattednote-header"
-        ).get_text()
-
-    def get_formatted_note_text(self, field):
-        note = self.get_formatted_note(field)
-        if note is None:
-            return None
-        return note.div.p.get_text()
-
-    def get_control_group(self, field):
-        return self.c.find(
-            "div", class_=f"controlaccess-{field}-group"
-        ).div.get_text()
-
     def accessrestrict(self):
-        return self.get_formatted_note_text("accessrestrict")
+        return self.formatted_note_text("accessrestrict")
 
     def accessrestrict_heading(self):
-        return self.get_formatted_note_heading("accessrestrict")
+        return self.formatted_note_heading("accessrestrict")
 
     def accruals(self):
-        return self.get_formatted_note_text("accruals")
+        return self.formatted_note_text("accruals")
 
     def accruals_heading(self):
-        return self.get_formatted_note_text("accruals")
+        return self.formatted_note_text("accruals")
 
     def acqinfo(self):
         field = inspect.currentframe().f_code.co_name
-        return self.get_formatted_note_text(field)
+        return self.formatted_note_text(field)
 
     def acqinfo_heading(self):
         field = inspect.currentframe().f_code.co_name[: -len("_heading")]
-        return self.get_formatted_note_heading(field)
+        return self.formatted_note_heading(field)
 
     def altformavail(self):
         pass
@@ -62,43 +40,55 @@ class CompHTML:
         pass
 
     def appraisal(self):
-        return self.get_formatted_note_text("appraisal")
+        return self.formatted_note_text("appraisal")
 
     def appraisal_heading(self):
-        return self.get_formatted_note_heading("appraisal")
+        return self.formatted_note_heading("appraisal")
 
     def arrangement(self):
-        return self.get_formatted_note_text("arrangement")
+        return self.formatted_note_text("arrangement")
 
     def arrangement_heading(self):
-        return self.get_formatted_note_heading("arrangement")
+        return self.formatted_note_heading("arrangement")
 
     def bioghist(self):
-        return self.get_formatted_note_text("bioghist")
+        return self.formatted_note_text("bioghist")
 
     def bioghist_heading(self):
-        return self.get_formatted_note_heading("bioghist")
+        return self.formatted_note_heading("bioghist")
+
+    def control_group(self, field):
+        return self.c.find(
+            "div", class_=f"controlaccess-{field}-group"
+        ).div.get_text(strip=True)
 
     def corpname(self):
-        pass
+        return self.control_group("corpname")
 
     def creator(self):
-        pass
+        origin = self.c.find("div", class_="md-group origination")
+        return [
+            name.get_text()
+            for name in origin.find_all("div", class_=re.compile(r"name$"))
+        ]
 
     def custodhist(self):
-        return self.get_formatted_note_text("custodhist")
+        return self.formatted_note_text("custodhist")
 
     def custodhist_heading(self):
-        return self.get_formatted_note_heading("custodhist")
+        return self.formatted_note_heading("custodhist")
+
+    def dao(self):
+        return self.c.find("div", re.compile(r"^md-group dao-item"))
 
     def dao_desc(self):
-        pass
+        return self.dao().div.a.get_text(strip=True)
 
     def dao_link(self):
-        pass
+        return self.dao().div.a.get("href")
 
     def dao_title(self):
-        pass
+        return 
 
     def dimensions(self):
         return self.physdesc("dimensions")
@@ -107,22 +97,39 @@ class CompHTML:
         return self.physdesc("extent")
 
     def famname(self):
-        pass
+        return self.control_group("famname")
 
     def fileplan(self):
-        return self.get_formatted_note_text("fileplan")
+        return self.formatted_note_text("fileplan")
 
     def fileplan_heading(self):
-        return self.get_formatted_note_heading("fileplan")
+        return self.formatted_note_heading("fileplan")
+
+    def formatted_note(self, field):
+        return self.c.find("div", class_=f"md-group formattednote {field}")
+
+    def formatted_note_heading(self, field):
+        note = self.formatted_note(field)
+        if note is None:
+            return None
+        return note.find(
+            re.compile(r"^h\d$"), class_="formattednote-header"
+        ).get_text()
+
+    def formatted_note_text(self, field):
+        note = self.formatted_note(field)
+        if note is None:
+            return None
+        return note.div.p.get_text()
 
     def function(self):
-        return self.get_control_group("function")
+        return self.control_group("function")
 
     def genreform(self):
-        return self.get_control_group("genreform")
+        return self.control_group("genreform")
 
     def geogname(self):
-        return self.get_control_group("geogname")
+        return self.control_group("geogname")
 
     def id(self):
         return self.id_
@@ -149,25 +156,25 @@ class CompHTML:
         return lvl
 
     def occupation(self):
-        return self.get_control_group("occupation")
+        return self.control_group("occupation")
 
     def odd(self):
-        return self.get_formatted_note_text("odd")
+        return self.formatted_note_text("odd")
 
     def odd_heading(self):
-        return self.get_formatted_note_heading("odd")
+        return self.formatted_note_heading("odd")
 
     def originalsloc(self):
-        return self.get_formatted_note_text("originalsloc")
+        return self.formatted_note_text("originalsloc")
 
     def originalsloc_heading(self):
-        return self.get_formatted_note_heading("originalsloc")
+        return self.formatted_note_heading("originalsloc")
 
     def otherfindaid(self):
-        return self.get_formatted_note_text("otherfindaid")
+        return self.formatted_note_text("otherfindaid")
 
     def otherfindaid_heading(self):
-        return self.get_formatted_note_heading("otherfindaid")
+        return self.formatted_note_heading("otherfindaid")
 
     def persname(self):
         pass
@@ -187,54 +194,54 @@ class CompHTML:
         return "".join(
             [
                 span.get_text()
-                for span in self.get_formatted_note("physloc").find_all("span")
+                for span in self.formatted_note("physloc").find_all("span")
             ]
         )
 
     def physloc_heading(self):
-        return self.get_formatted_note_heading("physloc")
+        return self.formatted_note_heading("physloc")
 
     def phystech(self):
-        return self.get_formatted_note_text("phystech")
+        return self.formatted_note_text("phystech")
 
     def phystech_heading(self):
-        return self.get_formatted_note_heading("phystech")
+        return self.formatted_note_heading("phystech")
 
     def prefercite(self):
-        return self.get_formatted_note_text("prefercite")
+        return self.formatted_note_text("prefercite")
 
     def prefercite_heading(self):
-        return self.get_formatted_note_heading("prefercite")
+        return self.formatted_note_heading("prefercite")
 
     def processinfo(self):
-        return self.get_formatted_note_text("processinfo")
+        return self.formatted_note_text("processinfo")
 
     def processinfo_heading(self):
-        return self.get_formatted_note_heading("processinfo")
+        return self.formatted_note_heading("processinfo")
 
     def relatedmaterial(self):
-        return self.get_formatted_note_text("relatedmaterial")
+        return self.formatted_note_text("relatedmaterial")
 
     def relatedmaterial_heading(self):
-        return self.get_formatted_note_heading("relatedmaterial")
+        return self.formatted_note_heading("relatedmaterial")
 
     def separatedmaterial(self):
-        return self.get_formatted_note_text("separatedmaterial")
+        return self.formatted_note_text("separatedmaterial")
 
     def separatedmaterial_heading(self):
-        return self.get_formatted_note_heading("separatedmaterial")
+        return self.formatted_note_heading("separatedmaterial")
 
     def scopecontent(self):
-        return self.get_formatted_note_text("scopecontent")
+        return self.formatted_note_text("scopecontent")
 
     def scopecontent_heading(self):
-        return self.get_formatted_note_heading("scopecontent")
+        return self.formatted_note_heading("scopecontent")
 
     def sub_components(self):
         pass
 
     def subject(self):
-        return self.get_control_group("subject")
+        return self.control_group("subject")
 
     def title(self):
         return self.c.find(re.compile("h\d"), class_="unittitle").text
@@ -247,13 +254,17 @@ class CompHTML:
         )
 
     def unitid(self):
-        pass
+        return (
+            self.formatted_note("odd")
+            .find("span", class_="ead-num")
+            .get_text()
+        )
 
     def unittitle(self):
         return self.title()
 
     def userestrict(self):
-        return self.get_formatted_note_text("userestrict")
+        return self.formatted_note_text("userestrict")
 
     def userestrict_heading(self):
-        return self.get_formatted_note_heading("userestrict")
+        return self.formatted_note_heading("userestrict")
