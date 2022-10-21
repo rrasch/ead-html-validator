@@ -21,6 +21,8 @@ print = functools.partial(print, flush=True)
 
 
 def compare(val1, val2):
+    val1 = val1 or ""
+    val2 = val2 or ""
     if type(val1) is not list:
         val1 = [val1]
     if type(val2) is not list:
@@ -69,7 +71,7 @@ def validate_component(c, dirpath, errors):
         logging.debug(f"retval={chtml_retval}")
 
         if not compare(comp_retval, chtml_retval):
-            errors.append(f"'{comp_retval}' != '{chtml_retval}'")
+            errors.append(f"{method_name} compenent({c.id()}) - '{comp_retval}' != '{chtml_retval}'")
 
     for sub_c in c.sub_components():
         # print(sub_c)
@@ -127,7 +129,7 @@ def main():
         logging.debug(f"retval={ehtml_retval}")
 
         if not compare(ead_retval, ehtml_retval):
-            errors.append(f"{ead_retval} != {ehtml_retval}")
+            errors.append(f"{method_name} - {ead_retval} != {ehtml_retval}")
 
         if ehtml_retval is None:
             exit(1)

@@ -123,13 +123,13 @@ class CompHTML:
             return None
         return note.find(
             re.compile(r"^h\d$"), class_="formattednote-header"
-        ).get_text()
+        ).get_text(" ", strip=True)
 
     def formatted_note_text(self, field):
         note = self.formatted_note(field)
         if note is None:
             return None
-        return note.div.p.get_text()
+        return note.div.p.get_text(" ", strip=True)
 
     def function(self):
         return self.control_group("function")
