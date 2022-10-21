@@ -58,15 +58,18 @@ class CompHTML:
         return self.formatted_note_heading("bioghist")
 
     def control_group(self, field):
-        return self.c.find(
-            "div", class_=f"controlaccess-{field}-group"
-        ).div.get_text(strip=True)
+        cgroup = self.c.find("div", class_=f"controlaccess-{field}-group")
+        if cgroup is None:
+            return None
+        return cgroup.div.get_text(strip=True)
 
     def corpname(self):
         return self.control_group("corpname")
 
     def creator(self):
         origin = self.c.find("div", class_="md-group origination")
+        if origin is None:
+            return None
         return [
             name.get_text()
             for name in origin.find_all("div", class_=re.compile(r"name$"))
@@ -82,13 +85,19 @@ class CompHTML:
         return self.c.find("div", re.compile(r"^md-group dao-item"))
 
     def dao_desc(self):
+        dao = self.dao()
+        if dao is None:
+            return None
         return self.dao().div.a.get_text(strip=True)
 
     def dao_link(self):
+        dao = self.dao()
+        if dao is None:
+            return None
         return self.dao().div.a.get("href")
 
     def dao_title(self):
-        return 
+        pass
 
     def dimensions(self):
         return self.physdesc("dimensions")
@@ -138,9 +147,10 @@ class CompHTML:
         pass
 
     def language(self):
-        return self.c.find(
-            "div", class_="md-group langmaterial"
-        ).span.get_text()
+        lang = self.c.find("div", class_="md-group langmaterial")
+        if lang is None:
+            return None
+        return lang.span.get_text()
 
     def level(self):
         # div = self.c.find_all("div", class_=re.compile('^level'))[0]
@@ -191,12 +201,10 @@ class CompHTML:
         return self.physdesc("physfacet")
 
     def physloc(self):
-        return "".join(
-            [
-                span.get_text()
-                for span in self.formatted_note("physloc").find_all("span")
-            ]
-        )
+        loc = self.formatted_note("physloc")
+        if loc is None:
+            return None
+        return "".join([span.get_text() for span in loc.find_all("span")])
 
     def physloc_heading(self):
         return self.formatted_note_heading("physloc")
@@ -247,18 +255,18 @@ class CompHTML:
         return self.c.find(re.compile("h\d"), class_="unittitle").text
 
     def unitdate(self):
-        return (
-            self.c.find(re.compile(r"^h\d$"), class_="unittitle")
-            .find("span", class_="dates")
-            .get_text()
+        date = self.c.find(re.compile(r"^h\d$"), class_="unittitle").find(
+            "span", class_="dates"
         )
+        if date is None:
+            return None
+        return date.get_text()
 
     def unitid(self):
-        return (
-            self.formatted_note("odd")
-            .find("span", class_="ead-num")
-            .get_text()
-        )
+        odd = self.formatted_note("odd")
+        if odd is None:
+            return None
+        return odd.find("span", class_="ead-num").get_text()
 
     def unittitle(self):
         return self.title()

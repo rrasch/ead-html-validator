@@ -1,3 +1,4 @@
+from lxml import etree as ET
 import constants as cs
 import re
 import string
@@ -107,10 +108,18 @@ class Component:
         return self.get_val("did/dao/daodesc/p")
 
     def dao_link(self):
-        return self.c.xpath(f"did/dao/@*[local-name()='href']")[0]
+        link = self.c.xpath(f"did/dao/@*[local-name()='href']")
+        if link:
+            return link[0]
+        else:
+            return None
 
     def dao_title(self):
-        return self.c.xpath(f"did/dao/@*[local-name()='title']")[0]
+        title = self.c.xpath(f"did/dao/@*[local-name()='title']")
+        if title:
+            return title[0]
+        else:
+            return None
 
     def dimensions(self):
         return self.get_text("did/physdesc/dimensions")
@@ -203,7 +212,7 @@ class Component:
         return self.get_val("relatedmaterial/head")
 
     def separatedmaterial(self):
-        return self.get_val("separatedmaterial/p")
+        return self.get_text("separatedmaterial/p")
 
     def separatedmaterial_heading(self):
         return self.get_val("separatedmaterial/head")
