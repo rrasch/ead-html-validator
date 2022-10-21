@@ -3,7 +3,7 @@
 
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
-
+from pathlib import Path
 import argparse
 import constants
 import ead
@@ -60,8 +60,6 @@ def validate_component(c, dirpath):
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
 
-    exit(1)
-
     for sub_c in c.sub_components():
         # print(sub_c)
         # print(sub_c.id())
@@ -71,8 +69,10 @@ def validate_component(c, dirpath):
 
 def main():
 
+    script_name = Path(__file__).stem
+
     logging.basicConfig(
-        format="%(asctime)s - ead-validator - %(levelname)s - %(message)s",
+        format=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
 
