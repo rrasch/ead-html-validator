@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from util import clean_text
 import comphtml
 import logging
+import pycountry
 import re
 import util
 
@@ -249,7 +250,8 @@ class EADHTML:
         return self.unittitle()
 
     def langcode(self):
-        return self.language()
+        lang = pycountry.languages.get(name=self.language())
+        return lang.alpha_3
 
     #     def date_range(self):
     #         return self.root.xpath("get_date_range_facets,")
