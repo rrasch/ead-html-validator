@@ -20,8 +20,8 @@ class EADHTML:
         note = self.soup.find("div", class_=f"md-group formattednote {field}")
         if note is None:
             return None
-        #text = note.div.p.get_text()
-        for tag in ['div', 'p']:
+        # text = note.div.p.get_text()
+        for tag in ["div", "p"]:
             note_child = getattr(note, tag)
             if note_child is not None:
                 return note_child.get_text().strip()
@@ -148,19 +148,33 @@ class EADHTML:
         for item in clist.find_all("span", class_="ead-chronitem"):
             date = item.find("span", class_="ead-date").get_text()
             group = item.find("span", class_="ead-eventgrp")
-            events = [ event.get_text() for event in group.find_all("span", class_="ead-event") ]
+            events = [
+                event.get_text()
+                for event in group.find_all("span", class_="ead-event")
+            ]
             items[date] = events
         return items
 
+    def chronlist_heading(self):
+        return (
+            self.soup.find("span", class_="ead-chronlist")
+            .find("span", class_="ead-head")
+            .get_text()
+        )
+
     def control_access_group(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
-        return [ div.get_text() for div in group.find_all("div") ]
+        return [div.get_text() for div in group.find_all("div")]
 
     def corpname(self):
         return self.control_access_group("corpname")
 
     def famname(self):
-        return list(self.soup.find("div", class_=re.compile("^famname")).stripped_strings)[0]
+        return list(
+            self.soup.find(
+                "div", class_=re.compile("^famname")
+            ).stripped_strings
+        )[0]
 
     def function(self):
         return self.control_access_group("function")
@@ -190,29 +204,36 @@ class EADHTML:
         return self.subject()
 
     def title(self):
-        #return self.soup.title.text
-        return list({title.get_text() for title in self.soup.find_all(class_="ead-title")})
+        # return self.soup.title.text
+        return list(
+            {
+                title.get_text()
+                for title in self.soup.find_all(class_="ead-title")
+            }
+        )
 
     def repository(self):
-        return self.soup.find("div", class_="md-group repository").div.get_text()
+        return self.soup.find(
+            "div", class_="md-group repository"
+        ).div.get_text()
 
-#     def (self):
-#         return self.root.xpath("//*[local-name()!='repository']/persname")
-#
-#     def name(self):
-#         return self.root.xpath("//*[local-name()!='repository']/corpname")
-#
-#     def (self):
-#         return self.root.xpath("//famname")
-#
-#     def (self):
-#         return self.root.xpath("//persname")
-#
+    #     def (self):
+    #         return self.root.xpath("//*[local-name()!='repository']/persname")
+    #
+    #     def name(self):
+    #         return self.root.xpath("//*[local-name()!='repository']/corpname")
+    #
+    #     def (self):
+    #         return self.root.xpath("//famname")
+    #
+    #     def (self):
+    #         return self.root.xpath("//persname")
+    #
     def place(self):
         return self.control_access_group("geogname")
 
-#     def subject(self):
-#         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
+    #     def subject(self):
+    #         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
 
     def dao(self):
         pass
@@ -226,8 +247,8 @@ class EADHTML:
     def langcode(self):
         return self.language()
 
-#     def date_range(self):
-#         return self.root.xpath("get_date_range_facets,")
+    #     def date_range(self):
+    #         return self.root.xpath("get_date_range_facets,")
 
     def unitdate_start(self):
         return self.unitdate()[0]
@@ -236,34 +257,41 @@ class EADHTML:
         return self.unitdate()[-1]
 
     def unitdate(self):
-        return [date.get_text() for date in self.soup.find("div", "md-group unit_date").find_all("div")]
+        return [
+            date.get_text()
+            for date in self.soup.find("div", "md-group unit_date").find_all(
+                "div"
+            )
+        ]
 
     def language(self):
         return self.soup.find("div", class_="langusage").span.text
 
-#     def id(self):
-#         return self.root.xpath("//eadid + node.attr(“id”)")
-#
-#     def ead(self):
-#         return self.root.xpath("//eadid")
-#
-#     def parent(self):
-#         return self.root.xpath("node.parent.attr("id")")
-#
-#     def parent(self):
-#         return self.root.xpath("parent_id_list(node)")
-#
-#     def parent_unittitles(self):
-#         return self.root.xpath("parent_unittitle_list(node)")
-#
-#     def component_level(self):
-#         return self.root.xpath("parent_id_list(node).length + 1")
-#
-#     def component_children(self):
-#         return self.root.xpath("component_children?(node)")
+    #     def id(self):
+    #         return self.root.xpath("//eadid + node.attr(“id”)")
+    #
+    #     def ead(self):
+    #         return self.root.xpath("//eadid")
+    #
+    #     def parent(self):
+    #         return self.root.xpath("node.parent.attr("id")")
+    #
+    #     def parent(self):
+    #         return self.root.xpath("parent_id_list(node)")
+    #
+    #     def parent_unittitles(self):
+    #         return self.root.xpath("parent_unittitle_list(node)")
+    #
+    #     def component_level(self):
+    #         return self.root.xpath("parent_id_list(node).length + 1")
+    #
+    #     def component_children(self):
+    #         return self.root.xpath("component_children?(node)")
 
     def unittitle(self):
-        return self.soup.main.find(re.compile("h\d"), class_="page-title").get_text()
+        return self.soup.main.find(
+            re.compile("h\d"), class_="page-title"
+        ).get_text()
 
     def collection(self):
         return self.unittitle()
@@ -273,6 +301,7 @@ class EADHTML:
 
     def component(self):
         return "TODO"
+
 
 #     def series(self):
 #         return self.root.xpath("")

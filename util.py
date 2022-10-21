@@ -78,5 +78,6 @@ def get_methods(obj):
 
 
 def clean_text(text):
-    return " ".join(text.split())
+    return " ".join(text.split()).strip()
+
 

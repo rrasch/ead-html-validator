@@ -155,10 +155,24 @@ class Ead:
         return self.get_archdesc("altformavail")
 
     def chronlist(self):
-        return self.root.xpath(
+        items = {}
+        chron_items = self.root.xpath(
             "archdesc[@level='collection']/*[name() !="
-            " 'dsc']//chronlist/chronitem//text()"
+            " 'dsc']//chronlist/chronitem"
         )
+        for item in chron_items:
+            date = item.xpath("date")[0].text
+            group = item.xpath("eventgrp")[0]
+            events = []
+            for event in group.xpath("event"):
+                events.append(util.clean_text("".join(event.itertext())))
+            items[date] = events
+        return items
+
+    def chronlist_heading(self):
+        return self.root.xpath(
+            "archdesc[@level='collection']/*[name() !='dsc']//chronlist/head"
+        )[0].text
 
     def corpname(self):
         return self.get_archdesc_nodsc("corpname")
