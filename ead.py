@@ -111,13 +111,13 @@ class Ead:
         dates =self.root.xpath(
             "archdesc[@level='collection']/did/unitdate[@type='bulk']"
         )
-        return [date.text for date in dates]
+        return [f"{date.text}, bulk" for date in dates]
 
     def unitdate_inclusive(self):
         dates = self.root.xpath(
             "archdesc[@level='collection']/did/unitdate[@type='inclusive']"
         )
-        return [date.text for date in dates]
+        return [f"{date.text}, inclusive" for date in dates]
 
     def acqinfo(self):
         return self.root.xpath("archdesc[@level='collection']/acqinfo/p")[
