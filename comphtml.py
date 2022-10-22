@@ -166,6 +166,9 @@ class CompHTML:
             lvl = None
         return lvl
 
+    def name(self):
+        pass
+
     def occupation(self):
         return self.control_group("occupation")
 

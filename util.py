@@ -3,7 +3,9 @@ from lxml import etree as ET
 import csv
 import inspect
 import logging
+import re
 import requests
+import string
 import subprocess
 
 
@@ -80,6 +82,16 @@ def get_methods(obj):
 
 
 def clean_text(text):
+    text = re.sub(r"\s+", " ", text)
+    # text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
+    text = re.sub(
+        rf"\s([{re.escape(string.punctuation)}](?:\s|$))", r"\1", text
+    )
+    text = text.strip()
+    return text
+
+
+def clean_text2(text):
     return " ".join(text.split()).strip()
 
 

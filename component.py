@@ -1,7 +1,7 @@
 from lxml import etree as ET
 import constants as cs
 import re
-import string
+import util
 
 
 class Component:
@@ -22,28 +22,18 @@ class Component:
                 sub_comps.append(Component(child))
         return sub_comps
 
-    #     def name(self):
-    #         return ""
-    #
+    def name(self):
+        pass
+
     def get_text(self, xpath_expr, sep=" "):
         nodes = self.c.xpath(xpath_expr)
         if nodes is None:
             return None
-        # words = []
-        # for text in node[0].itertext():
-        #     words.extend(text.split())
-        # text = " ".join(words)
-        text_list = []
-        for node in nodes:
-            text_list.append(" ".join(node.itertext()))
-        text = sep.join(text_list)
-        text = re.sub(r"\s+", " ", text)
-        # text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
-        text = re.sub(
-            rf"\s([{re.escape(string.punctuation)}](?:\s|$))", r"\1", text
-        )
-        text = text.strip()
-        return text
+        text_list = [" ".join(node.itertext()) for node in nodes]
+        if sep is None:
+            return [util.clean_text(text) for text in text_list]
+        else:
+            return util.clean_text(sep.join(text_list))
 
     def accessrestrict(self):
         return self.get_val("accessrestrict/p")
@@ -95,7 +85,7 @@ class Component:
         return self.get_text(
             "did/origination[@label='Creator']/*[substring(name(),"
             " string-length(name()) - string-length('name') + 1) = 'name']",
-            sep="|"
+            sep=None
         )
 
     def custodhist(self):
