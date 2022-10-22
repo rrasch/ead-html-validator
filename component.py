@@ -25,7 +25,7 @@ class Component:
     #     def name(self):
     #         return ""
     #
-    def get_text(self, xpath_expr, sep=""):
+    def get_text(self, xpath_expr, sep=" "):
         nodes = self.c.xpath(xpath_expr)
         if nodes is None:
             return None

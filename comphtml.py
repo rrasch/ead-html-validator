@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 import inspect
 import logging
 import re
+import util
 
 
 class CompHTML:
@@ -195,7 +196,7 @@ class CompHTML:
             return None
         header = phys_desc.find(re.compile("h\d"), class_=re.compile(field))
         sib = header.find_next_sibling("div")
-        return sib.text
+        return util.clean_text(sib.get_text())
 
     def physfacet(self):
         return self.physdesc("physfacet")
