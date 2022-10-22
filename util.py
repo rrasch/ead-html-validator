@@ -1,7 +1,9 @@
+from bs4 import BeautifulSoup
 from lxml import etree as ET
 import csv
 import inspect
 import logging
+import requests
 import subprocess
 
 
@@ -80,4 +82,9 @@ def get_methods(obj):
 def clean_text(text):
     return " ".join(text.split()).strip()
 
+
+def resolve_handle(url):
+    response = requests.get(url, allow_redirects=False)
+    soup = BeautifulSoup(response.text, "html.parser")
+    return soup.a["href"]
 
