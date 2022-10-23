@@ -34,20 +34,25 @@ def stringify_children(node):
     return s
 
 
-def do_cmd(cmdlist, **kwargs):
+def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
     cmd = list(map(str, cmdlist))
     logging.debug("Running command: %s", " ".join(cmd))
+
+    ok_returncodes = [0]
+    if allowed_returncodes:
+        ok_returncodes.extend(allowed_returncodes)
+
     process = None
     try:
-        process = subprocess.run(cmd, check=True, **kwargs)
+        process = subprocess.run(cmd, check=False, **kwargs)
     except subprocess.CalledProcessError as e:
         logging.exception(e)
     except Exception as e:
         logging.exception(e)
-    if process and process.returncode == 0:
-        return True
+    if process and process.returncode in ok_returncodes:
+        return process
     else:
-        return False
+        return None
 
 
 def get_xpaths(tsv_file):
