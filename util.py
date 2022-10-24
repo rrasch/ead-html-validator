@@ -44,11 +44,14 @@ def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
 
     process = None
     try:
-        process = subprocess.run(cmd, check=False, **kwargs)
+        process = subprocess.run(
+            cmd, check=False, universal_newlines=True, **kwargs
+        )
     except subprocess.CalledProcessError as e:
         logging.exception(e)
     except Exception as e:
         logging.exception(e)
+
     if process and process.returncode in ok_returncodes:
         return process
     else:

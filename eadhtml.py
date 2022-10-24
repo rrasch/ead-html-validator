@@ -1,10 +1,10 @@
 from bs4 import BeautifulSoup
-from util import clean_text
 from subprocess import PIPE
 import comphtml
 import logging
 import pycountry
 import re
+import shutil
 import util
 
 
@@ -16,13 +16,6 @@ class EADHTML:
         )
         # self.soup = BeautifulSoup(open(html_file), "html.parser")
         self.html_file = html_file
-
-        ret = util.do_cmd(
-            ["tidys", html_file],
-            allowed_returncodes=[1, 2],
-            stdout=PIPE,
-            stderr=PIPE,
-        )
 
     def find_component(self, id):
         return comphtml.CompHTML(

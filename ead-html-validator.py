@@ -4,6 +4,7 @@
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from pathlib import Path
+from subprocess import PIPE
 import argparse
 import constants
 import ead
@@ -13,7 +14,7 @@ import inspect
 import logging
 import os.path
 import re
-import time
+import shutil
 import util
 
 
@@ -30,12 +31,32 @@ def compare(val1, val2):
     return val1 == val2
 
 
+def validate_html(html_dir):
+    tidy = shutil.which("tidy")
+    if not tidy:
+        return None
+    for root, dirs, files in os.walk(html_dir):
+        for file in files:
+            if file.endswith(".html"):
+                ret = util.do_cmd(
+                    [tidy, os.path.join(root, file)],
+                    allowed_returncodes=[1, 2],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                )
+                if ret:
+                    print(ret.stderr)
+
+
 def validate(xml_file):
-    return util.do_cmd(["xmllint", "--noout", "--schema", "ead.xsd", xml_file])
+    xmllint = shutil.which("xmllint")
+    if xmllint:
+        return util.do_cmd(
+            [xmllint, "--noout", "--schema", "ead.xsd", xml_file]
+        )
 
 
 def validate_component(c, dirpath, errors):
-
     print("----")
     print(c.id())
     print(c.level())
@@ -76,7 +97,10 @@ def validate_component(c, dirpath, errors):
         logging.debug(f"retval={chtml_retval}")
 
         if not compare(comp_retval, chtml_retval):
-            errors.append(f"{method_name} compenent({c.id()}) - '{comp_retval}' != '{chtml_retval}'")
+            errors.append(
+                f"{method_name} compenent({c.id()}) - '{comp_retval}' !="
+                f" '{chtml_retval}'"
+            )
 
     for sub_c in c.sub_components():
         # print(sub_c)
@@ -86,7 +110,6 @@ def validate_component(c, dirpath, errors):
 
 
 def main():
-
     script_name = Path(__file__).stem
 
     logging.basicConfig(
@@ -109,6 +132,7 @@ def main():
     logging.debug("html dir: %s", args.html_dir)
 
     validate(args.ead_file)
+    validate_html(args.html_dir)
 
     my_ead = ead.Ead(args.ead_file)
 
@@ -148,4 +172,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
