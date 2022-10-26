@@ -1,8 +1,10 @@
 #!/usr/bin/env -S python3 -u
 
 
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
+# from fuzzywuzzy import fuzz
+# from fuzzywuzzy import process
+from importlib import import_module
+from lxml import etree as ET
 from pathlib import Path
 from subprocess import PIPE
 import argparse
@@ -15,6 +17,7 @@ import logging
 import os.path
 import re
 import shutil
+import sys
 import util
 
 
@@ -35,6 +38,7 @@ def validate_html(html_dir):
     tidy = shutil.which("tidy")
     if not tidy:
         return None
+
     for root, dirs, files in os.walk(html_dir):
         for file in files:
             if file.endswith(".html"):
@@ -48,12 +52,18 @@ def validate_html(html_dir):
                     print(ret.stderr)
 
 
-def validate(xml_file):
+def validate_xml(xml_file):
     xmllint = shutil.which("xmllint")
     if xmllint:
         return util.do_cmd(
             [xmllint, "--noout", "--schema", "ead.xsd", xml_file]
         )
+    else:
+        try:
+            schema = ET.XMLSchema(ET.parse("ead.xsd"))
+            result = schema.validate(ET.parse(xml_file))
+        except Exception as e:
+            raise e
 
 
 def validate_component(c, dirpath, errors):
@@ -131,8 +141,16 @@ def main():
     logging.debug("ead file: %s", args.ead_file)
     logging.debug("html dir: %s", args.html_dir)
 
-    validate(args.ead_file)
+    validate_xml(args.ead_file)
     validate_html(args.html_dir)
+
+    for libname in ["fuzz", "process"]:
+        try:
+            lib = import_module(f"fuzzywuzzy.{libname}")
+        except:
+            print(sys.exc_info())
+        else:
+            globals()[libname] = lib
 
     my_ead = ead.Ead(args.ead_file)
 
