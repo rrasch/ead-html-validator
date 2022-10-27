@@ -7,6 +7,8 @@ import re
 import shutil
 import util
 
+class ComponentNotFoundError(Exception):
+    pass
 
 class EADHTML:
     def __init__(self, html_file):
@@ -17,10 +19,12 @@ class EADHTML:
         # self.soup = BeautifulSoup(open(html_file), "html.parser")
         self.html_file = html_file
 
-    def find_component(self, id):
-        return comphtml.CompHTML(
-            self.soup.find_all(re.compile("h\d"), id=id)[0].parent, id
-        )
+    def find_component(self, head_id):
+        head = self.soup.find(re.compile(r"^h\d$"), {"id": head_id})
+        if head is not None:
+            return comphtml.CompHTML(head.parent, head_id)
+        else:
+            raise ComponentNotFoundError(f"Can't find {head_id} in {self.html_file}")
 
     def get_formatted_note(self, field):
         note = self.soup.find("div", class_=f"md-group formattednote {field}")
