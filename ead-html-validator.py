@@ -16,6 +16,7 @@ import inspect
 import logging
 import os.path
 import re
+import traceback
 import shutil
 import sys
 import util
@@ -89,7 +90,14 @@ def validate_component(c, dirpath, errors):
     html_file = os.path.join(new_dirpath, "index.html")
     logging.debug(f"HTML file: {html_file}")
     ehtml = eadhtml.EADHTML(html_file)
-    chtml = ehtml.find_component(c.id())
+
+    try:
+        chtml = ehtml.find_component(c.id())
+    except eadhtml.ComponentNotFoundError as e:
+        # errors.append(traceback.format_exc())
+        errors.append(repr(e))
+        return
+
     # logging.debug(chtml)
     logging.debug(f"chtml id:     {chtml.id()}")
     logging.debug(f"chtml level:  {chtml.level()}")
