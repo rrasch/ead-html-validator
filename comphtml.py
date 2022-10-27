@@ -85,20 +85,30 @@ class CompHTML:
     def dao(self):
         return self.c.find("div", re.compile(r"^md-group dao-item"))
 
+    # def dao_desc(self):
+    #     dao = self.dao()
+    #     if dao is None:
+    #         return None
+    #     return self.dao().div.a.get_text(strip=True)
+
     def dao_desc(self):
-        dao = self.dao()
-        if dao is None:
-            return None
-        return self.dao().div.a.get_text(strip=True)
+        return self.dao_title()
 
     def dao_link(self):
         dao = self.dao()
         if dao is None:
             return None
-        return self.dao().div.a.get("href")
+        link = dao.find("a")
+        if link is None:
+            return None
+        return link.get("href")
 
     def dao_title(self):
-        pass
+        dao = self.dao()
+        if dao is None:
+            return None
+        print(dao)
+        return dao.find(class_=re.compile(r"item-title")).get_text(strip=True)
 
     def dimensions(self):
         return self.physdesc("dimensions")
@@ -151,7 +161,12 @@ class CompHTML:
         lang = self.c.find("div", class_="md-group langmaterial")
         if lang is None:
             return None
-        return lang.span.get_text()
+        # return lang.span.get_text()
+        for tag in ["span", "div"]:
+            lang_child = getattr(lang, tag)
+            if lang_child is not None:
+                return lang_child.get_text()
+        return None
 
     def level(self):
         # div = self.c.find_all("div", class_=re.compile('^level'))[0]
