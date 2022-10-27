@@ -7,8 +7,10 @@ import re
 import shutil
 import util
 
+
 class ComponentNotFoundError(Exception):
     pass
+
 
 class EADHTML:
     def __init__(self, html_file):
@@ -19,41 +21,37 @@ class EADHTML:
         # self.soup = BeautifulSoup(open(html_file), "html.parser")
         self.html_file = html_file
 
-    def find_component(self, head_id):
-        head = self.soup.find(re.compile(r"^h\d$"), {"id": head_id})
-        if head is not None:
-            return comphtml.CompHTML(head.parent, head_id)
-        else:
-            raise ComponentNotFoundError(f"Can't find {head_id} in {self.html_file}")
-
-    def get_formatted_note(self, field):
-        note = self.soup.find("div", class_=f"md-group formattednote {field}")
-        if note is None:
-            return None
-        # text = note.div.p.get_text()
-        for tag in ["div", "p"]:
-            note_child = getattr(note, tag)
-            if note_child is not None:
-                return note_child.get_text().strip()
-
-    def eadnum(self):
-        return self.soup.find("span", class_="ead-num").get_text()
-
-    def url(self):
-        return self.soup.find("link", rel="canonical")["href"]
-
-    def eadid(self):
-        return self.url().rstrip("/").split("/")[-1]
-
     def author(self):
         results = self.soup.find_all("div", class_="md-group author")
         return results[0].div.get_text()
 
-    def unittitile(self):
-        return None
+    def abstract(self):
+        logging.debug(self.html_file)
+        return self.formatted_note("abstract")
 
-    def unitid(self):
-        return self.soup.find("div", class_="md-group unit_id").div.get_text()
+    def accessrestrict(self):
+        return self.formatted_note("accessrestrict")
+
+    def accruals(self):
+        return self.formatted_note("accruals")
+
+    def acqinfo(self):
+        return self.formatted_note("acqinfo")
+
+    def altformavail(self):
+        return self.formatted_note("altformavail")
+
+    def appraisal(self):
+        return self.formatted_note("appraisal")
+
+    def arrangement(self):
+        return self.formatted_note("arrangement")
+
+    def bibliography(self):
+        return self.formatted_note("bibliography")
+
+    def bioghist(self):
+        return self.formatted_note("bioghist")
 
     def creator(self):
         creators = []
@@ -67,90 +65,8 @@ class EADHTML:
     def creators(self):
         return self.creator()
 
-    def unitdate_normal(self):
-        return self.unitdate()
-
-    def unitdate_bulk(self):
-        return list(filter(lambda date: "bulk" in date, self.unitdate()))
-
-    def unitdate_inclusive(self):
-        return list(filter(lambda date: "inclusive" in date, self.unitdate()))
-
-    def root(self):
-        pass
-
-    def abstract(self):
-        logging.debug(self.html_file)
-        return self.get_formatted_note("abstract")
-
-    def accessrestrict(self):
-        return self.get_formatted_note("accessrestrict")
-
-    def accruals(self):
-        return self.get_formatted_note("accruals")
-
-    def acqinfo(self):
-        return self.get_formatted_note("acqinfo")
-
-    def appraisal(self):
-        return self.get_formatted_note("appraisal")
-
-    def arrangement(self):
-        return self.get_formatted_note("arrangement")
-
-    def bibliography(self):
-        return self.get_formatted_note("bibliography")
-
-    def bioghist(self):
-        return self.get_formatted_note("bioghist")
-
     def custodhist(self):
-        return self.get_formatted_note("custodhist")
-
-    def dimensions(self):
-        return self.get_formatted_note("dimensions")
-
-    def editionstmt(self):
-        return self.get_formatted_note("editionstmt")
-
-    def extent(self):
-        return self.get_formatted_note("extent")
-
-    def note(self):
-        return self.get_formatted_note("notestmt")
-
-    def odd(self):
-        return self.get_formatted_note("odd")
-
-    def physfacet(self):
-        return self.get_formatted_note("physfacet")
-
-    def phystech(self):
-        return self.get_formatted_note("phystech")
-
-    def processinfo(self):
-        return self.get_formatted_note("processinfo")
-
-    def prefercite(self):
-        return self.get_formatted_note("prefercite")
-
-    def relatedmaterial(self):
-        return self.get_formatted_note("relatedmaterial")
-
-    def revisiondesc(self):
-        return self.get_formatted_note("revisiondesc")
-
-    def scopecontent(self):
-        return self.get_formatted_note("scopecontent")
-
-    def separatedmaterial(self):
-        return self.get_formatted_note("separatedmaterial")
-
-    def userestrict(self):
-        return self.get_formatted_note("userestrict")
-
-    def altformavail(self):
-        return self.get_formatted_note("altformavail")
+        return self.formatted_note("custodhist")
 
     def chronlist(self):
         items = {}
@@ -172,6 +88,15 @@ class EADHTML:
             .get_text()
         )
 
+    def collection(self):
+        return self.unittitle()
+
+    def collection_unitid(self):
+        return self.unitid()
+
+    def component(self):
+        return "TODO"
+
     def control_access_group(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
         return [div.get_text() for div in group.find_all("div")]
@@ -179,12 +104,50 @@ class EADHTML:
     def corpname(self):
         return self.control_access_group("corpname")
 
+    def dao(self):
+        pass
+
+    def dimensions(self):
+        return self.formatted_note("dimensions")
+
+    def eadid(self):
+        return self.url().rstrip("/").split("/")[-1]
+
+    def eadnum(self):
+        return self.soup.find("span", class_="ead-num").get_text()
+
+    def editionstmt(self):
+        return self.formatted_note("editionstmt")
+
+    def extent(self):
+        return self.formatted_note("extent")
+
     def famname(self):
         return list(
             self.soup.find(
                 "div", class_=re.compile("^famname")
             ).stripped_strings
         )[0]
+
+    def find_component(self, head_id):
+        head = self.soup.find(re.compile(r"^h\d$"), {"id": head_id})
+        if head is not None:
+            return comphtml.CompHTML(head.parent, head_id)
+        else:
+            raise ComponentNotFoundError(
+                f"Can't find {head_id} in {self.html_file}"
+            )
+
+    def formatted_note(self, field):
+        note = self.soup.find("div", class_=f"md-group formattednote {field}")
+        if note is None:
+            return None
+        # text = note.div.p.get_text()
+        for tag in ["div", "p"]:
+            note_child = getattr(note, tag)
+            if note_child is not None:
+                return note_child.get_text(strip=True)
+        return None
 
     def function(self):
         return self.control_access_group("function")
@@ -195,62 +158,6 @@ class EADHTML:
     def geogname(self):
         return self.control_access_group("geogname")
 
-    def name(self):
-        return "TODO"
-
-    def names(self):
-        return "TODO"
-
-    def occupation(self):
-        return self.control_access_group("occupation")
-
-    def persname(self):
-        return self.control_access_group("persname")
-
-    def subject(self):
-        return self.control_access_group("subject")
-
-    def subjects(self):
-        return self.subject()
-
-    def title(self):
-        # return self.soup.title.text
-        return list(
-            {
-                title.get_text()
-                for title in self.soup.find_all(class_="ead-title")
-            }
-        )
-
-    def repository(self):
-        return self.soup.find(
-            "div", class_="md-group repository"
-        ).div.get_text()
-
-    #     def (self):
-    #         return self.root.xpath("//*[local-name()!='repository']/persname")
-    #
-    #     def name(self):
-    #         return self.root.xpath("//*[local-name()!='repository']/corpname")
-    #
-    #     def (self):
-    #         return self.root.xpath("//famname")
-    #
-    #     def (self):
-    #         return self.root.xpath("//persname")
-    #
-    def place(self):
-        return self.control_access_group("geogname")
-
-    #     def subject(self):
-    #         return self.root.xpath("//*[local-name()='subject' or local-name()='function' or local-name() = 'occupation']")
-
-    def dao(self):
-        pass
-
-    def material_type(self):
-        return self.genreform()
-
     def heading(self):
         return self.unittitle()
 
@@ -258,14 +165,85 @@ class EADHTML:
         lang = pycountry.languages.get(name=self.language())
         return lang.alpha_3
 
-    #     def date_range(self):
-    #         return self.root.xpath("get_date_range_facets,")
+    def language(self):
+        return self.soup.find("div", class_="langusage").span.text
 
-    def unitdate_start(self):
-        return self.unitdate()[0]
+    def material_type(self):
+        return self.genreform()
 
-    def unitdate_end(self):
-        return self.unitdate()[-1]
+    def name(self):
+        return "TODO"
+
+    def names(self):
+        return "TODO"
+
+    def note(self):
+        return self.formatted_note("notestmt")
+
+    def occupation(self):
+        return self.control_access_group("occupation")
+
+    def odd(self):
+        return self.formatted_note("odd")
+
+    def physfacet(self):
+        return self.formatted_note("physfacet")
+
+    def phystech(self):
+        return self.formatted_note("phystech")
+
+    def processinfo(self):
+        return self.formatted_note("processinfo")
+
+    def prefercite(self):
+        return self.formatted_note("prefercite")
+
+    def persname(self):
+        return self.control_access_group("persname")
+
+    def place(self):
+        return self.control_access_group("geogname")
+
+    def relatedmaterial(self):
+        return self.formatted_note("relatedmaterial")
+
+    def repository(self):
+        return self.soup.find(
+            "div", class_="md-group repository"
+        ).div.get_text()
+
+    def revisiondesc(self):
+        return self.formatted_note("revisiondesc")
+
+    def root(self):
+        pass
+
+    def scopecontent(self):
+        return self.formatted_note("scopecontent")
+
+    def separatedmaterial(self):
+        return self.formatted_note("separatedmaterial")
+
+    def series(self):
+        pass
+
+    def subject(self):
+        return self.control_access_group("subject")
+
+    def subjects(self):
+        return self.subject()
+
+    # def title(self):
+    #     return list(
+    #         {
+    #             title.get_text()
+    #             for title in self.soup.find_all(class_="ead-title")
+    #         }
+    #     )
+
+    def title(self):
+        title_str = self.soup.title.get_text(strip=True)
+        return title_str
 
     def unitdate(self):
         return [
@@ -275,44 +253,31 @@ class EADHTML:
             )
         ]
 
-    def language(self):
-        return self.soup.find("div", class_="langusage").span.text
+    def unitdate_bulk(self):
+        return list(filter(lambda date: "bulk" in date, self.unitdate()))
 
-    #     def id(self):
-    #         return self.root.xpath("//eadid + node.attr(“id”)")
-    #
-    #     def ead(self):
-    #         return self.root.xpath("//eadid")
-    #
-    #     def parent(self):
-    #         return self.root.xpath("node.parent.attr("id")")
-    #
-    #     def parent(self):
-    #         return self.root.xpath("parent_id_list(node)")
-    #
-    #     def parent_unittitles(self):
-    #         return self.root.xpath("parent_unittitle_list(node)")
-    #
-    #     def component_level(self):
-    #         return self.root.xpath("parent_id_list(node).length + 1")
-    #
-    #     def component_children(self):
-    #         return self.root.xpath("component_children?(node)")
+    def unitdate_end(self):
+        return self.unitdate()[-1]
+
+    def unitdate_inclusive(self):
+        return list(filter(lambda date: "inclusive" in date, self.unitdate()))
+
+    def unitdate_normal(self):
+        return self.unitdate()
+
+    def unitdate_start(self):
+        return self.unitdate()[0]
 
     def unittitle(self):
         return self.soup.main.find(
-            re.compile("h\d"), class_="page-title"
+            re.compile(r"^h\d$"), class_="page-title"
         ).get_text()
 
-    def collection(self):
-        return self.unittitle()
+    def unitid(self):
+        return self.soup.find("div", class_="md-group unit_id").div.get_text()
 
-    def collection_unitid(self):
-        return self.unitid()
+    def url(self):
+        return self.soup.find("link", rel="canonical")["href"]
 
-    def component(self):
-        return "TODO"
-
-
-#     def series(self):
-#         return self.root.xpath("")
+    def userestrict(self):
+        return self.formatted_note("userestrict")
