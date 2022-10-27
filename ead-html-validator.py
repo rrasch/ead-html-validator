@@ -65,6 +65,14 @@ def validate_xml(xml_file):
         except Exception as e:
             raise e
 
+def load_fuzzywuzzy():
+    for libname in ["fuzz", "process"]:
+        try:
+            lib = import_module(f"fuzzywuzzy.{libname}")
+        except:
+            print(sys.exc_info())
+        else:
+            globals()[libname] = lib
 
 def validate_component(c, dirpath, errors):
     print("----")
@@ -144,18 +152,12 @@ def main():
     validate_xml(args.ead_file)
     validate_html(args.html_dir)
 
-    for libname in ["fuzz", "process"]:
-        try:
-            lib = import_module(f"fuzzywuzzy.{libname}")
-        except:
-            print(sys.exc_info())
-        else:
-            globals()[libname] = lib
-
     my_ead = ead.Ead(args.ead_file)
 
     html_file = os.path.join(args.html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
+
+    load_fuzzywuzzy()
 
     errors = []
 
