@@ -6,6 +6,8 @@
 from importlib import import_module
 from lxml import etree as ET
 from pathlib import Path
+from pprint import pprint
+from requestmaterials import RequestMaterials
 from subprocess import PIPE
 import argparse
 import constants
@@ -164,6 +166,10 @@ def main():
 
     html_file = os.path.join(args.html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
+
+    rqm_html_file = os.path.join(args.html_dir, "requestmaterials", "index.html")
+    rqm = RequestMaterials(rqm_html_file)
+    pprint(rqm.find_links())
 
     load_fuzzywuzzy()
 
