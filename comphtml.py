@@ -58,6 +58,9 @@ class CompHTML:
     def bioghist_heading(self):
         return self.formatted_note_heading("bioghist")
 
+    def contents(self):
+        return [text for text in self.c.stripped_strings]
+
     def control_group(self, field):
         cgroup = self.c.find("div", class_=f"controlaccess-{field}-group")
         if cgroup is None:

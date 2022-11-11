@@ -53,6 +53,9 @@ class EADHTML:
     def bioghist(self):
         return self.formatted_note("bioghist")
 
+    def contents(self):
+        return [text for text in self.soup.stripped_strings]
+
     def creator(self):
         creators = []
         for node in self.soup.find_all(
