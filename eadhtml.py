@@ -26,7 +26,6 @@ class EADHTML:
         return results[0].div.get_text()
 
     def abstract(self):
-        logging.debug(self.html_file)
         return self.formatted_note("abstract")
 
     def accessrestrict(self):
@@ -109,7 +108,16 @@ class EADHTML:
 
     def control_access_group(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
-        return [div.get_text() for div in group.find_all("div")]
+        return [
+            util.clean_text(div.get_text()) for div in group.find_all("div")
+        ]
+
+    def control_access_group_val(self, field):
+        group = self.soup.find("div", class_=f"controlaccess-{field}-group")
+        return [
+            util.clean_text(node.get_text())
+            for node in group.find_all(class_="controlaccess-value")
+        ]
 
     def corpname(self):
         return self.control_access_group("corpname")
@@ -156,7 +164,8 @@ class EADHTML:
         for tag in ["div", "p"]:
             note_child = getattr(note, tag)
             if note_child is not None:
-                return note_child.get_text(strip=True)
+                # return note_child.get_text(strip=True)
+                return util.clean_text(note_child.get_text())
         return None
 
     def function(self):
@@ -241,7 +250,10 @@ class EADHTML:
         return self.control_access_group("subject")
 
     def subjects(self):
-        return self.subject()
+        subj_set = set()
+        for field in ['subject', 'function', 'occupation']:
+            subj_set.update(self.control_access_group(field))
+        return list(subj_set)
 
     # def title(self):
     #     return list(

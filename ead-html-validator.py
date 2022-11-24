@@ -114,7 +114,7 @@ def validate_component(c, dirpath, errors):
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
 
-        match = re.search(r"^(sub_components)$", method_name)
+        match = re.search(r"^(sub_components|unitid)$", method_name)
         if match:
             print(f"Skipping {method_name}...")
             continue
