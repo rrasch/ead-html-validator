@@ -273,9 +273,9 @@ class Ead:
     def subjects(self):
         return self.get_text(
             """
-            //*[local-name()='subject'
-            or local-name()='function'
-            or local-name()='occupation']
+            //*[not(ancestor::c) and (local-name()='subject' or
+                                      local-name()='function' or
+                                      local-name()='occupation')]
             """
         )
 
