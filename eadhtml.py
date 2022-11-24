@@ -56,6 +56,13 @@ class EADHTML:
     def contents(self):
         return [text for text in self.soup.stripped_strings]
 
+    def creation_date(self):
+        return util.clean_text(
+            self.soup.find("div", class_="creation")
+            .find(class_="ead-date")
+            .get_text()
+        )
+
     def creator(self):
         creators = []
         for node in self.soup.find_all(

@@ -77,6 +77,13 @@ class Ead:
         return " ".join(text.split())
         # return util.stringify_children(node)
 
+    def creation_date(self):
+        return util.clean_text(
+            self.root.xpath(
+                "/ead/eadheader[1]/profiledesc[1]/creation[1]/date[1]"
+            )[0].text
+        )
+
     def creator(self):
         creators = []
         for field in ["corpname", "famname", "persname"]:
