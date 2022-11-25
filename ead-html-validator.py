@@ -11,6 +11,7 @@ from requestmaterials import RequestMaterials
 from subprocess import PIPE
 import argparse
 import constants
+import difflib
 import ead
 import eadhtml
 import functools
@@ -25,6 +26,27 @@ import util
 
 
 print = functools.partial(print, flush=True)
+
+def colored(r, g, b, text):
+    return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
+
+red = lambda text: colored(255, 0, 0, text)
+green = lambda text: colored(0, 255, 0, text)
+blue = lambda text: colored(0, 0, 255, text)
+
+def diff(str1, str2):
+    result = ""
+    codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
+    for code in codes:
+        if code[0] == "equal":
+            result += str1[code[1]:code[2]]
+        elif code[0] == "delete":
+            result += red(str1[code[1]:code[2]])
+        elif code[0] == "insert":
+            result += green(str2[code[3]:code[4]])
+        elif code[0] == "replace":
+            result += (red(str1[code[1]:code[2]]) + green(str2[code[3]:code[4]]))
+    return result
 
 
 def compare(val1, val2):
@@ -130,6 +152,10 @@ def validate_component(c, dirpath, errors):
                 f" '{chtml_retval}'"
             )
 
+        if method_name == "odd":
+            print(diff(comp_retval, chtml_retval))
+            exit(1)
+
     for sub_c in c.sub_components():
         # print(sub_c)
         # print(sub_c.id())
@@ -201,7 +227,7 @@ def main():
         validate_component(c, args.html_dir, errors)
 
     for error in errors:
-        print(f"ERROR: {error}")
+        print(f"ERROR: {error}\n")
 
 
 if __name__ == "__main__":
