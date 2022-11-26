@@ -120,7 +120,15 @@ class EADHTML:
         ]
 
     def corpname(self):
-        return self.control_access_group("corpname")
+        # return self.control_access_group("corpname")
+        return list(
+            {
+                util.clean_text(corp_name.get_text())
+                for corp_name in self.soup.find_all(
+                    class_=re.compile(r"(ead-)?corpname$")
+                )
+            }
+        )
 
     def dao(self):
         pass
