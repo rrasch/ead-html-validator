@@ -57,6 +57,9 @@ def diff_str(str1, str2):
     return result
 
 
+def quote(val):
+    return f"'{val}'"
+
 def diff_list(list1, list2):
     result = []
     codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
@@ -64,13 +67,13 @@ def diff_list(list1, list2):
         if code[0] == "equal":
             result.extend(list1[code[1]:code[2]])
         elif code[0] == "delete":
-            result.extend( map(red, list1[code[1]:code[2]] ) )
+            result.extend(map(red, list1[code[1]:code[2]]))
         elif code[0] == "insert":
-            result.extend( map(green, list2[code[3]:code[4]]) )
+            result.extend(map(green, list2[code[3]:code[4]]))
         elif code[0] == "replace":
-            result.extend( map(red, list1[code[1]:code[2]]))
-            result.extend( map(green, list2[code[3]:code[4]]))
-    return result
+            result.extend(map(red, list1[code[1]:code[2]]))
+            result.extend(map(green, list2[code[3]:code[4]]))
+    return  "[" + ", ".join(map(quote, result)) + "]"
 
 
 def compare(val1, val2):
@@ -242,7 +245,6 @@ def main():
         if not passed_check:
             errors.append(f"{method_name} - {ead_retval} != {ehtml_retval}")
             print(diff(ead_retval, ehtml_retval))
-            exit(1)
 
         if ehtml_retval is None:
             exit(1)
