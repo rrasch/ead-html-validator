@@ -34,7 +34,15 @@ red = lambda text: colored(255, 0, 0, text)
 green = lambda text: colored(0, 255, 0, text)
 blue = lambda text: colored(0, 0, 255, text)
 
-def diff(str1, str2):
+
+def diff(obj1, obj2):
+    if type(obj1) is str:
+        return diff_str(obj1, obj2)
+    else:
+        return diff_list(obj1, obj2)
+
+
+def diff_str(str1, str2):
     result = ""
     codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
     for code in codes:
@@ -46,6 +54,22 @@ def diff(str1, str2):
             result += green(str2[code[3]:code[4]])
         elif code[0] == "replace":
             result += (red(str1[code[1]:code[2]]) + green(str2[code[3]:code[4]]))
+    return result
+
+
+def diff_list(list1, list2):
+    result = []
+    codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
+    for code in codes:
+        if code[0] == "equal":
+            result.extend(list1[code[1]:code[2]])
+        elif code[0] == "delete":
+            result.extend( map(red, list1[code[1]:code[2]] ) )
+        elif code[0] == "insert":
+            result.extend( map(green, list2[code[3]:code[4]]) )
+        elif code[0] == "replace":
+            result.extend( map(red, list1[code[1]:code[2]]))
+            result.extend( map(green, list2[code[3]:code[4]]))
     return result
 
 
@@ -146,15 +170,12 @@ def validate_component(c, dirpath, errors):
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
 
-        if not compare(comp_retval, chtml_retval):
+        passed_check = compare(comp_retval, chtml_retval)
+        if not passed_check:
             errors.append(
                 f"{method_name} compenent({c.id()}) - '{comp_retval}' !="
                 f" '{chtml_retval}'"
             )
-
-        if method_name == "odd":
-            print(diff(comp_retval, chtml_retval))
-            exit(1)
 
     for sub_c in c.sub_components():
         # print(sub_c)
@@ -217,8 +238,11 @@ def main():
         ehtml_retval = ehtml_method()
         logging.debug(f"retval={ehtml_retval}")
 
-        if not compare(ead_retval, ehtml_retval):
+        passed_check = compare(ead_retval, ehtml_retval)
+        if not passed_check:
             errors.append(f"{method_name} - {ead_retval} != {ehtml_retval}")
+            print(diff(ead_retval, ehtml_retval))
+            exit(1)
 
         if ehtml_retval is None:
             exit(1)
