@@ -30,10 +30,13 @@ print = functools.partial(print, flush=True)
 def colored(r, g, b, text):
     return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
 
-red = lambda text: colored(255, 0, 0, text)
-green = lambda text: colored(0, 255, 0, text)
-blue = lambda text: colored(0, 0, 255, text)
+# red = lambda text: colored(255, 0, 0, text)
+# green = lambda text: colored(0, 255, 0, text)
+# blue = lambda text: colored(0, 0, 255, text)
 
+red = lambda text: f"\033[31m{text}\033[0m"
+green = lambda text: f"\033[32m{text}\033[0m"
+blue = lambda test: f"\033[34m{text}\033[0m"
 
 def diff(obj1, obj2):
     if type(obj1) is str:
@@ -244,7 +247,7 @@ def main():
         passed_check = compare(ead_retval, ehtml_retval)
         if not passed_check:
             errors.append(f"{method_name} - {ead_retval} != {ehtml_retval}")
-            print(diff(ead_retval, ehtml_retval))
+            print("DIFF:", diff(ead_retval, ehtml_retval))
 
         if ehtml_retval is None:
             exit(1)
