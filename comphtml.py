@@ -143,7 +143,7 @@ class CompHTML:
         note = self.formatted_note(field)
         if note is None:
             return None
-        return note.div.p.get_text(" ", strip=True)
+        return util.clean_text(note.div.p.get_text(" ", strip=True))
 
     def function(self):
         return self.control_group("function")
