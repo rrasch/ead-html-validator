@@ -97,7 +97,8 @@ class Ead:
         return components
 
     def corpname(self):
-        return self.get_archdesc_nodsc("corpname")
+        return_list = True
+        return self.get_archdesc_nodsc("corpname", return_list)
 
     def creation_date(self):
         return util.clean_text(
@@ -161,7 +162,7 @@ class Ead:
             0
         ].text
 
-    def get_archdesc_nodsc(self, field):
+    def get_archdesc_nodsc(self, field, return_list=False):
         nodes = self.root.xpath(
             f"archdesc[@level='collection']/*[name() != 'dsc']//{field}"
         )
@@ -169,8 +170,11 @@ class Ead:
         for node in nodes:
             # values.add(node.text)
             values.add("".join(node.itertext()).strip())
-        # return list(values)
-        return ", ".join(list(values))
+
+        if return_list:
+            return list(values)
+        else:
+            return ", ".join(list(values))
 
     def get_text(self, expr, return_list=True):
         node_text_list = set()
@@ -322,5 +326,3 @@ class Ead:
 
     #     def series(self):
     #         return self.root.xpath("")
-
-
