@@ -47,10 +47,12 @@ class Ead:
         ].text
 
     def author(self):
-        authors = []
-        for node in self.root.xpath("eadheader/filedesc/titlestmt/author"):
-            authors.append(node.text)
-        return authors
+        author_val = self.root.xpath("eadheader/filedesc/titlestmt/author")[0].text
+        return_list = False
+        if return_list:
+            return re.split(r'\s*\,\s*', author_val)
+        else:
+            return author_val
 
     def bioghist(self):
         return self.root.xpath("archdesc[@level='collection']/bioghist/p")[
@@ -297,7 +299,7 @@ class Ead:
         ].text
 
     def url(self):
-        return self.root.xpath("eadheader/eadid/@url")[0]
+        return str(self.root.xpath("eadheader/eadid/@url")[0])
 
     def userestrict(self):
         return self.get_archdesc("userestrict")

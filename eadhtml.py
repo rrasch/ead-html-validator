@@ -22,8 +22,7 @@ class EADHTML:
         self.html_file = html_file
 
     def author(self):
-        results = self.soup.find_all("div", class_="md-group author")
-        return results[0].div.get_text()
+        return self.soup.find("div", class_="md-group author").div.get_text()
 
     def abstract(self):
         return self.formatted_note("abstract")
