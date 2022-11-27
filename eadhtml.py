@@ -51,31 +51,6 @@ class EADHTML:
     def bioghist(self):
         return self.formatted_note("bioghist")
 
-    def contents(self):
-        return [text for text in self.soup.stripped_strings]
-
-    def creation_date(self):
-        return util.clean_text(
-            self.soup.find("div", class_="creation")
-            .find(class_="ead-date")
-            .get_text()
-        )
-
-    def creator(self):
-        creators = []
-        for node in self.soup.find_all(
-            "div", class_=re.compile("(corp|fam|pers)name role-Donor")
-        ):
-            creator = node.get_text()
-            creators.append(creator)
-        return creators
-
-    def creators(self):
-        return self.creator()
-
-    def custodhist(self):
-        return self.formatted_note("custodhist")
-
     def chronlist(self):
         items = {}
         clist = self.soup.find("span", class_="ead-chronlist")
@@ -105,6 +80,9 @@ class EADHTML:
     def component(self):
         return "TODO"
 
+    def contents(self):
+        return [text for text in self.soup.stripped_strings]
+
     def control_access_group(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
         return [
@@ -129,6 +107,40 @@ class EADHTML:
             }
         )
 
+    def creation_date(self):
+        return util.clean_text(
+            self.soup.find("div", class_="creation")
+            .find(class_="ead-date")
+            .get_text()
+        )
+
+    # def creator(self):
+    #     creators = []
+    #     for node in self.soup.find_all(
+    #         "div", class_=re.compile(r"(corp|fam|pers)name role-Donor")
+    #     ):
+    #         donor = util.clean_text(node.contents[0])
+    #         creators.append(donor)
+    #     return sorted(creators)
+
+    def creator(self):
+        origination = self.soup.find(
+            class_=re.compile(r"^md-group origination")
+        )
+        creators = [
+            util.clean_text(node.contents[0])
+            for node in origination.find_all(
+                "div", class_=re.compile(r"^(corp|fam|pers)name")
+            )
+        ]
+        return creators
+
+    def creators(self):
+        return self.creator()
+
+    def custodhist(self):
+        return self.formatted_note("custodhist")
+
     def dao(self):
         pass
 
@@ -140,6 +152,12 @@ class EADHTML:
 
     def eadnum(self):
         return self.soup.find("span", class_="ead-num").get_text()
+
+    def ead_class_values(self, class_name):
+        return {
+            util.clean_text(node.contents[0])
+            for node in self.soup.find_all(class_=f"ead-{class_name}")
+        }
 
     def editionstmt(self):
         return self.formatted_note("editionstmt")
@@ -198,7 +216,12 @@ class EADHTML:
         return self.genreform()
 
     def name(self):
-        return "TODO"
+        return list(
+            {
+                util.clean_text(node.get_text())
+                for node in self.soup.find_all(class_="ead-name")
+            }
+        )
 
     def names(self):
         return "TODO"
@@ -212,23 +235,25 @@ class EADHTML:
     def odd(self):
         return self.formatted_note("odd")
 
+    def persname(self):
+        persnames = self.ead_class_values("persname")
+        persnames.update(self.control_access_group_val("persname"))
+        return list(persnames)
+
     def physfacet(self):
         return self.formatted_note("physfacet")
 
     def phystech(self):
         return self.formatted_note("phystech")
 
+    def place(self):
+        return self.control_access_group("geogname")
+
     def processinfo(self):
         return self.formatted_note("processinfo")
 
     def prefercite(self):
         return self.formatted_note("prefercite")
-
-    def persname(self):
-        return self.control_access_group("persname")
-
-    def place(self):
-        return self.control_access_group("geogname")
 
     def relatedmaterial(self):
         return self.formatted_note("relatedmaterial")
@@ -262,21 +287,26 @@ class EADHTML:
             subj_set.update(self.control_access_group(field))
         return list(subj_set)
 
-    # def title(self):
-    #     return list(
-    #         {
-    #             title.get_text()
-    #             for title in self.soup.find_all(class_="ead-title")
-    #         }
-    #     )
+    def subtitle(self):
+        return self.soup.main.find(
+            re.compile(r"^h\d$"), class_="subtitle"
+        ).get_text()
 
     def title(self):
+        titles = {
+            util.clean_text(title.get_text())
+            for title in self.soup.find_all(class_="ead-title")
+        }
+        titles.update(self.control_access_group_val("title"))
+        return list(titles)
+
+    def title_head(self):
         title_str = self.soup.title.get_text(strip=True)
         return title_str
 
     def unitdate(self):
         return [
-            date.get_text()
+            util.clean_text(date.get_text())
             for date in self.soup.find("div", "md-group unit_date").find_all(
                 "div"
             )
@@ -284,9 +314,6 @@ class EADHTML:
 
     def unitdate_bulk(self):
         return list(filter(lambda date: "bulk" in date, self.unitdate()))
-
-    def unitdate_end(self):
-        return self.unitdate()[-1]
 
     def unitdate_inclusive(self):
         return list(filter(lambda date: "inclusive" in date, self.unitdate()))

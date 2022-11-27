@@ -115,7 +115,7 @@ class Ead:
             for node in self.root.xpath(
                 "archdesc[@level='collection']/did/"
                 "origination[@label='Creator'"
-                f" or @label='creator']/{field}"
+                f" or @label='source']/{field}"
             ):
                 logging.debug(node)
                 creators.append(node.text.strip())
@@ -130,8 +130,8 @@ class Ead:
         logging.debug(creator_expr)
         creator_xpath = (
             "archdesc[@level='collection']/did/"
-            "origination[@label='creator' or"
-            f" @label='Creator']/*[{creator_expr}]"
+            "origination[@label='Creator' or"
+            f" @label='source']/*[{creator_expr}]"
         )
         logging.debug(creator_xpath)
         return self.get_text(creator_xpath)
@@ -170,8 +170,10 @@ class Ead:
         )
         values = set()
         for node in nodes:
+            # print(util.clean_text("".join(node.itertext())))
             # values.add(node.text)
-            values.add("".join(node.itertext()).strip())
+            # values.add("".join(node.itertext()).strip())
+            values.add(util.clean_text("".join(node.itertext())))
 
         if return_list:
             return list(values)
@@ -205,7 +207,7 @@ class Ead:
         return self.get_text("//genreform")
 
     def name(self):
-        return self.get_archdesc_nodsc("name")
+        return self.get_archdesc_nodsc("name", return_list=True)
 
     def names(self):
         fields = ["famname", "persname"]
@@ -221,7 +223,7 @@ class Ead:
         return self.get_archdesc_nodsc("occupation")
 
     def persname(self):
-        return self.get_archdesc_nodsc("persname")
+        return self.get_archdesc_nodsc("persname", return_list=True)
 
     def phystech(self):
         return self.root.xpath("archdesc[@level='collection']/phystech/p")[
@@ -262,8 +264,11 @@ class Ead:
             """
         )
 
+    def subtitle(self):
+        return self.root.xpath("//titlestmt/subtitle")[0].text
+
     def title(self):
-        return self.get_archdesc_nodsc("title")
+        return self.get_archdesc_nodsc("title", return_list=True)
 
     def unitdate(self):
         dates = self.root.xpath(

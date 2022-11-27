@@ -36,7 +36,8 @@ def colored(r, g, b, text):
 
 red = lambda text: f"\033[31m{text}\033[0m"
 green = lambda text: f"\033[32m{text}\033[0m"
-blue = lambda test: f"\033[34m{text}\033[0m"
+blue = lambda text: f"\033[34m{text}\033[0m"
+foo = lambda text: text
 
 def diff(obj1, obj2):
     if type(obj1) is str:
@@ -50,7 +51,7 @@ def diff_str(str1, str2):
     codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
     for code in codes:
         if code[0] == "equal":
-            result += str1[code[1]:code[2]]
+            result += foo(str1[code[1]:code[2]])
         elif code[0] == "delete":
             result += red(str1[code[1]:code[2]])
         elif code[0] == "insert":
@@ -68,7 +69,8 @@ def diff_list(list1, list2):
     codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
     for code in codes:
         if code[0] == "equal":
-            result.extend(list1[code[1]:code[2]])
+            # result.extend(list1[code[1]:code[2]])
+            result.extend(map(foo, list1[code[1]:code[2]]))
         elif code[0] == "delete":
             result.extend(map(red, list1[code[1]:code[2]]))
         elif code[0] == "insert":
@@ -86,7 +88,7 @@ def compare(val1, val2):
         val1 = [val1]
     if type(val2) is not list:
         val2 = [val2]
-    return val1 == val2
+    return sorted(val1) == sorted(val2)
 
 
 def validate_html(html_dir):
@@ -247,7 +249,7 @@ def main():
         passed_check = compare(ead_retval, ehtml_retval)
         if not passed_check:
             errors.append(f"{method_name} - {ead_retval} != {ehtml_retval}")
-            print("DIFF:", diff(ead_retval, ehtml_retval))
+            print("\nDIFF:", diff(ead_retval, ehtml_retval), "\n")
 
         if ehtml_retval is None:
             exit(1)
