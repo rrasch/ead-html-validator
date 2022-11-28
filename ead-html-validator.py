@@ -131,6 +131,14 @@ def load_fuzzywuzzy():
         else:
             globals()[libname] = lib
 
+def get_term_witdh():
+    try:
+        term_size = os.get_terminal_size()
+        term_width = term_size.columns
+    except:
+        term_width = 80
+    return term_width
+
 def validate_component(c, dirpath, errors):
     print("----")
     print(c.id())
@@ -211,18 +219,21 @@ def main():
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    logging.debug("ead file: %s", args.ead_file)
-    logging.debug("html dir: %s", args.html_dir)
+    ead_file = os.path.abspath(args.ead_file)
+    html_dir = os.path.abspath(args.html_dir)
 
-    validate_xml(args.ead_file)
-    validate_html(args.html_dir)
+    logging.debug("ead file: %s", ead_file)
+    logging.debug("html dir: %s", html_dir)
 
-    my_ead = ead.Ead(args.ead_file)
+    validate_xml(ead_file)
+    validate_html(html_dir)
 
-    html_file = os.path.join(args.html_dir, "index.html")
+    my_ead = ead.Ead(ead_file)
+
+    html_file = os.path.join(html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
 
-    rqm_html_file = os.path.join(args.html_dir, "requestmaterials", "index.html")
+    rqm_html_file = os.path.join(html_dir, "requestmaterials", "index.html")
     rqm = RequestMaterials(rqm_html_file)
     pprint(rqm.find_links())
 
@@ -255,7 +266,7 @@ def main():
             exit(1)
 
     for c in my_ead.component():
-        validate_component(c, args.html_dir, errors)
+        validate_component(c, html_dir, errors)
 
     for error in errors:
         print(f"ERROR: {error}\n")
