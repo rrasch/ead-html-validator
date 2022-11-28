@@ -270,28 +270,32 @@ class Ead:
     def title(self):
         return self.get_archdesc_nodsc("title", return_list=True)
 
-    def unitdate(self):
-        dates = self.root.xpath(
-            "archdesc[@level='collection']/did/unitdate[not(@type)]"
-        )
-        return [date.text for date in dates]
+    def unitdate(self, expr):
+        xpath = f"archdesc[@level='collection']/did/unitdate{expr}"
+        dates = self.root.xpath(xpath)
+        return [
+            util.clean_text(
+                str(date)
+                if isinstance(date, ET._ElementUnicodeResult)
+                else date.text
+            )
+            for date in dates
+        ]
 
-    def unitdate_bulk(self):
-        dates =self.root.xpath(
-            "archdesc[@level='collection']/did/unitdate[@type='bulk']"
-        )
-        return [f"{date.text}, bulk" for date in dates]
+    def unitdate_all(self):
+        return self.unitdate("")
 
-    def unitdate_inclusive(self):
-        dates = self.root.xpath(
-            "archdesc[@level='collection']/did/unitdate[@type='inclusive']"
-        )
-        return [f"{date.text}, inclusive" for date in dates]
+    def _unitdate_bulk(self):
+        return self.unitdate("[@type='bulk']")
 
-    def unitdate_normal(self):
-        return self.root.xpath(
-            "archdesc[@level='collection']/did/unitdate/@normal"
-        )
+    def _unitdate_inclusive(self):
+        return self.unitdate("[@type='inclusive']")
+
+    def _unitdate_normal(self):
+        return self.unitdate("/@normal")
+
+    def _unitdate_not_type(self):
+        return self.unitdate("[not(@type)]")
 
     def unitid(self):
         return self.root.xpath("archdesc[@level='collection']/did/unitid")[

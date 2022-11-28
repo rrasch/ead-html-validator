@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from string import punctuation as punc
 from subprocess import PIPE
 import comphtml
 import logging
@@ -70,6 +71,10 @@ class EADHTML:
             .find("span", class_="ead-head")
             .get_text()
         )
+
+    @staticmethod
+    def clean_dates(dates):
+        return [re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}") for date in dates]
 
     def collection(self):
         return self.unittitle()
@@ -306,23 +311,30 @@ class EADHTML:
 
     def unitdate(self):
         return [
-            util.clean_text(date.get_text())
+            date.text
             for date in self.soup.find("div", "md-group unit_date").find_all(
                 "div"
             )
         ]
 
+    def unitdate_all(self):
+        return EADHTML.clean_dates(self.unitdate())
+
     def unitdate_bulk(self):
-        return list(filter(lambda date: "bulk" in date, self.unitdate()))
+        return self.unitdate_grep(lambda date: "bulk" in date)
+
+    def unitdate_grep(self, grep_func):
+        return list(filter(grep_func, self.unitdate()))
 
     def unitdate_inclusive(self):
-        return list(filter(lambda date: "inclusive" in date, self.unitdate()))
+        return self.unitdate_grep(lambda date: "inclusive" in date)
 
-    def unitdate_normal(self):
-        return self.unitdate()
-
-    def unitdate_start(self):
-        return self.unitdate()[0]
+    def unitdate_not_type(self):
+        return self.unitdate_grep(
+            lambda date: all(
+                dtype not in date for dtype in ["bulk", "inclusive"]
+            )
+        )
 
     def unittitle(self):
         return self.soup.main.find(
