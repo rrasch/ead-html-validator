@@ -49,19 +49,17 @@ def diff(obj1, obj2, diff_cfg):
     list1 = create_list(obj1)
     list2 = create_list(obj2)
     if diff_cfg['type'].startswith("unified"):
-        print("type obj1", type(obj1))
         text = ""
         for uni_diff in difflib.unified_diff(list1, list2):
-            if diff_type.endswith("color") and uni_diff[0] in diff_color:
+            if diff_cfg["type"].endswith("color") and uni_diff[0] in diff_color:
                 text += diff_color[uni_diff[0]](uni_diff) + "\n"
             else:
                 text += uni_diff + "\n"
-        text = "\n" + text.strip()
     elif diff_cfg["type"] == "color":
         text = color_diff_list(list1, list2)
     else:
         text = simple_diff(obj1, obj2, diff_cfg)
-    return diff_cfg["sep"] + "\n" + text + diff_cfg["sep"] + "\n"
+    return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"] + "\n"
 
 def simple_diff(obj1, obj2, diff_cfg):
     max_len = diff_cfg["term_width"]
@@ -229,7 +227,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
         else:
             passed_check = compare(comp_retval, chtml_retval)
             if not passed_check:
-                errors.append(f"field '{method_name}' differs for c '{c.id()}'\n\nDIFF: " + diff(comp_retval, chtml_retval, diff_cfg) + "\n")
+                errors.append(f"field '{method_name}' differs for c '{c.id()}'\nDIFF:\n" + diff(comp_retval, chtml_retval, diff_cfg) + "\n")
 
     for sub_c in c.sub_components():
         # logging.debug(sub_c)
@@ -241,7 +239,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
 def main():
 
     if not sys.version_info >= (3, 7):
-        print("Python 3.6 or higher is required.")
+        print("Python 3.7 or higher is required.")
         sys.exit(1)
 
     script_name = Path(__file__).stem
@@ -314,7 +312,7 @@ def main():
 
         passed_check = compare(ead_retval, ehtml_retval)
         if not passed_check:
-            errors.append(f"ead field '{method_name}' differs'\n\nDIFF\n: " + diff(ead_retval, ehtml_retval, diff_cfg) + "\n")
+            errors.append(f"ead field '{method_name}' differs'\nDIFF:\n" + diff(ead_retval, ehtml_retval, diff_cfg) + "\n")
 
         if ehtml_retval is None:
             exit(1)
