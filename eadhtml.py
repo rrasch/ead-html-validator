@@ -175,9 +175,18 @@ class EADHTML:
             self.soup.find(
                 "div", class_=re.compile("^famname")
             ).stripped_strings
-        )[0]
+        )
 
-    def find_component(self, head_id):
+    def find_component(self, cid):
+        node = self.soup.find(attrs={"id": cid})
+        if node is not None:
+            return comphtml.CompHTML(node, cid)
+        else:
+            raise ComponentNotFoundError(
+                f"Can't find {cid} in {self.html_file}"
+            )
+
+    def find_component_by_heading(self, head_id):
         head = self.soup.find(re.compile(r"^h\d$"), {"id": head_id})
         if head is not None:
             return comphtml.CompHTML(head.parent, head_id)
@@ -229,7 +238,8 @@ class EADHTML:
         )
 
     def names(self):
-        return "TODO"
+        name_list = self.famname() + self.persname() + list(self.ead_class_values("corpname"))
+        return name_list
 
     def note(self):
         return self.formatted_note("notestmt")

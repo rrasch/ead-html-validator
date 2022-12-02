@@ -110,7 +110,7 @@ class CompHTML:
         dao = self.dao()
         if dao is None:
             return None
-        print(dao)
+        logging.debug(dao)
         return dao.find(class_=re.compile(r"item-title")).get_text(strip=True)
 
     def dimensions(self):
@@ -172,14 +172,12 @@ class CompHTML:
         return None
 
     def level(self):
-        # div = self.c.find_all("div", class_=re.compile('^level'))[0]
-        # lvl = div['class'][0].split('-')[1]
         if (
             self.c.name == "div"
             and self.c.has_attr("class")
-            and self.c["class"][0].startswith("level")
+            and self.c["class"].startswith("level")
         ):
-            lvl = self.c["class"][0].split("-")[1]
+            lvl = re.split("[- ]", self.c["class"])[1]
         else:
             lvl = None
         return lvl

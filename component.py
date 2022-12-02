@@ -1,39 +1,15 @@
 from lxml import etree as ET
 import constants as cs
+import logging
 import re
 import util
 
 
 class Component:
-    def __init__(self, c):
+    def __init__(self, c, parent):
         self.c = c
-
-    def get_val(self, xpath_expr):
-        value = self.c.xpath(xpath_expr)
-        if value:
-            return re.sub(r"\s+", " ", value[0].text).strip()
-        else:
-            return None
-
-    def sub_components(self):
-        sub_comps = []
-        for child in self.c:
-            if child.tag == "c":
-                sub_comps.append(Component(child))
-        return sub_comps
-
-    def name(self):
-        pass
-
-    def get_text(self, xpath_expr, sep=" "):
-        nodes = self.c.xpath(xpath_expr)
-        if nodes is None:
-            return None
-        text_list = [" ".join(node.itertext()) for node in nodes]
-        if sep is None:
-            return [util.clean_text(text) for text in text_list]
-        else:
-            return util.clean_text(sep.join(text_list))
+        self.parent = parent
+        self.ead_file = parent.ead_file
 
     def accessrestrict(self):
         return self.get_val("accessrestrict/p")
@@ -94,20 +70,33 @@ class Component:
     def custodhist_heading(self):
         return self.get_val("custodhist/head")
 
+    def _dao(self, return_list=False):
+        for node in self.c.xpath("did"):
+            logging.debug(ET.tostring(node, pretty_print=True).decode())
+        dao_list = self.c.xpath("did/*[self::dao or self::daogrp]")
+        if return_list:
+            return dao_list
+        else:
+            return dao_list[0]
+
     def dao_desc(self):
-        return self.get_val("did/dao/daodesc/p")
+        for node in self.c.xpath("did"):
+            logging.debug(ET.tostring(node, pretty_print=True).decode())
+        return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
 
     def dao_link(self):
-        link = self.c.xpath(f"did/dao/@*[local-name()='href']")
-        if link:
-            return link[0]
+        link_list = []
+        links = self.c.xpath(f"did/*[self::dao or self::daogrp]//@*[local-name()='href']")
+
+        if links:
+            return list(map(str, links))[0]
         else:
             return None
 
     def dao_title(self):
-        title = self.c.xpath(f"did/dao/@*[local-name()='title']")
+        title = self.c.xpath(f"did/*[self::dao or self::daogrp]/@*[local-name()='title']")
         if title:
-            return title[0]
+            return str(title[0])
         else:
             return None
 
@@ -135,6 +124,23 @@ class Component:
     def geogname(self):
         return self.get_val("controlaccess/geogname")
 
+    def get_text(self, xpath_expr, sep=" "):
+        nodes = self.c.xpath(xpath_expr)
+        if not nodes:
+            return None
+        text_list = [" ".join(node.itertext()) for node in nodes]
+        if sep is None:
+            return [util.clean_text(text) for text in text_list]
+        else:
+            return util.clean_text(sep.join(text_list))
+
+    def get_val(self, xpath_expr):
+        value = self.c.xpath(xpath_expr)
+        if value:
+            return re.sub(r"\s+", " ", value[0].text).strip()
+        else:
+            return None
+
     def id(self):
         return self.c.attrib["id"]
 
@@ -146,6 +152,9 @@ class Component:
 
     def level(self):
         return self.c.attrib["level"]
+
+    def name(self):
+        pass
 
     def occupation(self):
         return self.get_val("controlaccess/occupation")
@@ -212,6 +221,13 @@ class Component:
 
     def scopecontent_heading(self):
         return self.get_val("scopecontent/head")
+
+    def sub_components(self):
+        sub_comps = []
+        for child in self.c:
+            if child.tag == "c":
+                sub_comps.append(Component(child, self))
+        return sub_comps
 
     def subject(self):
         return self.get_val("controlaccess/subject")

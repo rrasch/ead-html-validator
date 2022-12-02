@@ -1,5 +1,4 @@
 from lxml import etree as ET
-
 import component
 import logging
 import util
@@ -8,6 +7,7 @@ import util
 class Ead:
     def __init__(self, ead_file):
         logging.debug(f"ead_file={ead_file}")
+        self.ead_file = ead_file
 
         nsmap = {"e": "urn:isbn:1-931666-22-9"}
 
@@ -95,7 +95,7 @@ class Ead:
         for c in self.root.xpath("//c[not(ancestor::c)]"):
             # logging.debug(c.attrib['id'])
             # logging.debug(c.attrib['level'])
-            components.append(component.Component(c))
+            components.append(component.Component(c, self))
         return components
 
     def corpname(self):
@@ -148,7 +148,7 @@ class Ead:
         return self.root.xpath("eadheader/eadid")[0].text
 
     def famname(self):
-        return self.get_archdesc_nodsc("famname")
+        return self.get_archdesc_nodsc("famname", return_list=True)
 
     def function(self):
         return self.get_archdesc_nodsc("function")
@@ -170,7 +170,7 @@ class Ead:
         )
         values = set()
         for node in nodes:
-            # print(util.clean_text("".join(node.itertext())))
+            # logging.debug(util.clean_text("".join(node.itertext())))
             # values.add(node.text)
             # values.add("".join(node.itertext()).strip())
             values.add(util.clean_text("".join(node.itertext())))
@@ -210,8 +210,8 @@ class Ead:
         return self.get_archdesc_nodsc("name", return_list=True)
 
     def names(self):
-        fields = ["famname", "persname"]
         names = set(self.get_text("//*[local-name()!='repository']/corpname"))
+        fields = ["famname", "persname"]
         for field in fields:
             names.union(self.get_text(f"//{field}"))
         return list(names)

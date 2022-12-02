@@ -25,12 +25,12 @@ def stringify_children(node):
     if s is None:
         s = ""
     for child in node:
-        print(child)
+        logging.debug(child)
         # s += ET.tostring(child, encoding='unicode')
         buf = child.text
         if buf:
             s += buf
-    print(s)
+    logging.debug(s)
     return s
 
 
@@ -64,11 +64,11 @@ def get_xpaths(tsv_file):
         read_tsv = csv.reader(f, delimiter="\t")
         next(read_tsv)
         for row in read_tsv:
-            # print(row)
+            # logging.debug(row)
             xpath[row[0]] = row[1]
-            # print(f"    def {row[0]}(self):")
-            # print(f'        xpath("{row[1]}")')
-            # print()
+            # logging.debug(f"    def {row[0]}(self):")
+            # logging.debug(f'        xpath("{row[1]}")')
+            # logging.debug()
     return xpath
 
 
