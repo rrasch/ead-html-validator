@@ -171,11 +171,10 @@ class EADHTML:
         return self.formatted_note("extent")
 
     def famname(self):
-        return list(
-            self.soup.find(
-                "div", class_=re.compile("^famname")
-            ).stripped_strings
-        )
+        return [
+            name.contents[0].strip()
+            for name in self.soup.find_all("div", class_=re.compile("^famname"))
+        ]
 
     def find_component(self, cid):
         node = self.soup.find(attrs={"id": cid})

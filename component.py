@@ -82,7 +82,9 @@ class Component:
     def dao_desc(self):
         for node in self.c.xpath("did"):
             logging.debug(ET.tostring(node, pretty_print=True).decode())
-        return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
+        return self.get_val(
+            "did/*[self::dao or self::daogrp]/daodesc/p", return_list=True
+        )
 
     def dao_link(self):
         link_list = []
@@ -94,9 +96,9 @@ class Component:
             return None
 
     def dao_title(self):
-        title = self.c.xpath(f"did/*[self::dao or self::daogrp]/@*[local-name()='title']")
-        if title:
-            return str(title[0])
+        titles = self.c.xpath(f"did/*[self::dao or self::daogrp]/@*[local-name()='title']")
+        if titles:
+            return list(map(str, titles))
         else:
             return None
 
@@ -134,10 +136,11 @@ class Component:
         else:
             return util.clean_text(sep.join(text_list))
 
-    def get_val(self, xpath_expr):
-        value = self.c.xpath(xpath_expr)
-        if value:
-            return re.sub(r"\s+", " ", value[0].text).strip()
+    def get_val(self, xpath_expr, return_list=False):
+        nodes = self.c.xpath(xpath_expr)
+        if nodes:
+            values = [re.sub(r"\s+", " ", node.text).strip() for node in nodes]
+            return values if return_list else values[0]
         else:
             return None
 
