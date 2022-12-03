@@ -89,7 +89,7 @@ class Component:
         links = self.c.xpath(f"did/*[self::dao or self::daogrp]//@*[local-name()='href']")
 
         if links:
-            return list(map(str, links))
+            return sorted(list(map(str, links)))
         else:
             return None
 

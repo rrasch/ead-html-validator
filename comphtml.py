@@ -110,10 +110,10 @@ class CompHTML:
         daos = self.dao("external-link")
         if daos is None:
             return None
-        links = []
+        links = set()
         for dao in daos:
-            links.extend({a["href"] for a in dao.find_all("a")})
-        return list(links) if links else None
+            links.update({a["href"] for a in dao.find_all("a")})
+        return sorted(list(links)) if links else None
 
     def dao_title(self):
         daos = self.dao()
