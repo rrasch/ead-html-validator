@@ -85,33 +85,58 @@ class CompHTML:
     def custodhist_heading(self):
         return self.formatted_note_heading("custodhist")
 
-    def dao(self):
-        return self.c.find("div", re.compile(r"^md-group dao-item"))
-
-    # def dao_desc(self):
-    #     dao = self.dao()
-    #     if dao is None:
-    #         return None
-    #     return self.dao().div.a.get_text(strip=True)
+    def dao(self, dao_type=""):
+        return self.c.find_all("div", class_=re.compile(rf"^md-group dao-item {dao_type}"))
 
     def dao_desc(self):
-        return self.dao_title()
+        daos = self.dao()
+        if daos is None:
+            return None
+        descriptions = set()
+        for dao in daos:
+            for desc in dao.find_all(class_=re.compile(r"dao-description")):
+                text = [
+                    string
+                    for string in desc.strings
+                    if not re.match("https?://", string)
+                ]
+                descriptions.add("".join(text).strip())
+        return list(descriptions) if descriptions else None
+
+    # def dao_desc(self):
+    #     return self.dao_title()
 
     def dao_link(self):
-        dao = self.dao()
-        if dao is None:
+        daos = self.dao("external-link")
+        if daos is None:
             return None
-        link = dao.find("a")
-        if link is None:
-            return None
-        return link.get("href")
+        links = []
+        for dao in daos:
+            links.extend({a["href"] for a in dao.find_all("a")})
+        return list(links) if links else None
 
     def dao_title(self):
-        dao = self.dao()
-        if dao is None:
+        daos = self.dao()
+        if daos is None:
             return None
-        logging.debug(dao)
-        return dao.find(class_=re.compile(r"item-title")).get_text(strip=True)
+        logging.debug(daos)
+        titles = set()
+        for dao in daos:
+            for title in dao.find_all(class_=re.compile(r"item-title")):
+                # text = [
+                #     child
+                #     for child in title.contents
+                #     if isinstance(child, NavigableString)
+                # ]
+                text = [
+                    string
+                    for string in title.strings
+                    if not re.match("https?://", string)
+                ]
+                # titles.add("".join(text).strip().rsplit(":", 1)[0])
+                # titles.add(util.strip_date("".join(text).strip()))
+                titles.add("".join(text).strip())
+        return list(titles) if titles else None
 
     def dimensions(self):
         return self.physdesc("dimensions")

@@ -227,7 +227,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
         else:
             passed_check = compare(comp_retval, chtml_retval)
             if not passed_check:
-                errors.append(f"field '{method_name}' differs for c '{c.id()}'\nDIFF:\n" + diff(comp_retval, chtml_retval, diff_cfg) + "\n")
+                errors.append(f"field '{method_name}' differs for c id='{c.id()}'\nDIFF:\n" + diff(comp_retval, chtml_retval, diff_cfg) + "\n")
 
     for sub_c in c.sub_components():
         # logging.debug(sub_c)

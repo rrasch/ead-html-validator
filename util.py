@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from dateutil.parser import parse, ParserError
 from lxml import etree as ET
 import csv
 import inspect
@@ -107,4 +108,15 @@ def resolve_handle(url):
     response = requests.get(url, allow_redirects=False)
     soup = BeautifulSoup(response.text, "html.parser")
     return soup.a["href"]
+
+def strip_date(title):
+    title_list = title.rsplit(":", 1)
+    if len(title_list) == 1:
+        return title
+    try:
+        date = parse(title_list[1])
+        print(date)
+        return title_list[0]
+    except ParserError as e:
+        return title
 
