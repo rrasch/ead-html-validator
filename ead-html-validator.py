@@ -121,17 +121,29 @@ def validate_html(html_dir):
     if not tidy:
         return None
 
+    html_files = []
     for root, dirs, files in os.walk(html_dir):
         for file in files:
             if file.endswith(".html"):
-                ret = util.do_cmd(
-                    [tidy, os.path.join(root, file)],
-                    allowed_returncodes=[1, 2],
-                    stdout=PIPE,
-                    stderr=PIPE,
-                )
-                if ret:
-                    logging.debug(ret.stderr)
+                html_files.append(os.path.join(root, file))
+
+    links = set()
+    for file in html_files:
+        links.update(util.get_links(file))
+    links = sorted(list(links))
+
+    broken_links = util.find_broken_links(links)
+
+    if tidy:
+        for file in html_files:
+            ret = util.do_cmd(
+                [tidy, file],
+                allowed_returncodes=[1, 2],
+                stdout=PIPE,
+                stderr=PIPE,
+            )
+            if ret:
+                logging.debug(ret.stderr)
 
 
 def validate_xml(xml_file):

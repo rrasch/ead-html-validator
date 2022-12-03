@@ -1,6 +1,9 @@
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor
 from dateutil.parser import parse, ParserError
 from lxml import etree as ET
+from pprint import pprint
+from urllib.parse import urlparse
 import csv
 import inspect
 import logging
@@ -119,4 +122,40 @@ def strip_date(title):
         return title_list[0]
     except ParserError as e:
         return title
+
+def get_links(html_file):
+    print(html_file)
+    soup = BeautifulSoup(open(html_file), "html.parser")
+    link = soup.find("link", rel="canonical")
+    base_url = ""
+    if link:
+        url = urlparse(link["href"])
+        base_url = f"{url.scheme}://{url.netloc}"
+
+    links = set()
+    for a in soup.find_all("a"):
+        link = a["href"]
+        if link.startswith("#"):
+            continue
+        if link.startswith("/"):
+            link = f"{base_url}{link}"
+        links.add(link)
+
+    return (list(links))
+
+
+def find_broken_links(links):
+
+    # Internal function for validating HTTP status code.
+    def _validate_url(url):
+        r = requests.head(url)
+        if r.status_code == 404:
+            broken_links.append(url)
+
+    broken_links = []
+    # Loop through links checking for 404 responses, and append to list.
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        executor.map(_validate_url, links)
+
+    return broken_links
 
