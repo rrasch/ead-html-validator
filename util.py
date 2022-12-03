@@ -118,13 +118,11 @@ def strip_date(title):
         return title
     try:
         date = parse(title_list[1])
-        print(date)
         return title_list[0]
     except ParserError as e:
         return title
 
 def get_links(html_file):
-    print(html_file)
     soup = BeautifulSoup(open(html_file), "html.parser")
     link = soup.find("link", rel="canonical")
     base_url = ""
