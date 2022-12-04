@@ -164,11 +164,12 @@ class CompHTML:
             re.compile(r"^h\d$"), class_="formattednote-header"
         ).get_text(" ", strip=True)
 
-    def formatted_note_text(self, field):
+    def formatted_note_text(self, field, p=True):
         note = self.formatted_note(field)
         if note is None:
             return None
-        return util.clean_text(note.div.p.get_text(" ", strip=True))
+        text_node = note.div.p if p else note.div
+        return util.clean_text(text_node.get_text(" ", strip=True))
 
     def function(self):
         return self.control_group("function")
@@ -214,7 +215,7 @@ class CompHTML:
         return self.control_group("occupation")
 
     def odd(self):
-        return self.formatted_note_text("odd")
+        return self.formatted_note_text("odd", p=False)
 
     def odd_heading(self):
         return self.formatted_note_heading("odd")
