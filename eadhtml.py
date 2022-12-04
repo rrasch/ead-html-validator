@@ -72,6 +72,12 @@ class EADHTML:
             .get_text()
         )
 
+    def class_values(self, class_regex):
+        return {
+            util.clean_text(node.contents[0])
+            for node in self.soup.find_all(class_=re.compile(class_regex))
+        }
+
     @staticmethod
     def clean_dates(dates):
         return [re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}") for date in dates]
@@ -237,8 +243,17 @@ class EADHTML:
         )
 
     def names(self):
-        name_list = self.famname() + self.persname() + list(self.ead_class_values("corpname"))
-        return name_list
+        name_list = set()
+        name_list.update(self.famname())
+        name_list.update(self.class_values(r"(ead-)?persname"))
+        #name_list.update(self.class_values(r"(ead-)?corpname"))
+
+        for node in self.soup.body.find_all(lambda tag: not re.search(r"repository", tag.parent.parent.get("class") or "") and re.search(r"(ead-)?corpname", tag.get("class") or "") or re.search(r"(ead-)?corpname", tag.get("data-field") or "")):
+            print(node.name, "\n\n")
+            print(node.parent, "\n\n")
+            name_list.add(util.clean_text(node.contents[0]))
+
+        return sorted(name_list)
 
     def note(self):
         return self.formatted_note("notestmt")

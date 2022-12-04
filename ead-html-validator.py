@@ -139,7 +139,7 @@ def validate_html(html_dir):
         links.update(util.get_links(file))
     links = sorted(list(links))
 
-    broken_links = util.find_broken_links(links)
+    # broken_links = util.find_broken_links(links)
 
     if tidy:
         for file in html_files:
@@ -301,6 +301,10 @@ def main():
     rqm = RequestMaterials(rqm_html_file)
     logging.debug(pformat(rqm.find_links()))
 
+    all_html_file = os.path.join(html_dir, "all", "index.html")
+    all_ehtml = eadhtml.EADHTML(all_html_file)
+    names = all_ehtml.names()
+
     load_fuzzywuzzy()
 
     errors = []
@@ -325,7 +329,7 @@ def main():
 
         logging.debug(f"calling EADHTML.{method_name}()")
         ehtml_method = getattr(ehtml, method_name)
-        ehtml_retval = ehtml_method()
+        ehtml_retval = ehtml_method() if method_name != "names" else names
         logging.debug(f"retval={ehtml_retval}")
 
 

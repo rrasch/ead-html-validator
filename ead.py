@@ -213,8 +213,10 @@ class Ead:
         names = set(self.get_text("//*[local-name()!='repository']/corpname"))
         fields = ["famname", "persname"]
         for field in fields:
-            names.union(self.get_text(f"//{field}"))
-        return list(names)
+            name_list = self.get_text(f"//{field}")
+            print(f"{field}={name_list}")
+            names.update(name_list)
+        return sorted(list(names))
 
     def note(self):
         return self.root.xpath("eadheader/filedesc/notestmt/note/p")[0].text
