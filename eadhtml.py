@@ -245,12 +245,16 @@ class EADHTML:
     def names(self):
         name_list = set()
         name_list.update(self.famname())
-        name_list.update(self.class_values(r"(ead-)?persname"))
-        #name_list.update(self.class_values(r"(ead-)?corpname"))
+        name_list.update(self.class_values(r"^(ead-)?persname( role-Donor)?$"))
 
-        for node in self.soup.body.find_all(lambda tag: not re.search(r"repository", tag.parent.parent.get("class") or "") and re.search(r"(ead-)?corpname", tag.get("class") or "") or re.search(r"(ead-)?corpname", tag.get("data-field") or "")):
-            print(node.name, "\n\n")
-            print(node.parent, "\n\n")
+        regex = r"^(ead-)?corpname( role-Donor)?$"
+        for node in self.soup.body.find_all(
+            lambda tag: not re.search(
+                r"repository", tag.parent.parent.get("class") or ""
+            )
+            and re.search(regex, tag.get("class") or "")
+            or re.search(regex, tag.get("data-field") or "")
+        ):
             name_list.add(util.clean_text(node.contents[0]))
 
         return sorted(name_list)

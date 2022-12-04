@@ -214,7 +214,6 @@ class Ead:
         fields = ["famname", "persname"]
         for field in fields:
             name_list = self.get_text(f"//{field}")
-            print(f"{field}={name_list}")
             names.update(name_list)
         return sorted(list(names))
 
