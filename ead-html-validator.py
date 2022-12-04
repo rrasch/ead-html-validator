@@ -56,14 +56,21 @@ def diff(obj1, obj2, diff_cfg):
             else:
                 text += uni_diff + "\n"
     elif diff_cfg["type"] == "color":
-        text = color_diff_list(list1, list2)
+        if type(obj1) is str and not obj1.startswith("http") and len(obj1) > 240:
+            text = color_diff_str(obj1, obj2)
+        else:
+            text = color_diff_list(list1, list2)
     else:
         text = simple_diff(obj1, obj2, diff_cfg)
-    return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"] + "\n"
+    return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"]
 
 def simple_diff(obj1, obj2, diff_cfg):
     max_len = diff_cfg["term_width"]
-    return f"{repr(obj1)[:max_len]}\n!=\n{repr(obj2)[:max_len]}\n"
+    str1 = repr(obj1)
+    str2 = repr(obj2)
+    sep = "\n" if len(str1) + len(str2) + 3 > 80 else " "
+    # return f"{str1[:max_len]}{sep}!={sep}{str2[:max_len]}"
+    return f"{str1}{sep}!={sep}{str2}"
 
 def color_diff_str(str1, str2):
     logging.debug(f"color_diff({str1}, {str2})")
@@ -239,7 +246,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
         else:
             passed_check = compare(comp_retval, chtml_retval)
             if not passed_check:
-                errors.append(f"field '{method_name}' differs for c id='{c.id()}'\nDIFF:\n" + diff(comp_retval, chtml_retval, diff_cfg) + "\n")
+                errors.append(f"field '{method_name}' differs for c id='{c.id()}'\nDIFF:\n" + diff(comp_retval, chtml_retval, diff_cfg))
 
     for sub_c in c.sub_components():
         # logging.debug(sub_c)
@@ -324,7 +331,7 @@ def main():
 
         passed_check = compare(ead_retval, ehtml_retval)
         if not passed_check:
-            errors.append(f"ead field '{method_name}' differs'\nDIFF:\n" + diff(ead_retval, ehtml_retval, diff_cfg) + "\n")
+            errors.append(f"ead field '{method_name}' differs'\nDIFF:\n" + diff(ead_retval, ehtml_retval, diff_cfg))
 
         if ehtml_retval is None:
             exit(1)
