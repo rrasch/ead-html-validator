@@ -1,8 +1,8 @@
 #!/usr/bin/env -S python3 -u
 
 
-# from fuzzywuzzy import fuzz
-# from fuzzywuzzy import process
+# from thefuzz import fuzz
+# from thefuzz import process
 from importlib import import_module
 from lxml import etree as ET
 from pathlib import Path
@@ -174,10 +174,10 @@ def validate_xml(xml_file):
         except Exception as e:
             raise e
 
-def load_fuzzywuzzy():
+def load_thefuzz():
     for libname in ["fuzz", "process"]:
         try:
-            lib = import_module(f"fuzzywuzzy.{libname}")
+            lib = import_module(f"thefuzz.{libname}")
         except:
             logging.debug(sys.exc_info())
         else:
@@ -315,7 +315,7 @@ def main():
     all_ehtml = eadhtml.EADHTML(all_html_file)
     names = all_ehtml.names()
 
-    load_fuzzywuzzy()
+    load_thefuzz()
 
     errors = []
 
