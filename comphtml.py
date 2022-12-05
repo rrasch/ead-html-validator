@@ -86,7 +86,9 @@ class CompHTML:
         return self.formatted_note_heading("custodhist")
 
     def dao(self, dao_type=""):
-        return self.c.find_all("div", class_=re.compile(rf"^md-group dao-item {dao_type}"))
+        return self.c.find_all(
+            "div", class_=re.compile(rf"^md-group dao-item {dao_type}")
+        )
 
     def dao_desc(self):
         daos = self.dao()

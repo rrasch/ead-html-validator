@@ -80,7 +80,10 @@ class EADHTML:
 
     @staticmethod
     def clean_dates(dates):
-        return [re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}") for date in dates]
+        return [
+            re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}")
+            for date in dates
+        ]
 
     def collection(self):
         return self.unittitle()

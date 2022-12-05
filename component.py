@@ -88,7 +88,9 @@ class Component:
 
     def dao_link(self):
         link_list = []
-        links = self.c.xpath(f"did/*[self::dao or self::daogrp]//@*[local-name()='href']")
+        links = self.c.xpath(
+            f"did/*[self::dao or self::daogrp]//@*[local-name()='href']"
+        )
 
         if links:
             return sorted(list(map(str, links)))
@@ -96,7 +98,9 @@ class Component:
             return None
 
     def dao_title(self):
-        titles = self.c.xpath(f"did/*[self::dao or self::daogrp]/@*[local-name()='title']")
+        titles = self.c.xpath(
+            f"did/*[self::dao or self::daogrp]/@*[local-name()='title']"
+        )
         if titles:
             return list(map(str, titles))
         else:

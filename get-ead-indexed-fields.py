@@ -20,7 +20,6 @@ writer.writerow(["root", "ead", "document.rb"])
 writer.writerow(["eadid", "", "document.rb"])
 
 for file in files:
-
     full_path = f"{libdir}/{file}"
 
     with open(full_path) as f:
@@ -33,7 +32,8 @@ for file in files:
                 writer.writerow([name, xpath, file])
 
             result = re.search(
-                r'\s*Solrizer.(?:insert|set)_field\((?:fields|solr_doc), "([^"]+)",\s*([^\s]+)',
+                r"\s*Solrizer.(?:insert|set)_field\((?:fields|solr_doc),"
+                r' "([^"]+)",\s*([^\s]+)',
                 line,
             )
             if result:
@@ -50,6 +50,5 @@ for file in files:
                 print(name)
                 print(value)
                 writer.writerow([name, value, file])
-
 
 out.close()

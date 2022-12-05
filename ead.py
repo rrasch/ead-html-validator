@@ -47,10 +47,12 @@ class Ead:
         ].text
 
     def author(self):
-        author_val = self.root.xpath("eadheader/filedesc/titlestmt/author")[0].text
+        author_val = self.root.xpath("eadheader/filedesc/titlestmt/author")[
+            0
+        ].text
         return_list = False
         if return_list:
-            return re.split(r'\s*\,\s*', author_val)
+            return re.split(r"\s*\,\s*", author_val)
         else:
             return author_val
 

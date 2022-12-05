@@ -48,7 +48,7 @@ diff_color = {
 def diff(obj1, obj2, diff_cfg):
     list1 = create_list(obj1)
     list2 = create_list(obj2)
-    if diff_cfg['type'].startswith("unified"):
+    if diff_cfg["type"].startswith("unified"):
         text = ""
         for uni_diff in difflib.unified_diff(list1, list2):
             if diff_cfg["type"].endswith("color") and uni_diff[0] in diff_color:
@@ -56,7 +56,11 @@ def diff(obj1, obj2, diff_cfg):
             else:
                 text += uni_diff + "\n"
     elif diff_cfg["type"] == "color":
-        if type(obj1) is str and not obj1.startswith("http") and len(obj1) > 240:
+        if (
+            type(obj1) is str
+            and not obj1.startswith("http")
+            and len(obj1) > 240
+        ):
             text = color_diff_str(obj1, obj2)
         else:
             text = color_diff_list(list1, list2)
@@ -78,13 +82,15 @@ def color_diff_str(str1, str2):
     codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
     for code in codes:
         if code[0] == "equal":
-            result += foo(str1[code[1]:code[2]])
+            result += foo(str1[code[1] : code[2]])
         elif code[0] == "delete":
-            result += red(str1[code[1]:code[2]])
+            result += red(str1[code[1] : code[2]])
         elif code[0] == "insert":
-            result += green(str2[code[3]:code[4]])
+            result += green(str2[code[3] : code[4]])
         elif code[0] == "replace":
-            result += (red(str1[code[1]:code[2]]) + green(str2[code[3]:code[4]]))
+            result += red(str1[code[1] : code[2]]) + green(
+                str2[code[3] : code[4]]
+            )
     return result
 
 
@@ -246,7 +252,11 @@ def validate_component(c, dirpath, errors, diff_cfg):
         else:
             passed_check = compare(comp_retval, chtml_retval)
             if not passed_check:
-                errors.append(f"field '{method_name}' differs for c id='{c.id()}'\nDIFF:\n" + diff(comp_retval, chtml_retval, diff_cfg))
+                errors.append(
+                    f"field '{method_name}' differs for c"
+                    f" id='{c.id()}'\nDIFF:\n"
+                    + diff(comp_retval, chtml_retval, diff_cfg)
+                )
 
     for sub_c in c.sub_components():
         # logging.debug(sub_c)
@@ -332,10 +342,12 @@ def main():
         ehtml_retval = ehtml_method() if method_name != "names" else names
         logging.debug(f"retval={ehtml_retval}")
 
-
         passed_check = compare(ead_retval, ehtml_retval)
         if not passed_check:
-            errors.append(f"ead field '{method_name}' differs'\nDIFF:\n" + diff(ead_retval, ehtml_retval, diff_cfg))
+            errors.append(
+                f"ead field '{method_name}' differs'\nDIFF:\n"
+                + diff(ead_retval, ehtml_retval, diff_cfg)
+            )
 
         if ehtml_retval is None:
             exit(1)
