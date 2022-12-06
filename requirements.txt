@@ -1,6 +1,7 @@
 beautifulsoup4
 pycountry
 python-dateutil
+python-Levenshtein
 requests
 lxml
 thefuzz
