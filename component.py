@@ -1,4 +1,5 @@
 from lxml import etree as ET
+from urllib.parse import urlparse
 import constants as cs
 import logging
 import re
@@ -6,6 +7,9 @@ import util
 
 
 class Component:
+
+    XLINK_NS = "http://www.w3.org/1999/xlink"
+
     def __init__(self, c, parent):
         self.c = c
         self.parent = parent
@@ -71,29 +75,33 @@ class Component:
         return self.get_val("custodhist/head")
 
     def _dao(self, return_list=False):
-        for node in self.c.xpath("did"):
-            logging.debug(ET.tostring(node, pretty_print=True).decode())
-        dao_list = self.c.xpath("did/*[self::dao or self::daogrp]")
-        if return_list:
-            return dao_list
+        daos = self.c.xpath("did/*[self::dao or self::daogrp]")
+        if daos:
+            return daos
         else:
-            return dao_list[0]
+            return None
 
     def dao_desc(self):
         for node in self.c.xpath("did"):
             logging.debug(ET.tostring(node, pretty_print=True).decode())
+
         return self.get_val(
             "did/*[self::dao or self::daogrp]/daodesc/p", return_list=True
         )
 
     def dao_link(self):
-        link_list = []
-        links = self.c.xpath(
-            f"did/*[self::dao or self::daogrp]//@*[local-name()='href']"
-        )
-
-        if links:
-            return sorted(list(map(str, links)))
+        links = {}
+        href_attrib = f"{{{self.XLINK_NS}}}href"
+        daos = self._dao()
+        if daos:
+            for dao in daos:
+                for href in dao.xpath("(.|.//*)[@*[local-name()='href']]"):
+                    url = href.get(href_attrib)
+                    host = urlparse(url).netloc
+                    if host == "hdl.handle.net":
+                        print(util.resolve_handle(url))
+                    links[href.sourceline] = url
+            return util.sort_dict(links) if links else None
         else:
             return None
 
@@ -241,6 +249,10 @@ class Component:
 
     def subject(self):
         return self.get_val("controlaccess/subject")
+
+    @staticmethod
+    def _tostring(node):
+        return ET.tostring(node, pretty_print=True).decode()
 
     def title(self):
         return self.unittitle()

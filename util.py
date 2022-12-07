@@ -157,3 +157,6 @@ def find_broken_links(links):
 
     return broken_links
 
+def sort_dict(mydict):
+    return dict(sorted(mydict.items(), key=lambda item: item[1]))
+
