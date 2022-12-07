@@ -191,6 +191,12 @@ def get_term_width():
         term_width = 80
     return term_width
 
+def format_vals(vals):
+    if type(vals) is dict:
+        return "\n".join([f"Line {k}: '{v}'" for k, v in vals.items()])
+    else:
+        return repr(vals)
+
 def validate_component(c, dirpath, errors, diff_cfg):
     logging.debug("----")
     logging.debug(c.id())
@@ -233,29 +239,56 @@ def validate_component(c, dirpath, errors, diff_cfg):
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
 
+        if type(comp_retval) is dict:
+            comp_values = list(comp_retval.values())
+        else:
+            comp_values = comp_retval
+
         logging.debug(f"calling CompHTML.{method_name}()")
         chtml_method = getattr(chtml, method_name)
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
 
+        if type(chtml_retval) is dict:
+            chtml_values = list(chtml_retval.values())
+        else:
+            chtml_values = chtml_retval
+
+        missing_err_template = (
+            "Can't find the value of field '{}' in c"
+            " id='{}' within {} file '{}' \nbut found"
+            " values:\n{}\ninside '{}'"
+        )
+
         if comp_retval is not None and chtml_retval is None:
             errors.append(
-                f"Can't find the value of field '{method_name}' in c"
-                f" id='{c.id()}' within html file '{html_file}'"
-                f" \n'{comp_retval}'"
+                missing_err_template.format(
+                    method_name,
+                    c.id(),
+                    "html",
+                    html_file,
+                    format_vals(comp_retval),
+                    c.ead_file,
+                )
             )
         elif comp_retval is None and chtml_retval is not None:
             errors.append(
-                f"Can't find the value of field '{method_name}' in c"
-                f" id='{c.id()}' within ead file '{c.ead_file}'"
+                missing_err_template.format(
+                    method_name,
+                    c.id(),
+                    "ead xml",
+                    c.ead_file,
+                    format_vals(comp_retval),
+                    html_file,
+                )
             )
         else:
-            passed_check = compare(comp_retval, chtml_retval)
+            passed_check = compare(comp_values, chtml_values)
             if not passed_check:
                 errors.append(
                     f"field '{method_name}' differs for c"
                     f" id='{c.id()}'\nDIFF:\n"
-                    + diff(comp_retval, chtml_retval, diff_cfg)
+                    + diff(comp_values, chtml_values, diff_cfg)
                 )
 
     for sub_c in c.sub_components():

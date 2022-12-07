@@ -143,8 +143,11 @@ class Component:
     def get_val(self, xpath_expr, return_list=False):
         nodes = self.c.xpath(xpath_expr)
         if nodes:
-            values = [re.sub(r"\s+", " ", node.text).strip() for node in nodes]
-            return values if return_list else values[0]
+            values = {
+                node.sourceline: re.sub(r"\s+", " ", node.text).strip()
+                for node in nodes
+            }
+            return values
         else:
             return None
 
