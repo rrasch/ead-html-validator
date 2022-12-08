@@ -106,11 +106,15 @@ class Component:
             return None
 
     def dao_title(self):
-        titles = self.c.xpath(
-            f"did/*[self::dao or self::daogrp]/@*[local-name()='title']"
-        )
-        if titles:
-            return list(map(str, titles))
+        title_attrib = f"{{{self.XLINK_NS}}}title"
+        daos = self._dao()
+        if daos:
+            titles = {
+                dao.sourceline: dao.get(title_attrib)
+                for dao in daos
+                if dao.get(title_attrib)
+            }
+            return util.sort_dict(titles) if titles else None
         else:
             return None
 
