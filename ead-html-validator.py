@@ -361,7 +361,7 @@ def main():
     }
 
     for method_name, ead_method in util.get_methods(my_ead).items():
-        match = re.search(r"^(dao|component|altformavail)$", method_name)
+        match = re.search(r"^(dao|chronlist|component|altformavail)$", method_name)
         if match:
             logging.debug(f"Skipping {method_name}...")
             continue
@@ -370,16 +370,21 @@ def main():
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
+        if type(ead_retval) is dict:
+            ead_values = list(ead_retval.values())
+        else:
+            ead_values = ead_retval
+
         logging.debug(f"calling EADHTML.{method_name}()")
         ehtml_method = getattr(ehtml, method_name)
         ehtml_retval = ehtml_method() if method_name != "names" else names
         logging.debug(f"retval={ehtml_retval}")
 
-        passed_check = compare(ead_retval, ehtml_retval)
+        passed_check = compare(ead_values, ehtml_retval)
         if not passed_check:
             errors.append(
                 f"ead field '{method_name}' differs'\nDIFF:\n"
-                + diff(ead_retval, ehtml_retval, diff_cfg)
+                + diff(ead_values, ehtml_retval, diff_cfg)
             )
 
         if ehtml_retval is None:

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from lxml import etree as ET
 import component
 import logging
@@ -34,17 +35,13 @@ class Ead:
         # return util.stringify_children(node)
 
     def acqinfo(self):
-        return self.root.xpath("archdesc[@level='collection']/acqinfo/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/acqinfo/p")
 
     def altformavail(self):
         return self.get_archdesc("altformavail")
 
     def appraisal(self):
-        return self.root.xpath("archdesc[@level='collection']/appraisal/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/appraisal/p")
 
     def author(self):
         author_val = self.root.xpath("eadheader/filedesc/titlestmt/author")[
@@ -57,9 +54,7 @@ class Ead:
             return author_val
 
     def bioghist(self):
-        return self.root.xpath("archdesc[@level='collection']/bioghist/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/bioghist/p")
 
     def chronlist(self):
         items = {}
@@ -139,15 +134,13 @@ class Ead:
         return self.get_text(creator_xpath)
 
     def custodhist(self):
-        return self.root.xpath("archdesc[@level='collection']/custodhist/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/custodhist/p")
 
     def dao(self):
         return self.get_text("//dao")
 
     def eadid(self):
-        return self.root.xpath("eadheader/eadid")[0].text
+        return self.xpath("eadheader/eadid")
 
     def famname(self):
         return self.get_archdesc_nodsc("famname", return_list=True)
@@ -161,10 +154,26 @@ class Ead:
     def geogname(self):
         return self.get_archdesc_nodsc("geogname")
 
+    def xpath(self, expr):
+        nodes = self.root.xpath(expr)
+        if nodes:
+            return {node.sourceline: node.text for node in nodes}
+        else:
+            return None
+
+    def xpath2(self, expr):
+        val_lineno = defaultdict(list)
+        nodes = self.root.xpath(expr)
+        if nodes:
+            for node in nodes:
+                val_lineno[util.clean_text(node.text)].append(str(node.sourceline))
+            lineno_val = { ", ".join(lineno): val for val, lineno in val_lineno.items() }
+            return lineno_val
+        else:
+            return None
+
     def get_archdesc(self, field):
-        return self.root.xpath(f"archdesc[@level='collection']/{field}/p")[
-            0
-        ].text
+        return self.xpath(f"archdesc[@level='collection']/{field}/p")
 
     def get_archdesc_nodsc(self, field, return_list=False):
         nodes = self.root.xpath(
@@ -203,7 +212,7 @@ class Ead:
         return self.root.xpath("//langusage/language/@langcode")[0]
 
     def language(self):
-        return self.root.xpath("//langusage/language")[0].text
+        return self.xpath("//langusage/language")
 
     def material_type(self):
         return self.get_text("//genreform")
@@ -220,7 +229,7 @@ class Ead:
         return sorted(list(names))
 
     def note(self):
-        return self.root.xpath("eadheader/filedesc/notestmt/note/p")[0].text
+        return self.xpath("eadheader/filedesc/notestmt/note/p")
 
     def occupation(self):
         return self.get_archdesc_nodsc("occupation")
@@ -229,28 +238,19 @@ class Ead:
         return self.get_archdesc_nodsc("persname", return_list=True)
 
     def phystech(self):
-        return self.root.xpath("archdesc[@level='collection']/phystech/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/phystech/p")
 
     def place(self):
-        places = set()
-        for geo in self.root.xpath("//geogname"):
-            places.add(" ".join(geo.text.split()))
-        return list(places)
+        return self.xpath2("//geogname")
 
     def prefercite(self):
-        return self.root.xpath("archdesc[@level='collection']/prefercite/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/prefercite/p")
 
     def repository(self):
         return self.get_archdesc_nodsc("repository")
 
     def scopecontent(self):
-        return self.root.xpath("archdesc[@level='collection']/scopecontent/p")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/scopecontent/p")
 
     def separatedmaterial(self):
         return self.get_archdesc("separatedmaterial")
@@ -268,7 +268,7 @@ class Ead:
         )
 
     def subtitle(self):
-        return self.root.xpath("//titlestmt/subtitle")[0].text
+        return self.xpath("//titlestmt/subtitle")
 
     def title(self):
         return self.get_archdesc_nodsc("title", return_list=True)
@@ -301,14 +301,10 @@ class Ead:
         return self.unitdate("[not(@type)]")
 
     def unitid(self):
-        return self.root.xpath("archdesc[@level='collection']/did/unitid")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/did/unitid")
 
     def unittitle(self):
-        return self.root.xpath("archdesc[@level='collection']/did/unittitle")[
-            0
-        ].text
+        return self.xpath("archdesc[@level='collection']/did/unittitle")
 
     def url(self):
         return str(self.root.xpath("eadheader/eadid/@url")[0])
