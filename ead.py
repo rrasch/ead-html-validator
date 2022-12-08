@@ -161,16 +161,30 @@ class Ead:
         else:
             return None
 
-    def xpath2(self, expr):
-        val_lineno = defaultdict(list)
+    def xpath2(self, expr, all_text=False, return_list=True):
         nodes = self.root.xpath(expr)
-        if nodes:
-            for node in nodes:
-                val_lineno[util.clean_text(node.text)].append(str(node.sourceline))
-            lineno_val = { ", ".join(lineno): val for val, lineno in val_lineno.items() }
+        if not nodes:
+            return None
+
+        val_lineno = defaultdict(list)
+        for node in nodes:
+            if all_text:
+                words = []
+                for itext in node.itertext():
+                    words.extend(itext.split())
+                text = " ".join(words)
+            else:
+                text = util.clean_text(node.text)
+            val_lineno[text].append(str(node.sourceline))
+
+        lineno_val = {
+            ", ".join(lineno): val for val, lineno in val_lineno.items()
+        }
+
+        if return_list:
             return lineno_val
         else:
-            return None
+            return lineno_val
 
     def get_archdesc(self, field):
         return self.xpath(f"archdesc[@level='collection']/{field}/p")
@@ -192,6 +206,9 @@ class Ead:
             return ", ".join(list(values))
 
     def get_text(self, expr, return_list=True):
+        return self.xpath2(expr, all_text=True, return_list=return_list)
+
+    def get_text_no_lineno(self, expr, return_list=True):
         node_text_list = set()
 
         for node in self.root.xpath(expr):
@@ -221,10 +238,10 @@ class Ead:
         return self.get_archdesc_nodsc("name", return_list=True)
 
     def names(self):
-        names = set(self.get_text("//*[local-name()!='repository']/corpname"))
+        names = set(self.get_text_no_lineno("//*[local-name()!='repository']/corpname"))
         fields = ["famname", "persname"]
         for field in fields:
-            name_list = self.get_text(f"//{field}")
+            name_list = self.get_text_no_lineno(f"//{field}")
             names.update(name_list)
         return sorted(list(names))
 
