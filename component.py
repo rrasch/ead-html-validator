@@ -146,11 +146,20 @@ class Component:
         nodes = self.c.xpath(xpath_expr)
         if not nodes:
             return None
-        text_list = [" ".join(node.itertext()) for node in nodes]
+        text_dict = {
+            node.sourceline: " ".join(node.itertext()) for node in nodes
+        }
         if sep is None:
-            return [util.clean_text(text) for text in text_list]
+            return {
+                lineno: util.clean_text(text)
+                for lineno, text in text_dict.items()
+            }
         else:
-            return util.clean_text(sep.join(text_list))
+            return {
+                nodes[0].sourceline: util.clean_text(
+                    sep.join(text_dict.values())
+                )
+            }
 
     def get_val(self, xpath_expr, return_list=False):
         nodes = self.c.xpath(xpath_expr)
