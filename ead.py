@@ -72,13 +72,15 @@ class Ead:
         return items
 
     def chronlist_heading(self):
-        return util.clean_text(
-            self.root.xpath(
-                "archdesc[@level='collection']/*[name()"
-                " !='dsc']//chronlist/head"
-            )[0].text
+        head = self.xpath(
+            "archdesc[@level='collection']/*[name()  !='dsc']//chronlist/head"
         )
-
+        if head:
+            return {
+                lineno: util.clean_text(text) for lineno, text in head.items()
+            }
+        else:
+            return None
 
     def collection(self):
         return self.unittitle()
