@@ -320,6 +320,13 @@ def build_level_tree(ead_elem, parent):
         child = Node((c.id(), c.level()), parent=parent)
         build_level_tree(c, child)
 
+def render_level_tree(ead_elem, root_name):
+    root = Node(root_name)
+    build_level_tree(ead_elem, root)
+    # iterator = iter(RenderTree(root))
+    # pre, fill, node = next(iterator)
+    return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
+
 def main():
 
     if not sys.version_info >= (3, 7):
@@ -416,17 +423,11 @@ def main():
     ead_cids = [(c.id(), c.level()) for c in ead_comps]
     html_cids = all_ehtml.component_id_level()
 
-    root = Node(ead_file)
-    build_level_tree(my_ead, root)
+    ead_tree = render_level_tree(my_ead, ead_file)
+    html_tree = render_level_tree(all_ehtml, html_file)
 
-    for pre, fill, node in RenderTree(root):
-        print("%s%s" % (pre, node.name))
-
-    root = Node(html_file)
-    build_level_tree(all_ehtml, root)
-
-    for pre, fill, node in RenderTree(root):
-        print("%s%s" % (pre, node.name))
+    if ead_tree[1:] == html_tree[1:]:
+        print("Nesting error")
 
     exit(1)
 
