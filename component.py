@@ -173,6 +173,7 @@ class Component:
             return None
 
     def id(self):
+        # return {self.c.sourceline: self.c.attrib["id"]}
         return self.c.attrib["id"]
 
     def langcode(self):
@@ -182,6 +183,7 @@ class Component:
         return self.get_text("did/langmaterial/language")
 
     def level(self):
+        # return {self.c.sourceline: self.c.attrib["level"]}
         return self.c.attrib["level"]
 
     def name(self):

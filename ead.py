@@ -26,13 +26,16 @@ class Ead:
     def __str__(self):
         return f"EAD({self.eadid}):\nurl = {self.url}\n"
 
-    def abstract(self):
+    def _abstract(self):
         node = self.root.xpath("archdesc[@level='collection']/did/abstract")[0]
         for t in node.itertext():
             logging.debug(f"text='{t}'")
         text = "".join(node.itertext())
         return " ".join(text.split())
         # return util.stringify_children(node)
+
+    def abstract(self):
+        return self.get_text("archdesc[@level='collection']/did/abstract")
 
     def acqinfo(self):
         return self.xpath("archdesc[@level='collection']/acqinfo/p")
@@ -156,14 +159,14 @@ class Ead:
     def geogname(self):
         return self.get_archdesc_nodsc("geogname")
 
-    def xpath(self, expr):
+    def xpath_basic(self, expr):
         nodes = self.root.xpath(expr)
         if nodes:
             return {node.sourceline: node.text for node in nodes}
         else:
             return None
 
-    def xpath2(self, expr, all_text=False, return_list=True):
+    def xpath(self, expr, all_text=False, return_list=True, sep=" "):
         nodes = self.root.xpath(expr)
         if not nodes:
             return None
@@ -174,7 +177,7 @@ class Ead:
                 words = []
                 for itext in node.itertext():
                     words.extend(itext.split())
-                text = " ".join(words)
+                text = util.clean_text(sep.join(words))
             else:
                 text = util.clean_text(node.text)
             val_lineno[text].append(str(node.sourceline))
@@ -208,7 +211,7 @@ class Ead:
             return ", ".join(list(values))
 
     def get_text(self, expr, return_list=True):
-        return self.xpath2(expr, all_text=True, return_list=return_list)
+        return self.xpath(expr, all_text=True, return_list=return_list)
 
     def get_text_no_lineno(self, expr, return_list=True):
         node_text_list = set()
@@ -260,7 +263,7 @@ class Ead:
         return self.xpath("archdesc[@level='collection']/phystech/p")
 
     def place(self):
-        return self.xpath2("//geogname")
+        return self.xpath("//geogname")
 
     def prefercite(self):
         return self.xpath("archdesc[@level='collection']/prefercite/p")

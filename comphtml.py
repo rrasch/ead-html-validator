@@ -58,6 +58,26 @@ class CompHTML:
     def bioghist_heading(self):
         return self.formatted_note_heading("bioghist")
 
+    def component(self):
+        regex = re.compile(r"^level")
+        first_c = self.c.find("div", class_=regex)
+        if first_c is None:
+            return []
+        comps = []
+        for c in first_c.parent.find_all("div", class_=regex, recursive=False):
+            comps.append(CompHTML(c, c["id"]))
+        return comps
+
+    def component_id_level(self):
+        regex = re.compile(r"^level")
+        first_c = self.c.find("div", class_=regex)
+        if first_c is None:
+            return []
+        id_level = []
+        for c in first_c.parent.find_all("div", class_=regex, recursive=False):
+            id_level.append((c["id"], re.split(r"[- ]", c["class"])[1]))
+        return id_level
+
     def contents(self):
         return [text for text in self.c.stripped_strings]
 

@@ -1,14 +1,16 @@
 #!/usr/bin/env -S python3 -u
 
 
-# from thefuzz import fuzz
-# from thefuzz import process
+from anytree import Node, RenderTree
+from component import Component
 from importlib import import_module
 from lxml import etree as ET
 from pathlib import Path
 from pprint import pprint, pformat
 from requestmaterials import RequestMaterials
 from subprocess import PIPE
+# from thefuzz import fuzz
+# from thefuzz import process
 import argparse
 import constants
 import difflib
@@ -291,12 +293,32 @@ def validate_component(c, dirpath, errors, diff_cfg):
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
 
-    for sub_c in c.sub_components():
-        # logging.debug(sub_c)
-        # logging.debug(sub_c.id())
-        # logging.debug(sub_c.level())
-        validate_component(sub_c, new_dirpath, errors, diff_cfg)
+    ead_subc_list = c.sub_components()
+    ead_cids = [(subc.id(), subc.level()) for subc in ead_subc_list]
+    html_cids = chtml.component_id_level()
 
+    logging.debug(f"EAD CIDS {ead_cids}")
+    logging.debug(f"HTML CIDS {html_cids}")
+
+    if ead_cids != html_cids:
+        exit(1)
+
+    for subc in c.sub_components():
+        # logging.debug(subc)
+        # logging.debug(subc.id())
+        # logging.debug(subc.level())
+        validate_component(subc, new_dirpath, errors, diff_cfg)
+
+
+def build_level_tree(ead_elem, parent):
+    if isinstance(ead_elem, Component):
+        comps = ead_elem.sub_components()
+    else:
+        comps = ead_elem.component()
+
+    for c in comps:
+        child = Node((c.id(), c.level()), parent=parent)
+        build_level_tree(c, child)
 
 def main():
 
@@ -390,7 +412,32 @@ def main():
         if ehtml_retval is None:
             exit(1)
 
-    for c in my_ead.component():
+    ead_comps = my_ead.component()
+    ead_cids = [(c.id(), c.level()) for c in ead_comps]
+    html_cids = all_ehtml.component_id_level()
+
+    root = Node(ead_file)
+    build_level_tree(my_ead, root)
+
+    for pre, fill, node in RenderTree(root):
+        print("%s%s" % (pre, node.name))
+
+    root = Node(html_file)
+    build_level_tree(all_ehtml, root)
+
+    for pre, fill, node in RenderTree(root):
+        print("%s%s" % (pre, node.name))
+
+    exit(1)
+
+    logging.debug(f"EAD CIDS {ead_cids}")
+    logging.debug(f"HTML CIDS {html_cids}")
+
+    if ead_cids != html_cids:
+        pass
+
+
+    for c in ead_comps:
         validate_component(c, html_dir, errors, diff_cfg)
 
     with open("output.log", "w") as f:

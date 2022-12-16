@@ -91,8 +91,34 @@ class EADHTML:
     def collection_unitid(self):
         return self.unitid()
 
+    def _component(self):
+        components = self.soup.find("section", class_="c-items")
+        ids = []
+        for c in components.find_all(
+            "div", class_=re.compile(r"^level"), recursive=False
+        ):
+            ids.append(c["id"])
+        return ids
+
     def component(self):
-        return "TODO"
+        regex = re.compile(r"^level")
+        first_c = self.soup.find("div", class_=regex)
+        if first_c is None:
+            return []
+        comps = []
+        for c in first_c.parent.find_all("div", class_=regex, recursive=False):
+            comps.append(comphtml.CompHTML(c, c["id"]))
+        return comps
+
+    def component_id_level(self):
+        regex = re.compile(r"^level")
+        first_c = self.soup.find("div", class_=regex)
+        if first_c is None:
+            return []
+        id_level = []
+        for c in first_c.parent.find_all("div", class_=regex, recursive=False):
+            id_level.append((c["id"], re.split(r"[- ]", c["class"])[1]))
+        return id_level
 
     def contents(self):
         return [text for text in self.soup.stripped_strings]
