@@ -65,7 +65,11 @@ class CompHTML:
             return []
         comps = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
-            comps.append(CompHTML(c, c["id"]))
+            if c.has_attr("id"):
+                cid = c["id"]
+            else:
+                cid = c.find(re.compile(r"^h\d$"), recursive=False)["id"]
+            comps.append(CompHTML(c, cid))
         return comps
 
     def component_id_level(self):
@@ -75,7 +79,11 @@ class CompHTML:
             return []
         id_level = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
-            id_level.append((c["id"], re.split(r"[- ]", c["class"])[1]))
+            if c.has_attr("id"):
+                cid = c["id"]
+            else:
+                cid = c.find(re.compile(r"^h\d$"), recursive=False)["id"]
+            id_level.append((cid, re.split(r"[- ]", c["class"])[1]))
         return id_level
 
     def contents(self):

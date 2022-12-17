@@ -107,7 +107,8 @@ class EADHTML:
             return []
         comps = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
-            comps.append(comphtml.CompHTML(c, c["id"]))
+            cid = c["id"] if c.has_attr("id") else c.h1["id"]
+            comps.append(comphtml.CompHTML(c, cid))
         return comps
 
     def component_id_level(self):
@@ -117,7 +118,8 @@ class EADHTML:
             return []
         id_level = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
-            id_level.append((c["id"], re.split(r"[- ]", c["class"])[1]))
+            cid = c["id"] if c.has_attr("id") else c.h1["id"]
+            id_level.append((cid, re.split(r"[- ]", c["class"])[1]))
         return id_level
 
     def contents(self):
@@ -125,12 +127,16 @@ class EADHTML:
 
     def control_access_group(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
+        if not group:
+            return None
         return [
             util.clean_text(div.get_text()) for div in group.find_all("div")
         ]
 
     def control_access_group_val(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
+        if not group:
+            return None
         return [
             util.clean_text(node.get_text())
             for node in group.find_all(class_="controlaccess-value")
@@ -214,7 +220,12 @@ class EADHTML:
     def find_component(self, cid):
         node = self.soup.find(attrs={"id": cid})
         if node is not None:
-            return comphtml.CompHTML(node, cid)
+            if node.name == "div":
+                return comphtml.CompHTML(node, cid)
+            elif node.name.startswith("h"):
+                return comphtml.CompHTML(node.parent, cid)
+            else:
+                raise ValueError("Invalid tag for component")
         else:
             raise ComponentNotFoundError(
                 f"Can't find {cid} in {self.html_file}"
@@ -359,7 +370,9 @@ class EADHTML:
             util.clean_text(title.get_text())
             for title in self.soup.find_all(class_="ead-title")
         }
-        titles.update(self.control_access_group_val("title"))
+        addl_title = self.control_access_group_val("title")
+        if addl_title:
+            titles.update(addl_title)
         return list(titles)
 
     def title_head(self):
