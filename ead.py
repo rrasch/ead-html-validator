@@ -37,6 +37,12 @@ class Ead:
     def abstract(self):
         return self.get_text("archdesc[@level='collection']/did/abstract")
 
+    def accessrestrict(self):
+        return self.get_text("archdesc[@level='collection']/accessrestrict/p")
+
+    def accruals(self):
+        return self.xpath("archdesc[@level='collection']/accruals/p")
+
     def acqinfo(self):
         return self.xpath("archdesc[@level='collection']/acqinfo/p")
 
@@ -179,7 +185,7 @@ class Ead:
                     words.extend(itext.split())
                 text = util.clean_text(sep.join(words))
             else:
-                text = util.clean_text(node.text)
+                text = util.clean_text(node.text or "")
             val_lineno[text].append(str(node.sourceline))
 
         lineno_val = {
