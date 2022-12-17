@@ -5,4 +5,5 @@ python-dateutil
 python-Levenshtein
 requests
 lxml
+tomli
 thefuzz

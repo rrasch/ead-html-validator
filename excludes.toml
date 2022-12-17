@@ -1,0 +1,12 @@
+# excludes.toml
+
+[top]
+checks = [
+    "altformavail",
+    "url",
+]
+
+[container]
+checks = [
+]
+

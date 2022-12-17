@@ -21,6 +21,7 @@ import inspect
 import logging
 import os.path
 import re
+import tomli
 import traceback
 import shutil
 import sys
@@ -327,6 +328,11 @@ def render_level_tree(ead_elem, root_name):
     # pre, fill, node = next(iterator)
     return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
 
+def read_excludes():
+    with open("excludes.toml") as f:
+        data = tomli.load(f)
+    return data
+
 def main():
 
     if not sys.version_info >= (3, 7):
@@ -354,6 +360,9 @@ def main():
 
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    excludes = read_excludes()
+    logging.debug(excludes)
 
     ead_file = os.path.abspath(args.ead_file)
     html_dir = os.path.abspath(args.html_dir)
@@ -395,6 +404,10 @@ def main():
             logging.debug(f"Skipping {method_name}...")
             continue
 
+        if method_name in excludes["top"]["checks"]:
+            logging.debug(f"Skipping {method_name}...")
+            continue
+
         logging.debug(f"calling EAD.{method_name}()")
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
@@ -426,17 +439,14 @@ def main():
     ead_tree = render_level_tree(my_ead, ead_file)
     html_tree = render_level_tree(all_ehtml, html_file)
 
-    if ead_tree[1:] == html_tree[1:]:
+    if ead_tree[1:] != html_tree[1:]:
         print("Nesting error")
-
-    exit(1)
 
     logging.debug(f"EAD CIDS {ead_cids}")
     logging.debug(f"HTML CIDS {html_cids}")
 
     if ead_cids != html_cids:
-        pass
-
+        print("Nesting error")
 
     for c in ead_comps:
         validate_component(c, html_dir, errors, diff_cfg)
