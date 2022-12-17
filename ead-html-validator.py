@@ -302,7 +302,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
     logging.debug(f"HTML CIDS {html_cids}")
 
     if ead_cids != html_cids:
-        exit(1)
+        errors.append("Nesting error")
 
     for subc in c.sub_components():
         # logging.debug(subc)
@@ -329,7 +329,7 @@ def render_level_tree(ead_elem, root_name):
     return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
 
 def read_excludes():
-    with open("excludes.toml") as f:
+    with open("excludes.toml", "rb") as f:
         data = tomli.load(f)
     return data
 
@@ -337,7 +337,7 @@ def main():
 
     if not sys.version_info >= (3, 7):
         print("Python 3.7 or higher is required.")
-        sys.exit(1)
+        exit(1)
 
     script_name = Path(__file__).stem
 
@@ -430,7 +430,7 @@ def main():
             )
 
         if ehtml_retval is None:
-            exit(1)
+            print("Missing value")
 
     ead_comps = my_ead.component()
     ead_cids = [(c.id(), c.level()) for c in ead_comps]
@@ -439,6 +439,9 @@ def main():
     ead_tree = render_level_tree(my_ead, ead_file)
     html_tree = render_level_tree(all_ehtml, html_file)
 
+    for tree in [ead_tree, html_tree]:
+        logging.debug("Tree\n" + "".join(tree))
+
     if ead_tree[1:] != html_tree[1:]:
         print("Nesting error")
 
@@ -446,15 +449,15 @@ def main():
     logging.debug(f"HTML CIDS {html_cids}")
 
     if ead_cids != html_cids:
-        print("Nesting error")
+        erros.append("Nesting error")
 
     for c in ead_comps:
         validate_component(c, html_dir, errors, diff_cfg)
 
-    with open("output.log", "w") as f:
-        for error in errors:
-            print(f"ERROR: {error}\n")
+    for error in errors:
+        print(f"ERROR: {error}\n")
 
+    print("Checking complete")
 
 if __name__ == "__main__":
     main()
