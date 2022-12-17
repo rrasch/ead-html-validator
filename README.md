@@ -13,9 +13,11 @@ for more information.
 ead-html-validator requires Python >= 3.7 and depends on the
 following modules:
 
+- anytree
 - beautifulsoup4
 - pycountry
 - python-dateutil
+- python-Levenshtein
 - requests
 - lxml
 - thefuzz

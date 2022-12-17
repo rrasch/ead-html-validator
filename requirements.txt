@@ -1,3 +1,4 @@
+anytree
 beautifulsoup4
 pycountry
 python-dateutil
