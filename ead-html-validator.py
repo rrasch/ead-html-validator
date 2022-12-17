@@ -8,6 +8,7 @@ from lxml import etree as ET
 from pathlib import Path
 from pprint import pprint, pformat
 from requestmaterials import RequestMaterials
+from resultset import ResultSet
 from subprocess import PIPE
 # from thefuzz import fuzz
 # from thefuzz import process
@@ -242,7 +243,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
 
-        if type(comp_retval) is dict:
+        if type(comp_retval) in [dict, ResultSet]:
             comp_values = list(comp_retval.values())
         else:
             comp_values = comp_retval
