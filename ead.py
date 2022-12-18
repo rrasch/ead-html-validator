@@ -3,6 +3,7 @@ from lxml import etree as ET
 from resultset import ResultSet
 import component
 import logging
+import re
 import util
 
 
@@ -185,7 +186,7 @@ class Ead:
         return self.unittitle()
 
     def langcode(self):
-        return self.root.xpath("//langusage/language/@langcode")[0]
+        return self.xpath("//langusage/language/@langcode")
 
     def language(self):
         return self.xpath("//langusage/language")
@@ -283,12 +284,18 @@ class Ead:
         return self.xpath("archdesc[@level='collection']/did/unittitle")
 
     def url(self):
-        return str(self.root.xpath("eadheader/eadid/@url")[0])
+        return self.xpath("eadheader/eadid/@url")
 
     def userestrict(self):
         return self.get_archdesc("userestrict")
 
     def xpath(self, expr, all_text=False, join_text=False, sep=" "):
+        attrib = None
+        match = re.search(r"(/@([A-Za-z]+))$", expr)
+        if match:
+            attrib = match.group(2)
+            expr = re.sub(rf"{match.group(1)}$", "", expr)
+
         nodes = self.root.xpath(expr)
         if not nodes:
             return None
@@ -296,7 +303,9 @@ class Ead:
         total_text = ""
         result = ResultSet(xpath=expr)
         for node in nodes:
-            if all_text:
+            if attrib:
+                text = node.get(attrib)
+            elif all_text:
                 words = []
                 for itext in node.itertext():
                     # words.extend(itext.split())
