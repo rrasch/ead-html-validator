@@ -69,19 +69,19 @@ class Ead:
         return self.xpath("archdesc[@level='collection']/bioghist/p")
 
     def chronlist(self):
-        items = {}
         chron_items = self.root.xpath(
             "archdesc[@level='collection']/*[name() !="
             " 'dsc']//chronlist/chronitem"
         )
+        result = ResultSet(value_type=dict)
         for item in chron_items:
             date = item.xpath("date")[0].text
             group = item.xpath("eventgrp")[0]
             events = []
             for event in group.xpath("event"):
                 events.append(util.clean_text("".join(event.itertext())))
-            items[date] = events
-        return items
+            result.add(item.tag, {date: events}, item.sourceline)
+        return result
 
     def chronlist_heading(self):
         return self.xpath(
