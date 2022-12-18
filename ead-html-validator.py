@@ -400,7 +400,7 @@ def main():
     }
 
     for method_name, ead_method in util.get_methods(my_ead).items():
-        match = re.search(r"^(dao|chronlist|component|altformavail)$", method_name)
+        match = re.search(r"^(component)$", method_name)
         if match:
             logging.debug(f"Skipping {method_name}...")
             continue

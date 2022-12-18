@@ -3,6 +3,7 @@
 [top]
 checks = [
     "altformavail",
+    "dao",
     "url",
 ]
 
