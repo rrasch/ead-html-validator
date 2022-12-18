@@ -413,7 +413,7 @@ def main():
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
 
-        if type(ead_retval) is dict:
+        if type(ead_retval) in [dict, ResultSet]:
             ead_values = list(ead_retval.values())
         else:
             ead_values = ead_retval

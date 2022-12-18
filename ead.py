@@ -1,5 +1,6 @@
 from collections import defaultdict
 from lxml import etree as ET
+from resultset import ResultSet
 import component
 import logging
 import util
@@ -26,19 +27,11 @@ class Ead:
     def __str__(self):
         return f"EAD({self.eadid}):\nurl = {self.url}\n"
 
-    def _abstract(self):
-        node = self.root.xpath("archdesc[@level='collection']/did/abstract")[0]
-        for t in node.itertext():
-            logging.debug(f"text='{t}'")
-        text = "".join(node.itertext())
-        return " ".join(text.split())
-        # return util.stringify_children(node)
-
     def abstract(self):
         return self.get_text("archdesc[@level='collection']/did/abstract")
 
     def accessrestrict(self):
-        return self.get_text("archdesc[@level='collection']/accessrestrict/p")
+        return self.get_text("archdesc[@level='collection']/accessrestrict")
 
     def accruals(self):
         return self.xpath("archdesc[@level='collection']/accruals/p")
@@ -52,15 +45,20 @@ class Ead:
     def appraisal(self):
         return self.xpath("archdesc[@level='collection']/appraisal/p")
 
+    def _author(self):
+        expr = "eadheader/filedesc/titlestmt/author"
+        nodes = self.root.xpath("eadheader/filedesc/titlestmt/author")
+        if not nodes:
+            return None
+
+        result = ResultSet(xpath=expr)
+        for node in nodes:
+            for author in re.split(r"\s*\,\s*", node.text):
+                results.add(node.name, author, node.sourceline)
+        return result
+
     def author(self):
-        author_val = self.root.xpath("eadheader/filedesc/titlestmt/author")[
-            0
-        ].text
-        return_list = False
-        if return_list:
-            return re.split(r"\s*\,\s*", author_val)
-        else:
-            return author_val
+        return self.xpath("eadheader/filedesc/titlestmt/author")
 
     def bioghist(self):
         return self.xpath("archdesc[@level='collection']/bioghist/p")
@@ -81,15 +79,9 @@ class Ead:
         return items
 
     def chronlist_heading(self):
-        head = self.xpath(
+        return self.xpath(
             "archdesc[@level='collection']/*[name()  !='dsc']//chronlist/head"
         )
-        if head:
-            return {
-                lineno: util.clean_text(text) for lineno, text in head.items()
-            }
-        else:
-            return None
 
     def collection(self):
         return self.unittitle()
@@ -101,20 +93,15 @@ class Ead:
     def component(self):
         components = []
         for c in self.root.xpath("//c[not(ancestor::c)]"):
-            # logging.debug(c.attrib['id'])
-            # logging.debug(c.attrib['level'])
             components.append(component.Component(c, self))
         return components
 
     def corpname(self):
-        return_list = True
-        return self.get_archdesc_nodsc("corpname", return_list)
+        return self.get_archdesc_nodsc("corpname")
 
     def creation_date(self):
-        return util.clean_text(
-            self.root.xpath(
-                "/ead/eadheader[1]/profiledesc[1]/creation[1]/date[1]"
-            )[0].text
+        return self.xpath(
+            "/ead/eadheader[1]/profiledesc[1]/creation[1]/date[1]"
         )
 
     def creator(self):
@@ -154,7 +141,7 @@ class Ead:
         return self.xpath("eadheader/eadid")
 
     def famname(self):
-        return self.get_archdesc_nodsc("famname", return_list=True)
+        return self.get_archdesc_nodsc("famname")
 
     def function(self):
         return self.get_archdesc_nodsc("function")
@@ -165,59 +152,16 @@ class Ead:
     def geogname(self):
         return self.get_archdesc_nodsc("geogname")
 
-    def xpath_basic(self, expr):
-        nodes = self.root.xpath(expr)
-        if nodes:
-            return {node.sourceline: node.text for node in nodes}
-        else:
-            return None
-
-    def xpath(self, expr, all_text=False, return_list=True, sep=" "):
-        nodes = self.root.xpath(expr)
-        if not nodes:
-            return None
-
-        val_lineno = defaultdict(list)
-        for node in nodes:
-            if all_text:
-                words = []
-                for itext in node.itertext():
-                    words.extend(itext.split())
-                text = util.clean_text(sep.join(words))
-            else:
-                text = util.clean_text(node.text or "")
-            val_lineno[text].append(str(node.sourceline))
-
-        lineno_val = {
-            ", ".join(lineno): val for val, lineno in val_lineno.items()
-        }
-
-        if return_list:
-            return lineno_val
-        else:
-            return lineno_val
-
     def get_archdesc(self, field):
         return self.xpath(f"archdesc[@level='collection']/{field}/p")
 
-    def get_archdesc_nodsc(self, field, return_list=False):
-        nodes = self.root.xpath(
+    def get_archdesc_nodsc(self, field):
+        return self.get_text(
             f"archdesc[@level='collection']/*[name() != 'dsc']//{field}"
         )
-        values = set()
-        for node in nodes:
-            # logging.debug(util.clean_text("".join(node.itertext())))
-            # values.add(node.text)
-            # values.add("".join(node.itertext()).strip())
-            values.add(util.clean_text("".join(node.itertext())))
 
-        if return_list:
-            return list(values)
-        else:
-            return ", ".join(list(values))
-
-    def get_text(self, expr, return_list=True):
-        return self.xpath(expr, all_text=True, return_list=return_list)
+    def get_text(self, expr, **kwargs):
+        return self.xpath(expr, all_text=True, **kwargs)
 
     def get_text_no_lineno(self, expr, return_list=True):
         node_text_list = set()
@@ -246,7 +190,7 @@ class Ead:
         return self.get_text("//genreform")
 
     def name(self):
-        return self.get_archdesc_nodsc("name", return_list=True)
+        return self.get_archdesc_nodsc("name")
 
     def names(self):
         names = set(self.get_text_no_lineno("//*[local-name()!='repository']/corpname"))
@@ -263,7 +207,7 @@ class Ead:
         return self.get_archdesc_nodsc("occupation")
 
     def persname(self):
-        return self.get_archdesc_nodsc("persname", return_list=True)
+        return self.get_archdesc_nodsc("persname")
 
     def phystech(self):
         return self.xpath("archdesc[@level='collection']/phystech/p")
@@ -299,7 +243,7 @@ class Ead:
         return self.xpath("//titlestmt/subtitle")
 
     def title(self):
-        return self.get_archdesc_nodsc("title", return_list=True)
+        return self.get_archdesc_nodsc("title")
 
     def unitdate(self, expr):
         xpath = f"archdesc[@level='collection']/did/unitdate{expr}"
@@ -339,6 +283,24 @@ class Ead:
 
     def userestrict(self):
         return self.get_archdesc("userestrict")
+
+    def xpath(self, expr, all_text=False, sep=" "):
+        nodes = self.root.xpath(expr)
+        if not nodes:
+            return None
+
+        result = ResultSet(xpath=expr)
+        for node in nodes:
+            if all_text:
+                words = []
+                for itext in node.itertext():
+                    words.extend(itext.split())
+                text = util.clean_text(sep.join(words))
+            else:
+                text = util.clean_text(node.text or "")
+            result.add(node.tag, text, node.sourceline)
+        return result
+
 
     #     def unitdate_parse(self, expr):
     #         dates = self.root.xpath(
