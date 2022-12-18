@@ -31,7 +31,7 @@ class Ead:
         return self.get_text("archdesc[@level='collection']/did/abstract")
 
     def accessrestrict(self):
-        return self.get_text("archdesc[@level='collection']/accessrestrict")
+        return self.get_text("archdesc[@level='collection']/accessrestrict/*[not(self::head)]", join_text=True)
 
     def accruals(self):
         return self.xpath("archdesc[@level='collection']/accruals/p")
@@ -284,11 +284,12 @@ class Ead:
     def userestrict(self):
         return self.get_archdesc("userestrict")
 
-    def xpath(self, expr, all_text=False, sep=" "):
+    def xpath(self, expr, all_text=False, join_text=False, sep=" "):
         nodes = self.root.xpath(expr)
         if not nodes:
             return None
 
+        total_text = ""
         result = ResultSet(xpath=expr)
         for node in nodes:
             if all_text:
@@ -298,7 +299,14 @@ class Ead:
                 text = util.clean_text(sep.join(words))
             else:
                 text = util.clean_text(node.text or "")
-            result.add(node.tag, text, node.sourceline)
+            if join_text:
+                total_text += " " + text
+            else:
+                result.add(node.tag, text, node.sourceline)
+
+        if join_text:
+            result.add(nodes[0].tag, total_text, nodes[0].sourceline)
+
         return result
 
 
