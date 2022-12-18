@@ -10,7 +10,7 @@ class ResultSet:
 
     def add(self, tag, value, lineno):
         if type(value) is not self.value_type:
-            raise TypeError("{value} is not of type {self.value_type}")
+            raise TypeError(f"{value} is not of type {self.value_type}")
         self.results_list.append({"tag": tag, "value": value, "lineno": lineno})
         if self.value_type is str:
             self.results_uniq[value].append(lineno)
@@ -20,6 +20,17 @@ class ResultSet:
             return self.results_uniq.keys()
         else:
             return [result["value"] for result in self.results_list]
+
+    def join(self):
+        if self.valute_type is not str:
+            raise TypeError(
+                f"ResultSet value type is {self.value_type} but join()"
+                " expects str"
+            )
+        total_text = ""
+        for result in self.results_list:
+            total_text += " " + result["value"]
+        return [total_text[1:]]
 
     def __str__(self):
         return "\n".join(
