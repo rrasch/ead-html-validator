@@ -36,6 +36,10 @@ class ResultSet:
         return [total_text[1:]]
 
     def append(self, result_set):
+        if result_set is None:
+            raise TypeError(
+                f"{type(result_text)} can't be appended to ResultSet"
+            )
         for result in result_set.all_values():
             self.results_list.append(result)
             if self.value_type is str:

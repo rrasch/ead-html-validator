@@ -198,12 +198,16 @@ class Ead:
         return self.get_archdesc_nodsc("name")
 
     def names(self):
-        names = set(self.get_text_no_lineno("//*[local-name()!='repository']/corpname"))
+        names = ResultSet(sort=True)
+        result = self.xpath("//*[local-name()!='repository']/corpname")
+        if result:
+            names.append(result)
         fields = ["famname", "persname"]
         for field in fields:
-            name_list = self.get_text_no_lineno(f"//{field}")
-            names.update(name_list)
-        return sorted(list(names))
+            result = self.xpath(f"//{field}")
+            if result:
+                names.append(result)
+        return names
 
     def note(self):
         return self.xpath("eadheader/filedesc/notestmt/note/p")
