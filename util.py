@@ -2,7 +2,8 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from dateutil.parser import parse, ParserError
 from lxml import etree as ET
-from pprint import pprint
+from pprint import pprint, pformat
+from resultset import ResultSet
 from urllib.parse import urlparse
 import csv
 import inspect
@@ -159,4 +160,41 @@ def find_broken_links(links):
 
 def sort_dict(mydict):
     return dict(sorted(mydict.items(), key=lambda item: item[1]))
+
+
+def xpath(root, expr, all_text=False, join_text=False, sep=" "):
+    attrib = None
+    match = re.search(r"(/@([A-Za-z]+))$", expr)
+    if match:
+        attrib = match.group(2)
+        expr = re.sub(rf"{match.group(1)}$", "", expr)
+
+    nodes = root.xpath(expr)
+    if not nodes:
+        return None
+
+    total_text = ""
+    result = ResultSet(xpath=expr)
+    for node in nodes:
+        if attrib:
+            text = node.get(attrib)
+            if text is None:
+                continue
+        elif all_text:
+            words = []
+            for itext in node.itertext():
+                # words.extend(itext.split())
+                words.append(itext)
+            text = clean_text(sep.join(words))
+        else:
+            text = clean_text(node.text or "")
+        if join_text:
+            total_text += " " + text
+        else:
+            result.add(node.tag, text, node.sourceline)
+
+    if join_text:
+        result.add(nodes[0].tag, total_text[1:], nodes[0].sourceline)
+
+    return result if not result.isempty() else None
 

@@ -1,4 +1,5 @@
 from lxml import etree as ET
+from resultset import ResultSet
 from urllib.parse import urlparse
 import constants as cs
 import logging
@@ -85,9 +86,7 @@ class Component:
         for node in self.c.xpath("did"):
             logging.debug(ET.tostring(node, pretty_print=True).decode())
 
-        return self.get_val(
-            "did/*[self::dao or self::daogrp]/daodesc/p", return_list=True
-        )
+        return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
 
     def dao_link(self):
         links = {}
@@ -161,16 +160,8 @@ class Component:
                 )
             }
 
-    def get_val(self, xpath_expr, return_list=False):
-        nodes = self.c.xpath(xpath_expr)
-        if nodes:
-            values = {
-                node.sourceline: re.sub(r"\s+", " ", node.text).strip()
-                for node in nodes
-            }
-            return values
-        else:
-            return None
+    def get_val(self, xpath_expr, **kwargs):
+        return util.xpath(self.c, xpath_expr, **kwargs)
 
     def id(self):
         # return {self.c.sourceline: self.c.attrib["id"]}

@@ -201,7 +201,7 @@ def format_vals(vals):
     else:
         return repr(vals)
 
-def validate_component(c, dirpath, errors, diff_cfg):
+def validate_component(c, dirpath, errors, diff_cfg, excludes):
     logging.debug("----")
     logging.debug(c.id())
     logging.debug(c.level())
@@ -234,8 +234,12 @@ def validate_component(c, dirpath, errors, diff_cfg):
 
     # XXX: Should this be replaced by constants?
     for method_name, comp_method in util.get_methods(c).items():
-        match = re.search(r"^(sub_components|unitid)$", method_name)
+        match = re.search(r"^(sub_components)$", method_name)
         if match:
+            logging.debug(f"Skipping {method_name}...")
+            continue
+
+        if method_name in excludes["container"]["checks"]:
             logging.debug(f"Skipping {method_name}...")
             continue
 
@@ -309,7 +313,7 @@ def validate_component(c, dirpath, errors, diff_cfg):
         # logging.debug(subc)
         # logging.debug(subc.id())
         # logging.debug(subc.level())
-        validate_component(subc, new_dirpath, errors, diff_cfg)
+        validate_component(subc, new_dirpath, errors, diff_cfg, excludes)
 
 
 def build_level_tree(ead_elem, parent):
@@ -453,7 +457,7 @@ def main():
         erros.append("Nesting error")
 
     for c in ead_comps:
-        validate_component(c, html_dir, errors, diff_cfg)
+        validate_component(c, html_dir, errors, diff_cfg, excludes)
 
     for error in errors:
         print(f"ERROR: {error}\n")

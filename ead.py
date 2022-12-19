@@ -255,16 +255,7 @@ class Ead:
         return self.get_archdesc_nodsc("title")
 
     def unitdate(self, expr):
-        xpath = f"archdesc[@level='collection']/did/unitdate{expr}"
-        dates = self.root.xpath(xpath)
-        return [
-            util.clean_text(
-                str(date)
-                if isinstance(date, ET._ElementUnicodeResult)
-                else date.text
-            )
-            for date in dates
-        ]
+        return self.xpath(f"archdesc[@level='collection']/did/unitdate{expr}")
 
     def unitdate_all(self):
         return self.unitdate("")

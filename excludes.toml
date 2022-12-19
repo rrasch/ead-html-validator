@@ -9,5 +9,6 @@ checks = [
 
 [container]
 checks = [
+    "unitid",
 ]
 
