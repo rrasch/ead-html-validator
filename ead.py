@@ -69,11 +69,12 @@ class Ead:
         return self.xpath("archdesc[@level='collection']/bioghist/p")
 
     def chronlist(self):
-        chron_items = self.root.xpath(
+        expr = (
             "archdesc[@level='collection']/*[name() !="
             " 'dsc']//chronlist/chronitem"
         )
-        result = ResultSet(value_type=dict)
+        chron_items = self.root.xpath(expr)
+        result = ResultSet(xpath=expr, value_type=dict)
         for item in chron_items:
             date = item.xpath("date")[0].text
             group = item.xpath("eventgrp")[0]
@@ -110,16 +111,15 @@ class Ead:
         )
 
     def creator(self):
-        creators = []
+        creators = ResultSet()
         for field in ["corpname", "famname", "persname"]:
-            for node in self.root.xpath(
-                "archdesc[@level='collection']/did/"
-                "origination[@label='Creator'"
+            expr = (
+                "archdesc[@level='collection']/did/origination[@label='Creator'"
                 f" or @label='source']/{field}"
-            ):
-                logging.debug(node)
-                creators.append(node.text.strip())
-        logging.debug(creators)
+            )
+            result = self.xpath(expr)
+            if result:
+                creators.append(result)
         return creators
 
     def creators(self):

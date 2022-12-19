@@ -15,6 +15,9 @@ class ResultSet:
         if self.value_type is str:
             self.results_uniq[value].append(lineno)
 
+    def all_values(self):
+        return self.results_list
+
     def values(self):
         if self.value_type is str:
             return self.results_uniq.keys()
@@ -31,6 +34,12 @@ class ResultSet:
         for result in self.results_list:
             total_text += " " + result["value"]
         return [total_text[1:]]
+
+    def append(self, result_set):
+        for result in result_set.all_values():
+            self.results_list.append(result)
+            if self.value_type is str:
+                self.results_uniq[result["value"]].append(result["lineno"])
 
     def __str__(self):
         return "\n".join(
