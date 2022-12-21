@@ -257,7 +257,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
 
-        if type(chtml_retval) is dict:
+        if type(chtml_retval) is [dict, ResultSet]:
             chtml_values = list(chtml_retval.values())
         else:
             chtml_values = chtml_retval
@@ -427,11 +427,16 @@ def main():
         ehtml_retval = ehtml_method() if method_name != "names" else names
         logging.debug(f"retval={ehtml_retval}")
 
-        passed_check = compare(ead_values, ehtml_retval)
+        if type(ead_retval) in [dict, ResultSet]:
+            ehtml_values = list(ead_retval.values())
+        else:
+            ehtml_values = ead_retval
+
+        passed_check = compare(ead_values, ehtml_values)
         if not passed_check:
             errors.append(
                 f"ead field '{method_name}' differs'\nDIFF:\n"
-                + diff(ead_values, ehtml_retval, diff_cfg)
+                + diff(ead_values, ehtml_values, diff_cfg)
             )
 
         if ehtml_retval is None:

@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from resultset import ResultSet
 from string import punctuation as punc
 from subprocess import PIPE
 import comphtml
@@ -129,18 +130,23 @@ class EADHTML:
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
         if not group:
             return None
-        return [
-            util.clean_text(div.get_text()) for div in group.find_all("div")
-        ]
+        result = ResultSet()
+        for div in group.find_all("div"):
+            result.add(
+                div.name, util.clean_text(div.get_text()), div.sourceline
+            )
+        return result
 
     def control_access_group_val(self, field):
         group = self.soup.find("div", class_=f"controlaccess-{field}-group")
         if not group:
             return None
-        return [
-            util.clean_text(node.get_text())
-            for node in group.find_all(class_="controlaccess-value")
-        ]
+        result = ResultSet()
+        for node in group.find_all(class_="controlaccess-value"):
+            result.add(
+                node.name, util.clean_text(node.get_text()), node.sourceline
+            )
+        return result
 
     def corpname(self):
         # return self.control_access_group("corpname")
@@ -249,7 +255,13 @@ class EADHTML:
             note_child = getattr(note, tag)
             if note_child is not None:
                 # return note_child.get_text(strip=True)
-                return util.clean_text(note_child.get_text())
+                result = ResultSet()
+                result.add(
+                    note_child.name,
+                    util.clean_text(note_child.get_text()),
+                    note_child.sourceline,
+                )
+                return result
         return None
 
     def function(self):
