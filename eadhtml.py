@@ -206,10 +206,7 @@ class EADHTML:
         return self.soup.find("span", class_="ead-num").get_text()
 
     def ead_class_values(self, class_name):
-        return {
-            util.clean_text(node.contents[0])
-            for node in self.soup.find_all(class_=f"ead-{class_name}")
-        }
+        return self.find_all(class_=f"ead-{class_name}", get_text=False)
 
     def editionstmt(self):
         return self.formatted_note("editionstmt")
@@ -222,6 +219,18 @@ class EADHTML:
             name.contents[0].strip()
             for name in self.soup.find_all("div", class_=re.compile("^famname"))
         ]
+
+    def find_all(self, *args, get_text=True, **kwargs):
+        nodes = self.soup.find_all(*args, **kwargs)
+        if not nodes:
+            return None
+        find_expr = util.create_args_str(*args, **kwargs)
+        result = ResultSet(xpath=find_expr)
+        for node in nodes:
+            text = node.get_text() if get_text else node.contents[0]
+            text = util.clean_text(text)
+            result.add(node.name, text, node.sourceline)
+        return result
 
     def find_component(self, cid):
         node = self.soup.find(attrs={"id": cid})
@@ -321,9 +330,17 @@ class EADHTML:
         return self.formatted_note("odd")
 
     def persname(self):
-        persnames = self.ead_class_values("persname")
-        persnames.update(self.control_access_group_val("persname"))
-        return list(persnames)
+        all_persnames = ResultSet()
+        for persnames in [
+            self.ead_class_values("persname"),
+            self.control_access_group_val("persname"),
+        ]:
+            if persnames:
+                all_persnames.append(persnames)
+        if not all_persnames.isempty():
+            return all_persnames
+        else:
+            return None
 
     def physfacet(self):
         return self.formatted_note("physfacet")
@@ -367,10 +384,12 @@ class EADHTML:
         return self.control_access_group("subject")
 
     def subjects(self):
-        subj_set = set()
+        subj_set = ResultSet()
         for field in ['subject', 'function', 'occupation']:
-            subj_set.update(self.control_access_group(field))
-        return list(subj_set)
+            subjs = self.control_access_group(field)
+            if subjs:
+                subj_set.append(subjs)
+        return subj_set if not subj_set.isempty() else None
 
     def subtitle(self):
         return self.soup.main.find(

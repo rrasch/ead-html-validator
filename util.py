@@ -198,3 +198,20 @@ def xpath(root, expr, all_text=False, join_text=False, sep=" "):
 
     return result if not result.isempty() else None
 
+def quote(val):
+    if type(val) == str:
+        return f"'{val}'"
+    else:
+        return str(val)
+
+def create_args_str(*args, **kwargs):
+    sep = ", "
+    arg_str = sep.join([quote(a) for a in args])
+    kw_str =  sep.join([f"{k}={quote(kwargs[k])}" for k in kwargs.keys()])
+
+    if arg_str and kw_str:
+        return arg_str + sep + kw_str
+    elif arg_str:
+        return arg_str
+    else:
+        return kw_str
