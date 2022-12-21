@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from lxml import etree as ET
 from resultset import ResultSet
 from string import punctuation as punc
 from subprocess import PIPE
@@ -17,10 +18,11 @@ class ComponentNotFoundError(Exception):
 class EADHTML:
     def __init__(self, html_file):
         logging.debug(f"html_file={html_file}")
+        # self.soup = BeautifulSoup(open(html_file), "html.parser")
         self.soup = BeautifulSoup(
             open(html_file), "html.parser", multi_valued_attributes=None
         )
-        # self.soup = BeautifulSoup(open(html_file), "html.parser")
+        self.dom = ET.HTML(str(self.soup))
         self.html_file = html_file
 
     def author(self):
@@ -54,8 +56,10 @@ class EADHTML:
         return self.formatted_note("bioghist")
 
     def chronlist(self):
-        items = {}
+        items = ResultSet(value_type=dict)
         clist = self.soup.find("span", class_="ead-chronlist")
+        if not clist:
+            return None
         for item in clist.find_all("span", class_="ead-chronitem"):
             date = item.find("span", class_="ead-date").get_text()
             group = item.find("span", class_="ead-eventgrp")
@@ -63,15 +67,14 @@ class EADHTML:
                 event.get_text()
                 for event in group.find_all("span", class_="ead-event")
             ]
-            items[date] = events
+            items.add(item.name, {date: events}, item.sourceline)
         return items
 
     def chronlist_heading(self):
-        return util.clean_text(
-            self.soup.find("span", class_="ead-chronlist")
-            .find("span", class_="ead-head")
-            .get_text()
-        )
+        clist = self.soup.find("span", class_="ead-chronlist")
+        if not clist:
+            return None
+        return self.find_all("span", class_="ead-head", root=clist)
 
     def class_values(self, class_regex):
         return {
@@ -220,8 +223,10 @@ class EADHTML:
             for name in self.soup.find_all("div", class_=re.compile("^famname"))
         ]
 
-    def find_all(self, *args, get_text=True, **kwargs):
-        nodes = self.soup.find_all(*args, **kwargs)
+    def find_all(self, *args, root=None, get_text=True, **kwargs):
+        if root is None:
+            root = self.soup
+        nodes = root.find_all(*args, **kwargs)
         if not nodes:
             return None
         find_expr = util.create_args_str(*args, **kwargs)
@@ -397,14 +402,11 @@ class EADHTML:
         ).get_text()
 
     def title(self):
-        titles = {
-            util.clean_text(title.get_text())
-            for title in self.soup.find_all(class_="ead-title")
-        }
+        titles = self.find_all(class_="ead-title")
         addl_title = self.control_access_group_val("title")
         if addl_title:
-            titles.update(addl_title)
-        return list(titles)
+            titles.append(addl_title)
+        return titles
 
     def title_head(self):
         title_str = self.soup.title.get_text(strip=True)
