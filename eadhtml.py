@@ -414,8 +414,7 @@ class EADHTML:
         return titles
 
     def title_head(self):
-        title_str = self.soup.title.get_text(strip=True)
-        return title_str
+        return EADHTML.resultset(self.soup.title)
 
     def unitdate(self):
         return [
@@ -453,8 +452,7 @@ class EADHTML:
         return self.soup.find("div", class_="md-group unit_id").div.get_text()
 
     def url(self):
-        link = self.soup.find("link", rel="canonical")
-        return ResultSet().add(link.name, link["href"], link.soureline)
+        return self.soup.find_all("link", rel="canonical", attrib="href")
 
     def userestrict(self):
         return self.formatted_note("userestrict")
