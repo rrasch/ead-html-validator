@@ -77,10 +77,7 @@ class EADHTML:
         return self.find_all("span", class_="ead-head", root=clist)
 
     def class_values(self, class_regex):
-        return {
-            util.clean_text(node.contents[0])
-            for node in self.soup.find_all(class_=re.compile(class_regex))
-        }
+        return self.find_all(class_=re.compile(class_regex), get_text=False)
 
     @staticmethod
     def clean_dates(dates):
@@ -218,10 +215,9 @@ class EADHTML:
         return self.formatted_note("extent")
 
     def famname(self):
-        return [
-            name.contents[0].strip()
-            for name in self.soup.find_all("div", class_=re.compile("^famname"))
-        ]
+        return self.find_all(
+            "div", class_=re.compile("^famname"), get_text=False
+        )
 
     def find_all(self, *args, root=None, get_text=True, **kwargs):
         if root is None:
@@ -309,21 +305,28 @@ class EADHTML:
         )
 
     def names(self):
-        name_list = set()
-        name_list.update(self.famname())
-        name_list.update(self.class_values(r"^(ead-)?persname( role-Donor)?$"))
+        all_names = ResultSet()
 
-        regex = r"^(ead-)?corpname( role-Donor)?$"
-        for node in self.soup.body.find_all(
+        pers_regex = r"^(ead-)?persname( role-Donor)?$"
+        for name in [self.famname(), self.class_values(pers_regex)]:
+            print(type(name))
+            if name:
+                all_names.append(name)
+
+        corp_regex = r"^(ead-)?corpname( role-Donor)?$"
+        corpname = self.find_all(
             lambda tag: not re.search(
                 r"repository", tag.parent.parent.get("class") or ""
             )
-            and re.search(regex, tag.get("class") or "")
-            or re.search(regex, tag.get("data-field") or "")
-        ):
-            name_list.add(util.clean_text(node.contents[0]))
+            and re.search(corp_regex, tag.get("class") or "")
+            or re.search(corp_regex, tag.get("data-field") or ""),
+            get_text=False,
+            root=self.soup.body,
+        )
+        if corpname:
+            all_names.append(corpname)
 
-        return sorted(name_list)
+        return all_names if not all_names.isempty() else None
 
     def note(self):
         return self.formatted_note("notestmt")

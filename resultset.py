@@ -16,6 +16,7 @@ class ResultSet:
         self.results_list.append({"tag": tag, "value": value, "lineno": lineno})
         if self.value_type is str:
             self.results_uniq[value].append(lineno)
+        return self
 
     def all_values(self):
         return self.results_list
