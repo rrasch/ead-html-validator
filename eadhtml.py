@@ -150,21 +150,11 @@ class EADHTML:
 
     def corpname(self):
         # return self.control_access_group("corpname")
-        return list(
-            {
-                util.clean_text(corp_name.get_text())
-                for corp_name in self.soup.find_all(
-                    class_=re.compile(r"(ead-)?corpname$")
-                )
-            }
-        )
+        return self.find_all(class_=re.compile(r"(ead-)?corpname$"))
 
     def creation_date(self):
-        return util.clean_text(
-            self.soup.find("div", class_="creation")
-            .find(class_="ead-date")
-            .get_text()
-        )
+        creation = self.soup.find("div", class_="creation")
+        return self.find_all(class_="ead-date", root=creation)
 
     # def creator(self):
     #     creators = []
@@ -179,13 +169,12 @@ class EADHTML:
         origination = self.soup.find(
             class_=re.compile(r"^md-group origination")
         )
-        creators = [
-            util.clean_text(node.contents[0])
-            for node in origination.find_all(
-                "div", class_=re.compile(r"^(corp|fam|pers)name")
-            )
-        ]
-        return creators
+        return self.find_all(
+            "div",
+            class_=re.compile(r"^(corp|fam|pers)name"),
+            root=origination,
+            get_text=False,
+        )
 
     def creators(self):
         return self.creator()
@@ -200,10 +189,10 @@ class EADHTML:
         return self.formatted_note("dimensions")
 
     def eadid(self):
-        return self.url().rstrip("/").split("/")[-1]
+        return self.url().values()[0].rstrip("/").split("/")[-1]
 
     def eadnum(self):
-        return self.soup.find("span", class_="ead-num").get_text()
+        return self.find_all("span", class_="ead-num")
 
     def ead_class_values(self, class_name):
         return self.find_all(class_=f"ead-{class_name}", get_text=False)
@@ -219,7 +208,7 @@ class EADHTML:
             "div", class_=re.compile("^famname"), get_text=False
         )
 
-    def find_all(self, *args, root=None, get_text=True, **kwargs):
+    def find_all(self, *args, root=None, attrib=None, get_text=True, **kwargs):
         if root is None:
             root = self.soup
         nodes = root.find_all(*args, **kwargs)
@@ -228,7 +217,12 @@ class EADHTML:
         find_expr = util.create_args_str(*args, **kwargs)
         result = ResultSet(xpath=find_expr)
         for node in nodes:
-            text = node.get_text() if get_text else node.contents[0]
+            if attrib:
+                text = node["attrib"]
+            elif get_text:
+                text = node.get_text()
+            else:
+                text = node.contents[0]
             text = util.clean_text(text)
             result.add(node.name, text, node.sourceline)
         return result
@@ -287,22 +281,21 @@ class EADHTML:
         return self.unittitle()
 
     def langcode(self):
-        lang = pycountry.languages.get(name=self.language())
-        return lang.alpha_3
+        lang_codes = set()
+        for lang_name in self.language().values():
+            lang = pycountry.languages.get(name=lang_name)
+            if lang:
+                lang_codes.add(lang.alpha_3)
+        return list(lang_codes)
 
     def language(self):
-        return self.soup.find("div", class_="langusage").span.text
+        return self.find_all(class_="ead-language")
 
     def material_type(self):
         return self.genreform()
 
     def name(self):
-        return list(
-            {
-                util.clean_text(node.get_text())
-                for node in self.soup.find_all(class_="ead-name")
-            }
-        )
+        return self.find_all(class_="ead-name")
 
     def names(self):
         all_names = ResultSet()
@@ -369,9 +362,20 @@ class EADHTML:
         return self.formatted_note("relatedmaterial")
 
     def repository(self):
-        return self.soup.find(
-            "div", class_="md-group repository"
-        ).div.get_text()
+        repo = self.soup.find("div", class_="md-group repository")
+        if not repo:
+            return None
+        return self.find_all("div", root=repo)
+        # return EADHTML.resultset(repo.div) if repo.div else None
+
+    @staticmethod
+    def resultset(node, xpath=None):
+        print(node)
+        if not node:
+            raise ValueError("Must give a value for node.")
+        return ResultSet(xpath=xpath).add(
+            node.name, node.get_text(), node.sourceline
+        )
 
     def revisiondesc(self):
         return self.formatted_note("revisiondesc")
@@ -400,9 +404,7 @@ class EADHTML:
         return subj_set if not subj_set.isempty() else None
 
     def subtitle(self):
-        return self.soup.main.find(
-            re.compile(r"^h\d$"), class_="subtitle"
-        ).get_text()
+        return self.find_all(re.compile(r"^h\d$"), class_="subtitle"))
 
     def title(self):
         titles = self.find_all(class_="ead-title")
@@ -451,7 +453,8 @@ class EADHTML:
         return self.soup.find("div", class_="md-group unit_id").div.get_text()
 
     def url(self):
-        return self.soup.find("link", rel="canonical")["href"]
+        link = self.soup.find("link", rel="canonical")
+        return ResultSet().add(link.name, link["href"], link.soureline)
 
     def userestrict(self):
         return self.formatted_note("userestrict")

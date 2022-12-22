@@ -23,7 +23,7 @@ class ResultSet:
 
     def values(self):
         if self.value_type is str:
-            return self.results_uniq.keys()
+            return list(self.results_uniq.keys())
         else:
             return [result["value"] for result in self.results_list]
 
