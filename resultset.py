@@ -27,6 +27,9 @@ class ResultSet:
         else:
             return [result["value"] for result in self.results_list]
 
+    def value_type(self):
+        return self.value_type
+
     def join(self):
         if self.valute_type is not str:
             raise TypeError(
@@ -47,6 +50,13 @@ class ResultSet:
             self.results_list.append(result)
             if self.value_type is str:
                 self.results_uniq[result["value"]].append(result["lineno"])
+
+    def grep(self, filter_func):
+        filtered = ResultSet(value_type=self.value_type())
+        for result in result_set.all_values():
+            if filter_func(result["value"]):
+                filtered.add(result["tag"], result["value"], result["lineno"])
+        return filtered if not filtered.isempty() else None
 
     def isempty(self):
         return len(self.results_list) == 0

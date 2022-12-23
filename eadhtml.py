@@ -218,7 +218,7 @@ class EADHTML:
         result = ResultSet(xpath=find_expr)
         for node in nodes:
             if attrib:
-                text = node["attrib"]
+                text = node[attrib]
             elif get_text:
                 text = node.get_text()
             else:
@@ -404,7 +404,7 @@ class EADHTML:
         return subj_set if not subj_set.isempty() else None
 
     def subtitle(self):
-        return self.find_all(re.compile(r"^h\d$"), class_="subtitle"))
+        return self.find_all(re.compile(r"^h\d$"), class_="subtitle")
 
     def title(self):
         titles = self.find_all(class_="ead-title")
@@ -417,27 +417,24 @@ class EADHTML:
         return EADHTML.resultset(self.soup.title)
 
     def unitdate(self):
-        return [
-            date.text
-            for date in self.soup.find("div", "md-group unit_date").find_all(
-                "div"
-            )
-        ]
+        date_grp = self.soup.find("div", "md-group unit_date")
+        if date_grp and date_grp.div:
+            return self.find_all("div", root=date_grp)
+        else:
+            return None
 
     def unitdate_all(self):
-        return EADHTML.clean_dates(self.unitdate())
+        clean_values = EADHTML.clean_dates(self.unitdate().values())
+        return clean_values
 
     def unitdate_bulk(self):
-        return self.unitdate_grep(lambda date: "bulk" in date)
-
-    def unitdate_grep(self, grep_func):
-        return list(filter(grep_func, self.unitdate()))
+        return self.unitdate().grep(lambda date: "bulk" in date)
 
     def unitdate_inclusive(self):
-        return self.unitdate_grep(lambda date: "inclusive" in date)
+        return self.unitdate().grep(lambda date: "inclusive" in date)
 
     def unitdate_not_type(self):
-        return self.unitdate_grep(
+        return self.unitdate().grep(
             lambda date: all(
                 dtype not in date for dtype in ["bulk", "inclusive"]
             )
@@ -452,7 +449,7 @@ class EADHTML:
         return self.soup.find("div", class_="md-group unit_id").div.get_text()
 
     def url(self):
-        return self.soup.find_all("link", rel="canonical", attrib="href")
+        return self.find_all("link", rel="canonical", attrib="href")
 
     def userestrict(self):
         return self.formatted_note("userestrict")
