@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
-import inspect
+from resultset import ResultSet
 import logging
 import re
 import util
@@ -27,18 +27,16 @@ class CompHTML:
         return self.formatted_note_heading("accruals")
 
     def acqinfo(self):
-        field = inspect.currentframe().f_code.co_name
-        return self.formatted_note_text(field)
+        return self.formatted_note_text("acqinfo")
 
     def acqinfo_heading(self):
-        field = inspect.currentframe().f_code.co_name[: -len("_heading")]
-        return self.formatted_note_heading(field)
+        return self.formatted_note_heading("acqinfo")
 
     def altformavail(self):
-        pass
+        return self.formatted_note_text("altformavail")
 
     def altformavail_heading(self):
-        pass
+        return self.formatted_note_heading("altformavail")
 
     def appraisal(self):
         return self.formatted_note_text("appraisal")
@@ -93,7 +91,11 @@ class CompHTML:
         cgroup = self.c.find("div", class_=f"controlaccess-{field}-group")
         if cgroup is None:
             return None
-        return cgroup.div.get_text(strip=True)
+        # return cgroup.div.get_text(strip=True)
+        if cgroup.div:
+            return CompHTML.find_all(cgroup, "div")
+        else:
+            return None
 
     def corpname(self):
         return self.control_group("corpname")
@@ -102,10 +104,11 @@ class CompHTML:
         origin = self.c.find("div", class_="md-group origination")
         if origin is None:
             return None
-        return [
-            name.get_text()
-            for name in origin.find_all("div", class_=re.compile(r"name$"))
-        ]
+        # return [
+        #     name.get_text()
+        #     for name in origin.find_all("div", class_=re.compile(r"name$"))
+        # ]
+        return CompHTML.find_all(origin, "div", class_=re.compile(r"name$"))
 
     def custodhist(self):
         return self.formatted_note_text("custodhist")
@@ -183,6 +186,24 @@ class CompHTML:
     def fileplan_heading(self):
         return self.formatted_note_heading("fileplan")
 
+    @staticmethod
+    def find_all(root, *args, attrib=None, get_text=True, sep="", **kwargs):
+        nodes = root.find_all(*args, **kwargs)
+        if not nodes:
+            return None
+        find_expr = util.create_args_str(*args, **kwargs)
+        result = ResultSet(xpath=find_expr)
+        for node in nodes:
+            if attrib:
+                text = node[attrib]
+            elif get_text:
+                text = node.get_text(sep)
+            else:
+                text = node.contents[0]
+            text = util.clean_text(text)
+            result.add(node.name, text, node.sourceline)
+        return result
+
     def formatted_note(self, field):
         return self.c.find("div", class_=f"md-group formattednote {field}")
 
@@ -190,16 +211,20 @@ class CompHTML:
         note = self.formatted_note(field)
         if note is None:
             return None
-        return note.find(
-            re.compile(r"^h\d$"), class_="formattednote-header"
-        ).get_text(" ", strip=True)
+        # return note.find(
+        #     re.compile(r"^h\d$"), class_="formattednote-header"
+        # ).get_text(" ", strip=True)
+        return CompHTML.find_all(
+            note, re.compile(r"^h\d$"), class_="formattednote-header", sep=""
+        )
 
     def formatted_note_text(self, field, p=True):
         note = self.formatted_note(field)
         if note is None:
             return None
         text_node = note.div.p if p else note.div
-        return util.clean_text(text_node.get_text(" ", strip=True))
+        # return util.clean_text(text_node.get_text(" ", strip=True))
+        return CompHTML.resultset(text_node, sep=" ")
 
     def function(self):
         return self.control_group("function")
@@ -308,6 +333,12 @@ class CompHTML:
 
     def relatedmaterial_heading(self):
         return self.formatted_note_heading("relatedmaterial")
+
+    @staticmethod
+    def resultset(node, xpath=None, sep=""):
+        return ResultSet(xpath=xpath).add(
+            node.name, util.clean_text(node.get_text(sep)), node.sourceline
+        )
 
     def separatedmaterial(self):
         return self.formatted_note_text("separatedmaterial")

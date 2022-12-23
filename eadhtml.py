@@ -306,7 +306,6 @@ class EADHTML:
 
         pers_regex = r"^(ead-)?persname( role-Donor)?$"
         for name in [self.famname(), self.class_values(pers_regex)]:
-            print(type(name))
             if name:
                 all_names.append(name)
 
@@ -374,7 +373,6 @@ class EADHTML:
 
     @staticmethod
     def resultset(node, xpath=None):
-        print(node)
         if not node:
             raise ValueError("Must give a value for node.")
         return ResultSet(xpath=xpath).add(

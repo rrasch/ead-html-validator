@@ -257,7 +257,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
 
-        if type(chtml_retval) is [dict, ResultSet]:
+        if type(chtml_retval) in [dict, ResultSet]:
             chtml_values = list(chtml_retval.values())
         else:
             chtml_values = chtml_retval
