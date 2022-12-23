@@ -441,9 +441,10 @@ class EADHTML:
         )
 
     def unittitle(self):
-        return self.soup.main.find(
-            re.compile(r"^h\d$"), class_="page-title"
-        ).get_text()
+        # return self.soup.main.find(
+        #     re.compile(r"^h\d$"), class_="page-title"
+        # ).get_text()
+        return EADHTML.resultset(self.soup.main.h1)
 
     def unitid(self):
         return self.soup.find("div", class_="md-group unit_id").div.get_text()
