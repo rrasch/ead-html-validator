@@ -80,11 +80,8 @@ class EADHTML:
         return self.find_all(class_=re.compile(class_regex), get_text=False)
 
     @staticmethod
-    def clean_dates(dates):
-        return [
-            re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}")
-            for date in dates
-        ]
+    def clean_date(date):
+        return re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}")
 
     def collection(self):
         return self.unittitle()
@@ -427,8 +424,7 @@ class EADHTML:
         return self.get_group_div_text("unit_date")
 
     def unitdate_all(self):
-        clean_values = EADHTML.clean_dates(self.unitdate().values())
-        return clean_values
+        return self.unitdate().update_values(EADHTML.clean_date)
 
     def unitdate_bulk(self):
         return self.unitdate().grep(lambda date: "bulk" in date)

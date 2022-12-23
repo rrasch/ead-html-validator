@@ -1,4 +1,5 @@
 from collections import defaultdict
+from copy import deepcopy
 
 
 class ResultSet:
@@ -29,6 +30,12 @@ class ResultSet:
 
     def value_type(self):
         return self.value_type
+
+    def update_values(self, update_func):
+        new_result_set = deepcopy(self)
+        for result in new_result_set.all_values():
+            result["value"] = update_func(result["value"])
+        return new_result_set
 
     def join(self):
         if self.valute_type is not str:
