@@ -277,6 +277,13 @@ class EADHTML:
     def geogname(self):
         return self.control_access_group("geogname")
 
+    def get_group_div_text(self, group_name):
+        group = self.soup.find("div", class_=f"md-group {group_name}")
+        if group and group.div:
+            return self.find_all("div", root=group)
+        else:
+            return None
+
     def heading(self):
         return self.unittitle()
 
@@ -417,11 +424,7 @@ class EADHTML:
         return EADHTML.resultset(self.soup.title)
 
     def unitdate(self):
-        date_grp = self.soup.find("div", "md-group unit_date")
-        if date_grp and date_grp.div:
-            return self.find_all("div", root=date_grp)
-        else:
-            return None
+        return self.get_group_div_text("unit_date")
 
     def unitdate_all(self):
         clean_values = EADHTML.clean_dates(self.unitdate().values())
@@ -447,7 +450,7 @@ class EADHTML:
         return EADHTML.resultset(self.soup.main.h1)
 
     def unitid(self):
-        return self.soup.find("div", class_="md-group unit_id").div.get_text()
+        return self.get_group_div_text("unit_id")
 
     def url(self):
         return self.find_all("link", rel="canonical", attrib="href")
