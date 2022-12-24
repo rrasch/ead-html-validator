@@ -322,7 +322,7 @@ class EADHTML:
         if corpname:
             all_names.append(corpname)
 
-        return all_names if not all_names.isempty() else None
+        return all_names if all_names else None
 
     def note(self):
         return self.formatted_note("notestmt")
@@ -341,10 +341,7 @@ class EADHTML:
         ]:
             if persnames:
                 all_persnames.append(persnames)
-        if not all_persnames.isempty():
-            return all_persnames
-        else:
-            return None
+        return all_persnames if all_persnames else None
 
     def physfacet(self):
         return self.formatted_note("physfacet")
@@ -403,7 +400,7 @@ class EADHTML:
             subjs = self.control_access_group(field)
             if subjs:
                 subj_set.append(subjs)
-        return subj_set if not subj_set.isempty() else None
+        return subj_set if subj_set else None
 
     def subtitle(self):
         return self.find_all(re.compile(r"^h\d$"), class_="subtitle")

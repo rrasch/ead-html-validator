@@ -75,3 +75,6 @@ class ResultSet:
                 for result in self.results_list
             ]
         )
+
+    def __bool__(self):
+        return len(self.results_list) > 0
