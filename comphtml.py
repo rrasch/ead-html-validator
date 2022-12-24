@@ -6,9 +6,9 @@ import util
 
 
 class CompHTML:
-    def __init__(self, c, id):
+    def __init__(self, c, cid):
         self.c = c
-        self.id_ = id
+        self.cid = cid
 
     def __str__(self):
         # return str(self.c)
@@ -125,7 +125,7 @@ class CompHTML:
         daos = self.dao()
         if daos is None:
             return None
-        descriptions = set()
+        descriptions = ResultSet()
         for dao in daos:
             for desc in dao.find_all(class_=re.compile(r"dao-description")):
                 text = [
@@ -133,8 +133,11 @@ class CompHTML:
                     for string in desc.strings
                     if not re.match("https?://", string)
                 ]
-                descriptions.add("".join(text).strip())
-        return list(descriptions) if descriptions else None
+                # descriptions.add("".join(text).strip())
+                text = util.clean_text("".join(text))
+                descriptions.add(desc.name, text, desc.sourceline)
+        # return list(descriptions) if descriptions else None
+        return descriptions if descriptions else None
 
     # def dao_desc(self):
     #     return self.dao_title()
@@ -143,17 +146,21 @@ class CompHTML:
         daos = self.dao("external-link")
         if daos is None:
             return None
-        links = set()
+        links = ResultSet()
         for dao in daos:
-            links.update({a["href"] for a in dao.find_all("a")})
-        return sorted(list(links)) if links else None
+            # links.update({a["href"] for a in dao.find_all("a")})
+            link = CompHTML.find_all(dao, "a", attrib="href")
+            if link:
+                links.append(link)
+        # return sorted(list(links)) if links else None
+        return links if links else None
 
     def dao_title(self):
         daos = self.dao()
         if daos is None:
             return None
         logging.debug(daos)
-        titles = set()
+        titles = ResultSet()
         for dao in daos:
             for title in dao.find_all(class_=re.compile(r"item-title")):
                 # text = [
@@ -168,8 +175,11 @@ class CompHTML:
                 ]
                 # titles.add("".join(text).strip().rsplit(":", 1)[0])
                 # titles.add(util.strip_date("".join(text).strip()))
-                titles.add("".join(text).strip())
-        return list(titles) if titles else None
+                # titles.add("".join(text).strip())
+                text = util.clean_text("".join(text))
+                titles.add(title.name, text, title.sourceline)
+        # return list(titles) if titles else None
+        return titles if titles else None
 
     def dimensions(self):
         return self.physdesc("dimensions")
@@ -236,7 +246,7 @@ class CompHTML:
         return self.control_group("geogname")
 
     def id(self):
-        return self.id_
+        return self.cid
 
     def langcode(self):
         pass
@@ -249,7 +259,7 @@ class CompHTML:
         for tag in ["span", "div"]:
             lang_child = getattr(lang, tag)
             if lang_child is not None:
-                return lang_child.get_text()
+                return CompHTML.resultset(lang_child)
         return None
 
     def level(self):
@@ -295,8 +305,10 @@ class CompHTML:
         if not phys_desc:
             return None
         header = phys_desc.find(re.compile("h\d"), class_=re.compile(field))
+        if not header:
+            return None
         sib = header.find_next_sibling("div")
-        return util.clean_text(sib.get_text())
+        return CompHTML.resultset(sib) if sib else None
 
     def physfacet(self):
         return self.physdesc("physfacet")
@@ -368,21 +380,24 @@ class CompHTML:
                 and child.get("class") in ["dates", "delim"]
             ):
                 text += child.get_text()
-        return text
+        return ResultSet().add(unit_title.name, text, unit_title.sourceline)
 
     def unitdate(self):
-        date = self.c.find(re.compile(r"^h\d$"), class_="unittitle").find(
-            "span", class_="dates"
-        )
-        if date is None:
+        # date = self.c.find(re.compile(r"^h\d$"), class_="unittitle").find(
+        #     "span", class_="dates"
+        # )
+        # return date.get_text()
+        unit_title = self.c.find(re.compile(r"^h\d$"), class_="unittitle")
+        if not unit_title:
             return None
-        return date.get_text()
+        return CompHTML.find_all(unit_title, "span", class_="dates")
 
     def unitid(self):
         odd = self.formatted_note("odd")
         if odd is None:
             return None
-        return odd.find("span", class_="ead-num").get_text()
+        # return odd.find("span", class_="ead-num").get_text()
+        return CompHTML.find_all(odd, "span", class_="ead-num")
 
     def unittitle(self):
         return self.title()

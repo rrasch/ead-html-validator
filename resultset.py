@@ -63,7 +63,7 @@ class ResultSet:
         for result in result_set.all_values():
             if filter_func(result["value"]):
                 filtered.add(result["tag"], result["value"], result["lineno"])
-        return filtered if not filtered.isempty() else None
+        return filtered if filtered else None
 
     def isempty(self):
         return len(self.results_list) == 0
