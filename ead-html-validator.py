@@ -351,20 +351,30 @@ def main():
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
 
-    parser = argparse.ArgumentParser(description="Validate.")
+    parser = argparse.ArgumentParser(
+        description="Validate finding aids html against ead xml file.")
     parser.add_argument("ead_file", metavar="EAD_FILE", help="ead file")
     parser.add_argument("html_dir", metavar="HTML_DIR", help="html directory")
     parser.add_argument("--diff-type", default="unified",
         choices=["color", "unified", "unified-color", "simple"],
         help="diff type (color, unified, or simple)"
     )
-    parser.add_argument(
-        "-d", "--debug", help="Enable debugging messages", action="store_true"
-    )
+    parser.add_argument("--verbose", "-v", action="count", default=0,
+        help=("Verbose mode. Multiple -v options increase the verbosity."
+            " The maximum is 3."))
     args = parser.parse_args()
 
-    if args.debug:
+    util.addLoggingLevel("TRACE", logging.DEBUG - 5)
+
+    if args.verbose == 1:
+        logging.getLogger().setLevel(logging.INFO)
+    elif args.verbose == 2:
         logging.getLogger().setLevel(logging.DEBUG)
+    elif args.verbose == 3:
+        logging.getLogger().setLevel(logging.TRACE)
+    else:
+        print("You can only specify -v a maximum of 3 times.", file=sys.stderr)
+        parser.print_help(sys.stderr)
 
     excludes = read_excludes()
     logging.debug(excludes)
