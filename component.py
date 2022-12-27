@@ -63,10 +63,11 @@ class Component:
 
     def creator(self):
         # return self.get_text("did/origination[@label='Creator']")
-        return self.get_text(
+        return self.get_val(
             "did/origination[@label='Creator']/*[substring(name(),"
             " string-length(name()) - string-length('name') + 1) = 'name']",
-            # sep=None
+            # sep=None,
+            all_text=True,
         )
 
     def custodhist(self):
@@ -160,7 +161,7 @@ class Component:
     #         }
 
     def get_text(self, expr, **kwargs):
-        return util.xpath(self.c, expr, all_text=True, **kwargs)
+        return util.xpath(self.c, expr, all_text=True, join_text=True, **kwargs)
 
     def get_val(self, xpath_expr, **kwargs):
         return util.xpath(self.c, xpath_expr, **kwargs)
@@ -210,7 +211,7 @@ class Component:
         return self.get_val("did/physdesc/physfacet")
 
     def physloc(self):
-        return self.get_text("did/physloc", join_text=True, join_sep="; ")
+        return self.get_text("did/physloc", join_sep="; ")
 
     def phystech(self):
         return self.get_val("phystech/p")

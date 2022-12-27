@@ -197,10 +197,13 @@ class CompHTML:
         return self.formatted_note_heading("fileplan")
 
     @staticmethod
-    def find_all(root, *args, attrib=None, get_text=True, sep="", **kwargs):
+    def find_all(root, *args, attrib=None, get_text=True, join_text=False,
+        sep="", join_sep=" ", **kwargs
+    ):
         nodes = root.find_all(*args, **kwargs)
         if not nodes:
             return None
+        total_text = ""
         find_expr = util.create_args_str(*args, **kwargs)
         result = ResultSet(xpath=find_expr)
         for node in nodes:
@@ -211,7 +214,17 @@ class CompHTML:
             else:
                 text = node.contents[0]
             text = util.clean_text(text)
-            result.add(node.name, text, node.sourceline)
+
+            if join_text:
+                if total_text:
+                    total_text += join_sep
+                total_text += text
+            else:
+                result.add(node.name, text, node.sourceline)
+
+        if join_text:
+            result.add(nodes[0].name, total_text, nodes[0].sourceline)
+
         return result
 
     def formatted_note(self, field):
@@ -317,7 +330,8 @@ class CompHTML:
         loc = self.formatted_note("physloc")
         if loc is None:
             return None
-        return "".join([span.get_text() for span in loc.find_all("span")])
+        # return "".join([span.get_text() for span in loc.find_all("span")])
+        return CompHTML.find_all(loc, "span", join_text=True, join_sep="")
 
     def physloc_heading(self):
         return self.formatted_note_heading("physloc")
