@@ -49,6 +49,11 @@ diff_color = {
     "^": blue,
 }
 
+pass_color = {
+    True: green,
+    False: red,
+}
+
 def diff(obj1, obj2, diff_cfg):
     list1 = create_list(obj1)
     list2 = create_list(obj2)
@@ -60,11 +65,7 @@ def diff(obj1, obj2, diff_cfg):
             else:
                 text += uni_diff + "\n"
     elif diff_cfg["type"] == "color":
-        if (
-            type(obj1) is str
-            and not obj1.startswith("http")
-            and len(obj1) > 240
-        ):
+        if util.is_str(obj1) and util.is_str(obj2):
             text = color_diff_str(obj1, obj2)
         else:
             text = color_diff_list(list1, list2)
@@ -201,6 +202,11 @@ def format_vals(vals):
     else:
         return repr(vals)
 
+def passed_str(passed):
+    status = "PASS" if passed else "FAIL"
+    status = pass_color[passed](status)
+    return status
+
 def validate_component(c, dirpath, errors, diff_cfg, excludes):
     logging.debug("----")
     logging.debug(c.id())
@@ -231,6 +237,8 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
     logging.debug(f"chtml extent: {chtml.extent()}")
 
     logging.debug(f"component tag: {c.c.tag}")
+
+    logging.info(f"Performing checks for container {c.id()}")
 
     # XXX: Should this be replaced by constants?
     for method_name, comp_method in util.get_methods(c).items():
@@ -268,6 +276,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             " values:\n{}\ninside '{}'"
         )
 
+        passed_check = False
         if comp_retval is not None and chtml_retval is None:
             errors.append(
                 missing_err_template.format(
@@ -298,6 +307,8 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
                     f" id='{c.id()}'\nDIFF:\n"
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
+
+        logging.info(f"{c.id()} {method_name}: [{passed_str(passed_check)}]")
 
     ead_subc_list = c.sub_components()
     ead_cids = [(subc.id(), subc.level()) for subc in ead_subc_list]
@@ -413,6 +424,8 @@ def main():
         "sep": "-" * term_width,
     }
 
+    logging.info("Performing top level checks.")
+
     for method_name, ead_method in util.get_methods(my_ead).items():
         match = re.search(r"^(component)$", method_name)
         if match:
@@ -443,6 +456,7 @@ def main():
             ehtml_values = ead_retval
 
         passed_check = compare(ead_values, ehtml_values)
+        logging.info(f"{method_name}: [{passed_str(passed_check)}]")
         if not passed_check:
             errors.append(
                 f"ead field '{method_name}' differs'\nDIFF:\n"
@@ -459,11 +473,16 @@ def main():
     ead_tree = render_level_tree(my_ead, ead_file)
     html_tree = render_level_tree(all_ehtml, html_file)
 
+    ead_tree_str = "".join(ead_tree)
+    html_tree_str = "".join(html_tree)
     for tree in [ead_tree, html_tree]:
         logging.debug("Tree\n" + "".join(tree))
 
-    if ead_tree[1:] != html_tree[1:]:
-        print("Nesting error")
+    logging.info("Performing nesting level check.")
+    passed_check =  ead_tree[1:] == html_tree[1:]
+    logging.info(f"nesting levels: [{passed_str(passed_check)}]")
+    if not passed_check:
+        errors.append("Nesting error")
 
     logging.debug(f"EAD CIDS {ead_cids}")
     logging.debug(f"HTML CIDS {html_cids}")
