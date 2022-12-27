@@ -162,7 +162,7 @@ def sort_dict(mydict):
     return dict(sorted(mydict.items(), key=lambda item: item[1]))
 
 
-def xpath(root, expr, all_text=False, join_text=False, sep=" "):
+def xpath(root, expr, all_text=False, join_text=False, sep=" ", join_sep=" "):
     attrib = None
     match = re.search(r"(/@([A-Za-z]+))$", expr)
     if match:
@@ -189,14 +189,16 @@ def xpath(root, expr, all_text=False, join_text=False, sep=" "):
         else:
             text = clean_text(node.text or "")
         if join_text:
-            total_text += " " + text
+            if total_text:
+                total_text += join_sep
+            total_text += text
         else:
             result.add(node.tag, text, node.sourceline)
 
     if join_text:
-        result.add(nodes[0].tag, total_text[1:], nodes[0].sourceline)
+        result.add(nodes[0].tag, total_text, nodes[0].sourceline)
 
-    return result if not result.isempty() else None
+    return result if result else None
 
 def quote(val):
     if type(val) == str:

@@ -66,7 +66,7 @@ class Component:
         return self.get_text(
             "did/origination[@label='Creator']/*[substring(name(),"
             " string-length(name()) - string-length('name') + 1) = 'name']",
-            sep=None
+            # sep=None
         )
 
     def custodhist(self):
@@ -78,31 +78,30 @@ class Component:
     def _dao(self, return_list=False):
         daos = self.c.xpath("did/*[self::dao or self::daogrp]")
         if daos:
+            for dao in daos:
+                logging.trace(Component._tostring(dao))
             return daos
         else:
             return None
 
     def dao_desc(self):
-        for node in self.c.xpath("did"):
-            logging.debug(ET.tostring(node, pretty_print=True).decode())
-
         return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
 
     def dao_link(self):
-        links = {}
-        href_attrib = f"{{{self.XLINK_NS}}}href"
+        links = ResultSet()
+        href = f"{{{self.XLINK_NS}}}href"
         daos = self._dao()
-        if daos:
-            for dao in daos:
-                for href in dao.xpath("(.|.//*)[@*[local-name()='href']]"):
-                    url = href.get(href_attrib)
-                    host = urlparse(url).netloc
-                    if host == "hdl.handle.net":
-                        print(util.resolve_handle(url))
-                    links[href.sourceline] = url
-            return util.sort_dict(links) if links else None
-        else:
+        if not daos:
             return None
+        for dao in daos:
+            for link in dao.xpath("(.|.//*)[@*[local-name()='href']]"):
+                url = link.get(href)
+                host = urlparse(url).netloc
+                if host == "hdl.handle.net":
+                    handle = util.resolve_handle(url)
+                logging.trace("fdao link {url} resolves to {handle}")
+                links.add(link.tag, url, link.sourceline)
+        return links if links else None
 
     def dao_title(self):
         title_attrib = f"{{{self.XLINK_NS}}}title"
@@ -141,24 +140,27 @@ class Component:
     def geogname(self):
         return self.get_val("controlaccess/geogname")
 
-    def get_text(self, xpath_expr, sep=" "):
-        nodes = self.c.xpath(xpath_expr)
-        if not nodes:
-            return None
-        text_dict = {
-            node.sourceline: " ".join(node.itertext()) for node in nodes
-        }
-        if sep is None:
-            return {
-                lineno: util.clean_text(text)
-                for lineno, text in text_dict.items()
-            }
-        else:
-            return {
-                nodes[0].sourceline: util.clean_text(
-                    sep.join(text_dict.values())
-                )
-            }
+    # def get_text(self, xpath_expr, sep=" "):
+    #     nodes = self.c.xpath(xpath_expr)
+    #     if not nodes:
+    #         return None
+    #     text_dict = {
+    #         node.sourceline: " ".join(node.itertext()) for node in nodes
+    #     }
+    #     if sep is None:
+    #         return {
+    #             lineno: util.clean_text(text)
+    #             for lineno, text in text_dict.items()
+    #         }
+    #     else:
+    #         return {
+    #             nodes[0].sourceline: util.clean_text(
+    #                 sep.join(text_dict.values())
+    #             )
+    #         }
+
+    def get_text(self, expr, **kwargs):
+        return util.xpath(self.c, expr, all_text=True, **kwargs)
 
     def get_val(self, xpath_expr, **kwargs):
         return util.xpath(self.c, xpath_expr, **kwargs)
@@ -208,7 +210,7 @@ class Component:
         return self.get_val("did/physdesc/physfacet")
 
     def physloc(self):
-        return self.get_text("did/physloc", "; ")
+        return self.get_text("did/physloc", join_text=True, join_sep="; ")
 
     def phystech(self):
         return self.get_val("phystech/p")
