@@ -207,38 +207,44 @@ def passed_str(passed):
     status = pass_color[passed](status)
     return status
 
+def check_retval(retval, name):
+    if retval is not None and not isinstance(retval, ResultSet):
+        raise ValueError(
+            f"Expected ResultSet for {name}, got {retval} instead."
+        )
+
 def validate_component(c, dirpath, errors, diff_cfg, excludes):
     logging.debug("----")
-    logging.debug(c.id())
-    logging.debug(c.level())
+    logging.debug(c.id)
+    logging.debug(c.level)
     logging.debug(c.title())
     logging.debug("\n")
 
     new_dirpath = dirpath
 
-    if c.level() == "series":
-        new_dirpath = os.path.join(new_dirpath, "contents", c.id())
+    if c.level == "series":
+        new_dirpath = os.path.join(new_dirpath, "contents", c.id)
 
     html_file = os.path.join(new_dirpath, "index.html")
     logging.debug(f"HTML file: {html_file}")
     ehtml = eadhtml.EADHTML(html_file)
 
     try:
-        chtml = ehtml.find_component(c.id())
+        chtml = ehtml.find_component(c.id)
     except eadhtml.ComponentNotFoundError as e:
         # errors.append(traceback.format_exc())
         errors.append(repr(e))
         return
 
     # logging.debug(chtml)
-    logging.debug(f"chtml id:     {chtml.id()}")
-    logging.debug(f"chtml level:  {chtml.level()}")
+    logging.debug(f"chtml id:     {chtml.id}")
+    logging.debug(f"chtml level:  {chtml.level}")
     logging.debug(f"chtml title:  {chtml.title()}")
     logging.debug(f"chtml extent: {chtml.extent()}")
 
     logging.debug(f"component tag: {c.c.tag}")
 
-    logging.info(f"Performing checks for container {c.id()}")
+    logging.info(f"Performing checks for container {c.id}")
 
     # XXX: Should this be replaced by constants?
     for method_name, comp_method in util.get_methods(c).items():
@@ -254,6 +260,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
         logging.debug(f"calling Component.{method_name}()")
         comp_retval = comp_method()
         logging.debug(f"retval={comp_retval}")
+        check_retval(comp_retval, method_name)
 
         if type(comp_retval) in [dict, ResultSet]:
             comp_values = list(comp_retval.values())
@@ -264,6 +271,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
         chtml_method = getattr(chtml, method_name)
         chtml_retval = chtml_method()
         logging.debug(f"retval={chtml_retval}")
+        check_retval(chtml_retval, method_name)
 
         if type(chtml_retval) in [dict, ResultSet]:
             chtml_values = list(chtml_retval.values())
@@ -281,7 +289,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             errors.append(
                 missing_err_template.format(
                     method_name,
-                    c.id(),
+                    c.id,
                     "html",
                     html_file,
                     format_vals(comp_retval),
@@ -292,7 +300,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             errors.append(
                 missing_err_template.format(
                     method_name,
-                    c.id(),
+                    c.id,
                     "ead xml",
                     c.ead_file,
                     format_vals(comp_retval),
@@ -304,14 +312,14 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             if not passed_check:
                 errors.append(
                     f"field '{method_name}' differs for c"
-                    f" id='{c.id()}'\nDIFF:\n"
+                    f" id='{c.id}'\nDIFF:\n"
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
 
-        logging.info(f"{c.id()} {method_name}: [{passed_str(passed_check)}]")
+        logging.info(f"{c.id} {method_name}: [{passed_str(passed_check)}]")
 
     ead_subc_list = c.sub_components()
-    ead_cids = [(subc.id(), subc.level()) for subc in ead_subc_list]
+    ead_cids = [(subc.id, subc.level) for subc in ead_subc_list]
     html_cids = chtml.component_id_level()
 
     logging.debug(f"EAD CIDS {ead_cids}")
@@ -322,8 +330,8 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
 
     for subc in c.sub_components():
         # logging.debug(subc)
-        # logging.debug(subc.id())
-        # logging.debug(subc.level())
+        # logging.debug(subc.id)
+        # logging.debug(subc.level)
         validate_component(subc, new_dirpath, errors, diff_cfg, excludes)
 
 
@@ -334,7 +342,7 @@ def build_level_tree(ead_elem, parent):
         comps = ead_elem.component()
 
     for c in comps:
-        child = Node((c.id(), c.level()), parent=parent)
+        child = Node((c.id, c.level), parent=parent)
         build_level_tree(c, child)
 
 def render_level_tree(ead_elem, root_name):
@@ -357,11 +365,6 @@ def main():
 
     script_name = Path(__file__).stem
 
-    logging.basicConfig(
-        format=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S %p",
-    )
-
     parser = argparse.ArgumentParser(
         description="Validate finding aids html against ead xml file.")
     parser.add_argument("ead_file", metavar="EAD_FILE", help="ead file")
@@ -373,7 +376,12 @@ def main():
     parser.add_argument("--verbose", "-v", action="count", default=0,
         help=("Verbose mode. Multiple -v options increase the verbosity."
             " The maximum is 3."))
+    parser.add_argument("--log-format", "-l",
+        default=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
+        help="format for logging messages")
     args = parser.parse_args()
+
+    logging.basicConfig(format=args.log_format, datefmt="%m/%d/%Y %I:%M:%S %p")
 
     util.addLoggingLevel("TRACE", logging.DEBUG - 5)
 
@@ -439,9 +447,10 @@ def main():
         logging.debug(f"calling EAD.{method_name}()")
         ead_retval = ead_method()
         logging.debug(f"retval={ead_retval}")
+        check_retval(ead_retval, method_name)
 
-        if type(ead_retval) in [dict, ResultSet]:
-            ead_values = list(ead_retval.values())
+        if type(ead_retval) in [ResultSet]:
+            ead_values = ead_retval.values()
         else:
             ead_values = ead_retval
 
@@ -449,11 +458,12 @@ def main():
         ehtml_method = getattr(ehtml, method_name)
         ehtml_retval = ehtml_method() if method_name != "names" else names
         logging.debug(f"retval={ehtml_retval}")
+        check_retval(ehtml_retval, method_name)
 
-        if type(ead_retval) in [dict, ResultSet]:
-            ehtml_values = list(ead_retval.values())
+        if type(ehtml_retval) in [ResultSet]:
+            ehtml_values = ehtml_retval.values()
         else:
-            ehtml_values = ead_retval
+            ehtml_values = ehtml_retval
 
         passed_check = compare(ead_values, ehtml_values)
         logging.info(f"{method_name}: [{passed_str(passed_check)}]")
@@ -467,22 +477,23 @@ def main():
             print("Missing value")
 
     ead_comps = my_ead.component()
-    ead_cids = [(c.id(), c.level()) for c in ead_comps]
+    ead_cids = [(c.id, c.level) for c in ead_comps]
     html_cids = all_ehtml.component_id_level()
 
-    ead_tree = render_level_tree(my_ead, ead_file)
-    html_tree = render_level_tree(all_ehtml, html_file)
-
-    ead_tree_str = "".join(ead_tree)
-    html_tree_str = "".join(html_tree)
-    for tree in [ead_tree, html_tree]:
-        logging.debug("Tree\n" + "".join(tree))
-
     logging.info("Performing nesting level check.")
+
+    ead_tree = render_level_tree(my_ead, ead_file)
+    ead_tree_str = "".join(ead_tree)
+    logging.debug(f"EAD Nesting Level Tree\n{ead_tree_str}")
+
+    html_tree = render_level_tree(all_ehtml, html_file)
+    html_tree_str = "".join(html_tree)
+    logging.debug(f"HTML Nesting Level Tree\n{html_tree_str}")
+
     passed_check =  ead_tree[1:] == html_tree[1:]
     logging.info(f"nesting levels: [{passed_str(passed_check)}]")
-    if not passed_check:
-        errors.append("Nesting error")
+    if passed_check:
+        errors.append("Nesting error" + diff(ead_tree_str, html_tree_str, diff_cfg))
 
     logging.debug(f"EAD CIDS {ead_cids}")
     logging.debug(f"HTML CIDS {html_cids}")
