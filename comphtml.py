@@ -8,7 +8,9 @@ import util
 class CompHTML:
     def __init__(self, c, cid):
         self.c = c
+        self.id = cid
         self.cid = cid
+        self.level = self._level()
 
     def __str__(self):
         # return str(self.c)
@@ -258,8 +260,8 @@ class CompHTML:
     def geogname(self):
         return self.control_group("geogname")
 
-    def id(self):
-        return self.cid
+    def _id(self):
+        return self.id
 
     def langcode(self):
         pass
@@ -275,7 +277,7 @@ class CompHTML:
                 return CompHTML.resultset(lang_child)
         return None
 
-    def level(self):
+    def _level(self):
         if (
             self.c.name == "div"
             and self.c.has_attr("class")

@@ -15,6 +15,8 @@ class Component:
         self.c = c
         self.parent = parent
         self.ead_file = parent.ead_file
+        self.id = self._id()
+        self.level = self._level()
 
     def accessrestrict(self):
         return self.get_val("accessrestrict/p")
@@ -166,8 +168,7 @@ class Component:
     def get_val(self, xpath_expr, **kwargs):
         return util.xpath(self.c, xpath_expr, **kwargs)
 
-    def id(self):
-        # return {self.c.sourceline: self.c.attrib["id"]}
+    def _id(self):
         return self.c.attrib["id"]
 
     def langcode(self):
@@ -176,8 +177,7 @@ class Component:
     def language(self):
         return self.get_text("did/langmaterial/language")
 
-    def level(self):
-        # return {self.c.sourceline: self.c.attrib["level"]}
+    def _level(self):
         return self.c.attrib["level"]
 
     def name(self):
