@@ -492,14 +492,14 @@ def main():
 
     passed_check =  ead_tree[1:] == html_tree[1:]
     logging.info(f"nesting levels: [{passed_str(passed_check)}]")
-    if passed_check:
+    if not passed_check:
         errors.append("Nesting error" + diff(ead_tree_str, html_tree_str, diff_cfg))
 
     logging.debug(f"EAD CIDS {ead_cids}")
     logging.debug(f"HTML CIDS {html_cids}")
 
     if ead_cids != html_cids:
-        erros.append("Nesting error")
+        errors.append("Nesting error")
 
     for c in ead_comps:
         validate_component(c, html_dir, errors, diff_cfg, excludes)
