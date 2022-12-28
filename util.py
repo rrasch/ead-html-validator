@@ -224,7 +224,12 @@ def create_args_str(*args, **kwargs):
         return kw_str
 
 def is_str(lst):
-    len(lst) == 1 and type(lst[0]) is str and len(lst[0]) > 240 and not lst[0].startswith("http")
+    return (
+        len(lst) == 1
+        and type(lst[0]) is str
+        and len(lst[0]) > 240
+        and not lst[0].startswith("http")
+    )
 
 # https://stackoverflow.com/a/35804945/1691778
 def addLoggingLevel(levelName, levelNum, methodName=None):
