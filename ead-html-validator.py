@@ -385,6 +385,8 @@ def main():
     parser.add_argument("--log-format", "-l",
         default=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
         help="format for logging messages")
+    parser.add_argument("--tidy", "-t", action="store_true",
+        help="Run HTML Tidy to test correctness of html")
     parser.add_argument("--broken-links", "-b", action="store_true",
         help="Find broken urls")
     args = parser.parse_args()
