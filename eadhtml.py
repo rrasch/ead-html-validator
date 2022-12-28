@@ -186,7 +186,10 @@ class EADHTML:
         return self.formatted_note("dimensions")
 
     def eadid(self):
-        return self.url().values()[0].rstrip("/").split("/")[-1]
+        urls = self.url()
+        if not urls:
+            return None
+        return urls.update_values(lambda url: url.rstrip("/").split("/")[-1])
 
     def eadnum(self):
         return self.find_all("span", class_="ead-num")
@@ -285,12 +288,14 @@ class EADHTML:
         return self.unittitle()
 
     def langcode(self):
-        lang_codes = set()
-        for lang_name in self.language().values():
-            lang = pycountry.languages.get(name=lang_name)
-            if lang:
-                lang_codes.add(lang.alpha_3)
-        return list(lang_codes)
+        lang_codes = ResultSet()
+        for lang_result in self.language():
+            pyc_lang = pycountry.languages.get(name=lang_result["value"])
+            if pyc_lang:
+                lang_codes.add(
+                    lang_result["tag"], pyc_lang.alpha_3, lang_result["lineno"]
+                )
+        return lang_codes if lang_codes else None
 
     def language(self):
         return self.find_all(class_="ead-language")

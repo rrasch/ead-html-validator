@@ -1,6 +1,16 @@
 from collections import defaultdict
 
 
+class ResultSetIter:
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        pass
+
+    def __next__(self):
+        pass
+
 class ResultSet:
     def __init__(self, value_type=str, xpath=None, sort=False):
         self.results_list = []
@@ -79,3 +89,7 @@ class ResultSet:
 
     def __bool__(self):
         return len(self.results_list) > 0
+
+    def __iter__(self):
+        for result in self.all_values():
+            yield result
