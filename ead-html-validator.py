@@ -2,6 +2,7 @@
 
 
 from anytree import Node, RenderTree
+from collections import defaultdict
 from component import Component
 from importlib import import_module
 from lxml import etree as ET
@@ -134,7 +135,7 @@ def create_list(obj):
     else:
         return obj
 
-def validate_html(html_dir):
+def validate_html(html_dir, args):
     tidy = shutil.which("tidy")
     if not tidy:
         return None
@@ -145,12 +146,16 @@ def validate_html(html_dir):
             if file.endswith(".html"):
                 html_files.append(os.path.join(root, file))
 
-    links = set()
-    for file in html_files:
-        links.update(util.get_links(file))
-    links = sorted(list(links))
-
-    # broken_links = util.find_broken_links(links)
+    if args.broken_links:
+        links = defaultdict(set)
+        for file in html_files:
+            for url in util.get_links(file):
+                links[url].add(file)
+        urls = sorted(list(links.keys()))
+        logging.trace(f"Testing the following links: {pformat(urls)}")
+        broken_links = util.find_broken_links(urls)
+        if broken_links:
+            logging.warn("The following links are broken {broken_links}")
 
     if tidy:
         for file in html_files:
@@ -200,7 +205,8 @@ def format_vals(vals):
     if type(vals) is dict:
         return "\n".join([f"Line {k}: '{v}'" for k, v in vals.items()])
     else:
-        return repr(vals)
+        # return repr(vals)
+        return str(vals)
 
 def passed_str(passed):
     status = "PASS" if passed else "FAIL"
@@ -379,6 +385,8 @@ def main():
     parser.add_argument("--log-format", "-l",
         default=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
         help="format for logging messages")
+    parser.add_argument("--broken-links", "-b", action="store_true",
+        help="Find broken urls")
     args = parser.parse_args()
 
     logging.basicConfig(format=args.log_format, datefmt="%m/%d/%Y %I:%M:%S %p")
@@ -405,7 +413,7 @@ def main():
     logging.debug("html dir: %s", html_dir)
 
     validate_xml(ead_file)
-    validate_html(html_dir)
+    validate_html(html_dir, args)
 
     my_ead = ead.Ead(ead_file)
 

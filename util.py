@@ -126,7 +126,7 @@ def strip_date(title):
 def get_links(html_file):
     soup = BeautifulSoup(open(html_file), "html.parser")
     link = soup.find("link", rel="canonical")
-    base_url = ""
+    base_url = None
     if link:
         url = urlparse(link["href"])
         base_url = f"{url.scheme}://{url.netloc}"
@@ -136,11 +136,16 @@ def get_links(html_file):
         link = a["href"]
         if link.startswith("#"):
             continue
-        if link.startswith("/"):
+
+        no_host = link.startswith("/")
+        if no_host and base_url:
             link = f"{base_url}{link}"
+        elif no_host:
+            continue
+
         links.add(link)
 
-    return (list(links))
+    return list(links)
 
 
 def find_broken_links(links):
