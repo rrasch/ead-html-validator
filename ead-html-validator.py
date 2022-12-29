@@ -156,7 +156,7 @@ def validate_html(html_dir, args):
             logging.warn("The following links are broken {broken_links}")
 
     path_tidy = shutil.which("tidy")
-    if args.tidy and path_tidy:
+    if (args.tidy or args.indent) and path_tidy:
         for file in html_files:
             ret = util.do_cmd(
                 [path_tidy, file],
@@ -167,8 +167,9 @@ def validate_html(html_dir, args):
             if ret:
                 logging.debug(ret.stderr)
                 indented_file = os.path.splitext(file)[0] + "-tidy.html"
-                with open(indented_file, "w") as wfh:
-                    wfh.write(ret.stdout)
+                if args.indent and not os.path.exists(indented_file):
+                    with open(indented_file, "w") as wfh:
+                        wfh.write(ret.stdout)
 
 
 def validate_xml(xml_file):
@@ -389,6 +390,8 @@ def main():
         help="format for logging messages")
     parser.add_argument("--tidy", "-t", action="store_true",
         help="Run HTML Tidy to test correctness of html")
+    parser.add_argument("--indent", "-i", action="store_true",
+        help="Indent HTML files using tidy.")
     parser.add_argument("--broken-links", "-b", action="store_true",
         help="Find broken urls")
     args = parser.parse_args()
