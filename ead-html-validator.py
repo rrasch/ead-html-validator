@@ -284,8 +284,8 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             chtml_values = chtml_retval
 
         missing_err_template = (
-            "Can't find the value of field '{}' in c"
-            " id='{}' within {} file '{}' \nbut found"
+            "Value not set for field '{}' in container"
+            " '{}' inside {} file '{}' \nbut found"
             " values:\n{}\ninside '{}'"
         )
 
@@ -308,7 +308,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
                     c.id,
                     "ead xml",
                     c.ead_file,
-                    format_vals(comp_retval),
+                    format_vals(chtml_retval),
                     html_file,
                 )
             )
