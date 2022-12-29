@@ -335,7 +335,11 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
     logging.debug(f"HTML CIDS {html_cids}")
 
     if ead_cids != html_cids:
-        errors.append("Nesting error")
+        errors.append(
+            f"Nesting level error at level ({c.id},"
+            f" {c.level}):\nExpected:\n{pformat(ead_cids)}\nbut"
+            f" got:\n{pformat(html_cids)}"
+        )
 
     for subc in c.sub_components():
         # logging.debug(subc)
@@ -514,7 +518,11 @@ def main():
     logging.debug(f"HTML CIDS {html_cids}")
 
     if ead_cids != html_cids:
-        errors.append("Nesting error")
+        errors.append(
+            "Nesting level error at top"
+            f" level:\nExpected:\n{pformat(ead_cids)}\nbut"
+            f" got:\n{pformat(html_cids)}"
+        )
 
     for c in ead_comps:
         validate_component(c, html_dir, errors, diff_cfg, excludes)
