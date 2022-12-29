@@ -516,7 +516,8 @@ def main():
     for error in errors:
         print(f"ERROR: {error}\n")
 
-    print("Checking complete")
+    logging.info("Validation complete.")
+    exit(len(errors))
 
 if __name__ == "__main__":
     main()
