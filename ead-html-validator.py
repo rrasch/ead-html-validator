@@ -166,6 +166,9 @@ def validate_html(html_dir, args):
             )
             if ret:
                 logging.debug(ret.stderr)
+                indented_file = os.path.splitext(file)[0] + "-tidy.html"
+                with open(indented_file, "w") as wfh:
+                    wfh.write(ret.stdout)
 
 
 def validate_xml(xml_file):
