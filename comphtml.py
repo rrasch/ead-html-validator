@@ -90,12 +90,17 @@ class CompHTML:
         return [text for text in self.c.stripped_strings]
 
     def control_group(self, field):
-        cgroup = self.c.find("div", class_=f"controlaccess-{field}-group")
-        if cgroup is None:
+        ctrl_access = self.md_group("controlaccess")
+        if not ctrl_access:
             return None
-        # return cgroup.div.get_text(strip=True)
-        if cgroup.div:
-            return CompHTML.find_all(cgroup, "div")
+        ctrl_group = ctrl_access.find(
+            "div", class_=f"controlaccess-{field}-group"
+        )
+        if ctrl_group is None:
+            return None
+        # return ctrl_group.div.get_text(strip=True)
+        if ctrl_group.div:
+            return CompHTML.find_all(ctrl_group, "div")
         else:
             return None
 
@@ -103,7 +108,7 @@ class CompHTML:
         return self.control_group("corpname")
 
     def creator(self):
-        origin = self.c.find("div", class_="md-group origination")
+        origin = self.md_group("origination")
         if origin is None:
             return None
         # return [
@@ -120,7 +125,9 @@ class CompHTML:
 
     def dao(self, dao_type=""):
         return self.c.find_all(
-            "div", class_=re.compile(rf"^md-group dao-item {dao_type}")
+            "div",
+            class_=re.compile(rf"^md-group dao-item {dao_type}"),
+            recursive=False,
         )
 
     def dao_desc(self):
@@ -145,7 +152,8 @@ class CompHTML:
     #     return self.dao_title()
 
     def dao_link(self):
-        daos = self.dao("external-link")
+        # daos = self.dao("external-link")
+        daos = self.dao()
         if daos is None:
             return None
         links = ResultSet()
@@ -230,7 +238,9 @@ class CompHTML:
         return result
 
     def formatted_note(self, field):
-        return self.c.find("div", class_=f"md-group formattednote {field}")
+        return self.c.find(
+            "div", class_=f"md-group formattednote {field}", recursive=False
+        )
 
     def formatted_note_heading(self, field):
         note = self.formatted_note(field)
@@ -267,7 +277,7 @@ class CompHTML:
         pass
 
     def language(self):
-        lang = self.c.find("div", class_="md-group langmaterial")
+        lang = self.md_group("langmaterial")
         if lang is None:
             return None
         # return lang.span.get_text()
@@ -287,6 +297,11 @@ class CompHTML:
         else:
             lvl = None
         return lvl
+
+    def md_group(self, group_name):
+        return self.c.find(
+            "div", class_=f"md-group {group_name}", recursive=False
+        )
 
     def name(self):
         pass
@@ -316,7 +331,8 @@ class CompHTML:
         pass
 
     def physdesc(self, field):
-        phys_desc = self.c.find("div", class_=re.compile("physdesc"))
+        # phys_desc = self.c.find("div", class_=re.compile("physdesc"))
+        phys_desc = self.formatted_note("physdesc")
         if not phys_desc:
             return None
         header = phys_desc.find(re.compile("h\d"), class_=re.compile(field))
@@ -389,7 +405,9 @@ class CompHTML:
     def title(self):
         # return self.c.find(re.compile("h\d"), class_="unittitle").text
         text = ""
-        unit_title = self.c.find(re.compile("h\d"), class_="unittitle")
+        unit_title = self.c.find(
+            re.compile("h\d"), class_="unittitle", recursive=False
+        )
         for child in unit_title:
             if not (
                 isinstance(child, Tag)
@@ -403,7 +421,9 @@ class CompHTML:
         #     "span", class_="dates"
         # )
         # return date.get_text()
-        unit_title = self.c.find(re.compile(r"^h\d$"), class_="unittitle")
+        unit_title = self.c.find(
+            re.compile(r"^h\d$"), class_="unittitle", recursive=False
+        )
         if not unit_title:
             return None
         return CompHTML.find_all(unit_title, "span", class_="dates")
