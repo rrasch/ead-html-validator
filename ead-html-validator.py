@@ -46,7 +46,6 @@ red   = lambda text: colorize(31, text)
 green = lambda text: colorize(32, text)
 blue  = lambda text: colorize(34, text)
 bold  = lambda text: colorize(1,  text)
-foo = lambda text: text
 
 diff_color = {
     "+": green,
@@ -92,7 +91,7 @@ def color_diff_str(str1, str2):
     codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
     for code in codes:
         if code[0] == "equal":
-            result += foo(str1[code[1] : code[2]])
+            result += str1[code[1] : code[2]]
         elif code[0] == "delete":
             result += red(str1[code[1] : code[2]])
         elif code[0] == "insert":
@@ -112,8 +111,7 @@ def color_diff_list(list1, list2):
     codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
     for code in codes:
         if code[0] == "equal":
-            # result.extend(list1[code[1]:code[2]])
-            result.extend(map(foo, list1[code[1]:code[2]]))
+            result.extend(list1[code[1]:code[2]])
         elif code[0] == "delete":
             result.extend(map(red, list1[code[1]:code[2]]))
         elif code[0] == "insert":
