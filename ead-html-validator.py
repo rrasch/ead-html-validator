@@ -138,10 +138,6 @@ def create_list(obj):
         return obj
 
 def validate_html(html_dir, args):
-    tidy = shutil.which("tidy")
-    if not tidy:
-        return None
-
     html_files = []
     for root, dirs, files in os.walk(html_dir):
         for file in files:
@@ -159,10 +155,11 @@ def validate_html(html_dir, args):
         if broken_links:
             logging.warn("The following links are broken {broken_links}")
 
-    if tidy:
+    path_tidy = shutil.which("tidy")
+    if args.tidy and path_tidy:
         for file in html_files:
             ret = util.do_cmd(
-                [tidy, file],
+                [path_tidy, file],
                 allowed_returncodes=[1, 2],
                 stdout=PIPE,
                 stderr=PIPE,
