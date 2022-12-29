@@ -32,16 +32,20 @@ import util
 
 print = functools.partial(print, flush=True)
 
-def colored(r, g, b, text):
-    return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
-
+# def colorize(r, g, b, text):
+#     return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
+#
 # red = lambda text: colored(255, 0, 0, text)
 # green = lambda text: colored(0, 255, 0, text)
 # blue = lambda text: colored(0, 0, 255, text)
 
-red = lambda text: f"\033[31m{text}\033[0m"
-green = lambda text: f"\033[32m{text}\033[0m"
-blue = lambda text: f"\033[34m{text}\033[0m"
+def colorize(color_code, text):
+    return f"\033[{color_code}m{text}\033[0m" if True else text
+
+red   = lambda text: colorize(31, text)
+green = lambda text: colorize(32, text)
+blue  = lambda text: colorize(34, text)
+bold  = lambda text: colorize(1,  text)
 foo = lambda text: text
 
 diff_color = {
@@ -294,7 +298,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
         if comp_retval is not None and chtml_retval is None:
             errors.append(
                 missing_err_template.format(
-                    method_name,
+                    bold(method_name),
                     c.id,
                     "html",
                     html_file,
