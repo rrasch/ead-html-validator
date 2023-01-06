@@ -40,7 +40,7 @@ print = functools.partial(print, flush=True)
 # blue = lambda text: colored(0, 0, 255, text)
 
 def colorize(color_code, text):
-    return f"\033[{color_code}m{text}\033[0m" if True else text
+    return f"\033[{color_code}m{text}\033[0m" if sys.stdout.isatty() else text
 
 red   = lambda text: colorize(31, text)
 green = lambda text: colorize(32, text)
@@ -79,8 +79,8 @@ def diff(obj1, obj2, diff_cfg):
 
 def simple_diff(obj1, obj2, diff_cfg):
     max_len = diff_cfg["term_width"]
-    str1 = repr(obj1)
-    str2 = repr(obj2)
+    str1 = str(obj1)
+    str2 = str(obj2)
     sep = "\n" if len(str1) + len(str2) + 3 > 80 else " "
     # return f"{str1[:max_len]}{sep}!={sep}{str2[:max_len]}"
     return f"{str1}{sep}!={sep}{str2}"
@@ -505,7 +505,7 @@ def main():
     ead_tree_str = "".join(ead_tree)
     logging.debug(f"EAD Nesting Level Tree\n{ead_tree_str}")
 
-    html_tree = render_level_tree(all_ehtml, html_file)
+    html_tree = render_level_tree(all_ehtml, all_html_file)
     html_tree_str = "".join(html_tree)
     logging.debug(f"HTML Nesting Level Tree\n{html_tree_str}")
 
