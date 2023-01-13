@@ -40,7 +40,7 @@ print = functools.partial(print, flush=True)
 # blue = lambda text: colored(0, 0, 255, text)
 
 def colorize(color_code, text):
-    return f"\033[{color_code}m{text}\033[0m" if sys.stdout.isatty() else text
+    return f"\033[{color_code}m{text}\033[0m" if COLORS_ENABLED else text
 
 red   = lambda text: colorize(31, text)
 green = lambda text: colorize(32, text)
@@ -379,12 +379,13 @@ def main():
     script_name = Path(__file__).stem
 
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="Validate finding aids html against ead xml file.")
     parser.add_argument("ead_file", metavar="EAD_FILE", help="ead file")
     parser.add_argument("html_dir", metavar="HTML_DIR", help="html directory")
-    parser.add_argument("--diff-type", default="unified",
+    parser.add_argument("--diff-type", default="simple",
         choices=["color", "unified", "unified-color", "simple"],
-        help="diff type (color, unified, or simple)"
+        help="diff type"
     )
     parser.add_argument("--verbose", "-v", action="count", default=0,
         help=("Verbose mode. Multiple -v options increase the verbosity."
@@ -398,7 +399,12 @@ def main():
         help="Indent HTML files using tidy.")
     parser.add_argument("--broken-links", "-b", action="store_true",
         help="Find broken urls")
+    parser.add_argument("--color", "-c", action="store_true",
+        help="Enable color output")
     args = parser.parse_args()
+
+    global COLORS_ENABLED
+    COLORS_ENABLED = args.color or "color" in args.diff_type
 
     logging.basicConfig(format=args.log_format, datefmt="%m/%d/%Y %I:%M:%S %p")
 
