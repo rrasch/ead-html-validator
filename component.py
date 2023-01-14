@@ -87,15 +87,28 @@ class Component:
         else:
             return None
 
-    def _dao_result(self):
-        daos = self.c.xpath("did/*[self::dao or self::daogrp]")
+    def dao(self):
+        xpath_dao = "did/*[self::dao or self::daogrp]"
+        xpath_fields = {
+            "desc": "daodesc/p",
+            "link": "(.|.//*)/@href",
+            "role": "(.|.//*)/@role",
+        }
+
+        daos = self.c.xpath(xpath_dao)
         if not daos:
             return None
+
+        dao_set = ResultSet(xpath=xpath_dao, value_type=dict)
         for dao in daos:
-            dao_dict = {}
-            dao_dict["desc"] = util.xpath(dao, "daodesc/p").values()
-            dao_dict["link"] = util.xpath(dao, "(.|.//*)[@*[local-name()='href']]").values()
-            dao_dict["role"] = util.xpath(dao, "(.|.//*)[@*[local-name()='role']]").values()
+            dao_data = {}
+            for field, expr in xpath_fields.items():
+                vals = util.xpath(dao, expr).values()
+                if vals:
+                    dao_data[field] = vals
+            dao_set.add(dao.tag, dao_data, dao.sourceline)
+
+        return dao_set if dao_set else None
 
     def dao_desc(self):
         return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
