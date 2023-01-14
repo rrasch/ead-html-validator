@@ -20,8 +20,13 @@ def remove_namespace(doc, namespace):
     ns = "{%s}" % namespace
     nsl = len(ns)
     for elem in doc.iter():
+        local_elem_name = ET.QName(elem).localname
         if elem.tag.startswith(ns):
             elem.tag = elem.tag[nsl:]
+        for attr_name in elem.attrib:
+            local_attr_name = ET.QName(attr_name).localname
+            if attr_name.startswith(ns):
+                elem.attrib[attr_name[nsl:]] = elem.attrib.pop(attr_name)
 
 
 # https://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml

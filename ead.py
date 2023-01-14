@@ -3,6 +3,7 @@ from lxml import etree as ET
 from resultset import ResultSet
 import component
 import logging
+import os.path
 import re
 import util
 
@@ -12,7 +13,10 @@ class Ead:
         logging.debug(f"ead_file={ead_file}")
         self.ead_file = ead_file
 
-        nsmap = {"e": "urn:isbn:1-931666-22-9"}
+        nsmap = {
+            "e": "urn:isbn:1-931666-22-9",
+            "xlink": "http://www.w3.org/1999/xlink",
+        }
 
         self.tree = ET.parse(ead_file)
         logging.debug(self.tree)
@@ -20,8 +24,13 @@ class Ead:
         self.root = self.tree.getroot()
         logging.debug(self.root)
 
-        util.remove_namespace(self.root, nsmap["e"])
-        logging.debug(self.root)
+        for namespace in nsmap.values():
+            util.remove_namespace(self.root, namespace)
+            logging.debug(self.root)
+
+        ET.cleanup_namespaces(self.tree)
+        no_ns_file = os.path.splitext(ead_file)[0] + "-no-ns.xml"
+        self.tree.write(no_ns_file)
 
         logging.debug(self.root.tag)
 
