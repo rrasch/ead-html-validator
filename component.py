@@ -87,12 +87,23 @@ class Component:
         else:
             return None
 
+    def _dao_result(self):
+        daos = self.c.xpath("did/*[self::dao or self::daogrp]")
+        if not daos:
+            return None
+        for dao in daos:
+            dao_dict = {}
+            dao_dict["desc"] = util.xpath(dao, "daodesc/p").values()
+            dao_dict["link"] = util.xpath(dao, "(.|.//*)[@*[local-name()='href']]").values()
+            dao_dict["role"] = util.xpath(dao, "(.|.//*)[@*[local-name()='role']]").values()
+
     def dao_desc(self):
         return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
 
     def dao_link(self):
         links = ResultSet()
-        href = f"{{{self.XLINK_NS}}}href"
+        # href = f"{{{self.XLINK_NS}}}href"
+        href = "href"
         daos = self._dao()
         if not daos:
             return None
@@ -107,7 +118,8 @@ class Component:
         return links if links else None
 
     def dao_title(self):
-        title_attrib = f"{{{self.XLINK_NS}}}title"
+        # title_attrib = f"{{{self.XLINK_NS}}}title"
+        title_attrib = "title"
         daos = self._dao()
         if daos:
             titles = {
