@@ -135,7 +135,7 @@ class CompHTML:
         dao_set = ResultSet(value_type=dict)
         for dao in daos:
             dao_data = {}
-            desc = CompHTML.find_all(dao, {"data-ead-element": "daodesc"})
+            desc = CompHTML.find_all(dao, attrs={"data-ead-element": "daodesc"})
             if desc:
                 dao_data["desc"] = desc.values()
             links = CompHTML.find_all(
