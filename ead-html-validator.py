@@ -108,7 +108,14 @@ def quote(val):
 
 def color_diff_list(list1, list2):
     result = []
-    codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
+
+    try:
+        codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
+    except TypeError as e:
+        logging.error(f"list1: {pformat(list1)}")
+        logging.error(f"list2: {pformat(list2)}")
+        raise e
+
     for code in codes:
         if code[0] == "equal":
             result.extend(list1[code[1]:code[2]])
@@ -121,21 +128,24 @@ def color_diff_list(list1, list2):
             result.extend(map(green, list2[code[3]:code[4]]))
     return  "[" + ", ".join(map(quote, result)) + "]"
 
+def comparable_val(val):
+    val = val or ""
+    if type(val) is not list:
+        val = [val]
+    try:
+        if type(val[0]) is str:
+            val = sorted(val)
+        elif type(val[0]) is dict:
+            val = sorted(val, key=lambda x: next(iter(x)))
+        else:
+            val = val.sort()
+    except TypeError as e:
+        logging.error(f"val1: {pformat(val)}")
+        raise e
+    return val
 
 def compare(val1, val2):
-    val1 = val1 or ""
-    val2 = val2 or ""
-    if type(val1) is not list:
-        val1 = [val1]
-    if type(val2) is not list:
-        val2 = [val2]
-    try:
-        return sorted(val1) == sorted(val2)
-    except:
-        pprint(val1)
-        print()
-        pprint(val2)
-        exit(1)
+    return comparable_val(val1) ==  comparable_val(val2)
 
 def create_list(obj):
     if type(obj) is str:
