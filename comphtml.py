@@ -131,7 +131,7 @@ class CompHTML:
         )
 
     def dao(self):
-        daos = self_.dao()
+        daos = self._dao()
         if not daos:
             return None
 
