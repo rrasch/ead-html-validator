@@ -123,12 +123,15 @@ class CompHTML:
     def custodhist_heading(self):
         return self.formatted_note_heading("custodhist")
 
-    def dao(self, dao_type=""):
-        daos = self.c.find_all(
+    def _dao(self, dao_type=""):
+        return self.c.find_all(
             "div",
             class_=re.compile(rf"^md-group dao-item {dao_type}"),
             recursive=False,
         )
+
+    def dao(self):
+        daos = self_.dao()
         if not daos:
             return None
 
@@ -149,7 +152,7 @@ class CompHTML:
         return dao_set if dao_set else None
 
     def dao_desc(self):
-        daos = self.dao()
+        daos = self._dao()
         if daos is None:
             return None
         descriptions = ResultSet()
@@ -170,8 +173,8 @@ class CompHTML:
     #     return self.dao_title()
 
     def dao_link(self):
-        # daos = self.dao("external-link")
-        daos = self.dao()
+        # daos = self._dao("external-link")
+        daos = self._dao()
         if daos is None:
             return None
         links = ResultSet()
@@ -184,7 +187,7 @@ class CompHTML:
         return links if links else None
 
     def dao_title(self):
-        daos = self.dao()
+        daos = self._dao()
         if daos is None:
             return None
         logging.debug(daos)
