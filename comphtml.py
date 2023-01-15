@@ -124,11 +124,29 @@ class CompHTML:
         return self.formatted_note_heading("custodhist")
 
     def dao(self, dao_type=""):
-        return self.c.find_all(
+        daos = self.c.find_all(
             "div",
             class_=re.compile(rf"^md-group dao-item {dao_type}"),
             recursive=False,
         )
+        if not daos:
+            return None
+
+        dao_set = ResultSet(value_type=dict)
+        for dao in daos:
+            dao_data = {}
+            desc = CompHTML.find_all(dao, {"data-ead-element": "daodesc"})
+            if desc:
+                dao_data["desc"] = desc.values()
+            links = CompHTML.find_all(
+                dao, "a", class_=re.compile(r"^dao-link"), attrib="href"
+            )
+            if links:
+                dao_data["link"] = links.values()
+            dao_data["role"] = dao["class"].split()[2]
+            dao_set.add(dao.name, dao_data, dao.sourceline)
+
+        return dao_set if dao_set else None
 
     def dao_desc(self):
         daos = self.dao()

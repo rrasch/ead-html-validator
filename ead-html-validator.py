@@ -129,7 +129,13 @@ def compare(val1, val2):
         val1 = [val1]
     if type(val2) is not list:
         val2 = [val2]
-    return sorted(val1) == sorted(val2)
+    try:
+        return sorted(val1) == sorted(val2)
+    except:
+        pprint(val1)
+        print()
+        pprint(val2)
+        exit(1)
 
 def create_list(obj):
     if type(obj) is str:

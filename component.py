@@ -103,9 +103,9 @@ class Component:
         for dao in daos:
             dao_data = {}
             for field, expr in xpath_fields.items():
-                vals = util.xpath(dao, expr).values()
-                if vals:
-                    dao_data[field] = vals
+                result = util.xpath(dao, expr)
+                if result:
+                    dao_data[field] = result.values()
             dao_set.add(dao.tag, dao_data, dao.sourceline)
 
         return dao_set if dao_set else None
