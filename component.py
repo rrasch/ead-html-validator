@@ -100,13 +100,13 @@ class Component:
             return None
 
         dao_set = ResultSet(xpath=xpath_dao, value_type=dict)
-        for dao in daos:
+        for i, dao in enumerate(daos):
             dao_data = {}
             for field, expr in xpath_fields.items():
                 result = util.xpath(dao, expr)
                 if result:
                     dao_data[field] = result.values()
-            dao_set.add(dao.tag, dao_data, dao.sourceline)
+            dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 

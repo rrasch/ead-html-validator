@@ -136,7 +136,7 @@ class CompHTML:
             return None
 
         dao_set = ResultSet(value_type=dict)
-        for dao in daos:
+        for i, dao in enumerate(daos):
             dao_data = {}
             desc = CompHTML.find_all(dao, attrs={"data-ead-element": "daodesc"})
             if desc:
@@ -147,7 +147,7 @@ class CompHTML:
             if links:
                 dao_data["link"] = links.values()
             dao_data["role"] = dao["class"].split()[2]
-            dao_set.add(dao.name, dao_data, dao.sourceline)
+            dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 
