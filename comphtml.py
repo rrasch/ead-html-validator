@@ -146,7 +146,7 @@ class CompHTML:
             )
             if links:
                 dao_data["link"] = links.values()
-            dao_data["role"] = dao["class"].split()[2]
+            dao_data["role"] = [dao["class"].split()[2]]
             dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None

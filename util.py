@@ -234,7 +234,7 @@ def is_str(lst):
         len(lst) == 1
         and type(lst[0]) is str
         and len(lst[0]) > 240
-        and not lst[0].startswith("http")
+        and "http" not in lst[0]
     )
 
 def pretty_format(mydict):

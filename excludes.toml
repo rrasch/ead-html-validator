@@ -9,6 +9,8 @@ checks = [
 
 [container]
 checks = [
+    "dao_desc",
+    "dao_link",
     "dao_title",
     "unitid",
 ]

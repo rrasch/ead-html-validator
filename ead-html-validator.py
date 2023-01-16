@@ -76,7 +76,7 @@ def diff(obj1, obj2, diff_cfg):
                 text += uni_diff + "\n"
     elif diff_cfg["type"] == "color":
         if util.is_str(list1) and util.is_str(list2):
-            text = color_diff_str(obj1, obj2)
+            text = color_diff_str(list1[0], list2[0])
         else:
             text = color_diff_list(list1, list2)
     else:
