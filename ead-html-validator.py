@@ -58,9 +58,15 @@ pass_color = {
     False: red,
 }
 
+def stringify_list(mylist):
+    return [
+        util.pretty_format(elem) if isinstance(elem, dict) else elem
+        for elem in mylist
+    ]
+
 def diff(obj1, obj2, diff_cfg):
-    list1 = create_list(obj1)
-    list2 = create_list(obj2)
+    list1 = stringify_list(create_list(obj1))
+    list2 = stringify_list(create_list(obj2))
     if diff_cfg["type"].startswith("unified"):
         text = ""
         for uni_diff in difflib.unified_diff(list1, list2):
@@ -112,8 +118,8 @@ def color_diff_list(list1, list2):
     try:
         codes = difflib.SequenceMatcher(a=list1, b=list2).get_opcodes()
     except TypeError as e:
-        logging.error(f"list1: {pformat(list1)}")
-        logging.error(f"list2: {pformat(list2)}")
+        logging.error(f"list1:\n{util.pretty_print(list1)}")
+        logging.error(f"list2:\n{util.pretty_print(list2)}")
         raise e
 
     for code in codes:
@@ -148,7 +154,7 @@ def compare(val1, val2):
     return comparable_val(val1) ==  comparable_val(val2)
 
 def create_list(obj):
-    if type(obj) is str:
+    if type(obj) is not list:
         return [obj]
     else:
         return obj

@@ -7,6 +7,7 @@ from resultset import ResultSet
 from urllib.parse import urlparse
 import csv
 import inspect
+import json
 import logging
 import re
 import requests
@@ -235,6 +236,9 @@ def is_str(lst):
         and len(lst[0]) > 240
         and not lst[0].startswith("http")
     )
+
+def pretty_format(mydict):
+    return json.dumps(mydict, indent=2)
 
 # https://stackoverflow.com/a/35804945/1691778
 def addLoggingLevel(levelName, levelNum, methodName=None):
