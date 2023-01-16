@@ -108,11 +108,11 @@ class Component:
                     dao_data[field] = result.values()
 
             if "link" in dao_data:
-                for link in dao_data["link"]:
-                    host = parse.urlsplit(link).netloc
+                for url in dao_data["link"]:
+                    host = parse.urlsplit(url).netloc
                     if host.endswith(".handle.net"):
-                        target = util.resolve_handle(link)
-                        logging.debug(f"handle target: {target}")
+                        target = util.resolve_handle(url)
+                        logging.trace(f"dao link {url} resolves to {target}")
 
             dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
@@ -133,8 +133,9 @@ class Component:
                 url = link.get(href)
                 host = parse.urlsplit(url).netloc
                 if host == "hdl.handle.net":
-                    handle = util.resolve_handle(url)
-                logging.trace("fdao link {url} resolves to {handle}")
+                    target = util.resolve_handle(url)
+                    logging.trace(f"dao link {url} resolves to {target}")
+
                 links.add(link.tag, url, link.sourceline)
         return links if links else None
 
