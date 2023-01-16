@@ -1,6 +1,6 @@
 from lxml import etree as ET
 from resultset import ResultSet
-from urllib.parse import urlparse
+from urllib import parse
 import constants as cs
 import logging
 import re
@@ -106,6 +106,14 @@ class Component:
                 result = util.xpath(dao, expr)
                 if result:
                     dao_data[field] = result.values()
+
+            if "link" in dao_data:
+                for link in dao_data["link"]:
+                    host = parse.urlsplit(link).netloc
+                    if host.endswith(".handle.net"):
+                        target = util.resolve_handle(link)
+                        logging.debug(f"handle target: {target}")
+
             dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
@@ -123,7 +131,7 @@ class Component:
         for dao in daos:
             for link in dao.xpath("(.|.//*)[@*[local-name()='href']]"):
                 url = link.get(href)
-                host = urlparse(url).netloc
+                host = parse.urlsplit(url).netloc
                 if host == "hdl.handle.net":
                     handle = util.resolve_handle(url)
                 logging.trace("fdao link {url} resolves to {handle}")
