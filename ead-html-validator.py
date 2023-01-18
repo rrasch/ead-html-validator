@@ -432,7 +432,9 @@ def main():
 
     util.addLoggingLevel("TRACE", logging.DEBUG - 5)
 
-    if args.verbose == 1:
+    if args.verbose == 0:
+        pass # noop
+    elif args.verbose == 1:
         logging.getLogger().setLevel(logging.INFO)
     elif args.verbose == 2:
         logging.getLogger().setLevel(logging.DEBUG)
