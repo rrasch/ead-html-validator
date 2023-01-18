@@ -401,20 +401,19 @@ def main():
     script_name = Path(__file__).stem
 
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="Validate finding aids html against ead xml file.")
     parser.add_argument("ead_file", metavar="EAD_FILE", help="ead file")
     parser.add_argument("html_dir", metavar="HTML_DIR", help="html directory")
     parser.add_argument("--diff-type", default="simple",
         choices=["color", "unified", "unified-color", "simple"],
-        help="diff type"
+        help="diff type (default: %(default)s)"
     )
     parser.add_argument("--verbose", "-v", action="count", default=0,
         help=("Verbose mode. Multiple -v options increase the verbosity."
             " The maximum is 3."))
     parser.add_argument("--log-format", "-l",
         default=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
-        help="format for logging messages")
+        help="format for logging messages (default: %(default)s)")
     parser.add_argument("--tidy", "-t", action="store_true",
         help="Run HTML Tidy to test correctness of html")
     parser.add_argument("--indent", "-i", action="store_true",
@@ -438,9 +437,10 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
     elif args.verbose == 3:
         logging.getLogger().setLevel(logging.TRACE)
-    else:
+    elif args.verbose:
         print("You can only specify -v a maximum of 3 times.", file=sys.stderr)
         parser.print_help(sys.stderr)
+        exit(1)
 
     excludes = read_excludes()
     logging.debug(excludes)
