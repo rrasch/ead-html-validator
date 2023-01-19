@@ -512,16 +512,43 @@ def main():
         else:
             ehtml_values = ehtml_retval
 
-        passed_check = compare(ead_values, ehtml_values)
-        logging.info(f"{method_name}: [{passed_str(passed_check)}]")
-        if not passed_check:
-            errors.append(
-                f"ead field '{method_name}' differs'\nDIFF:\n"
-                + diff(ead_values, ehtml_values, diff_cfg)
-            )
+        missing_err_template = (
+            "Value not set for {} field '{}'"
+            " inside file '{}' \nbut found"
+            " values:\n{}\ninside '{}'"
+        )
 
-        if ehtml_retval is None:
-            print("Missing value")
+        passed_check = False
+        if ead_retval is not None and ehtml_retval is None:
+            errors.append(
+                missing_err_template.format(
+                    "html",
+                    bold(method_name),
+                    html_file,
+                    format_vals(ead_retval),
+                    ead_file,
+                )
+            )
+        elif ead_retval is None and ehtml_retval is not None:
+            errors.append(
+                missing_err_template.format(
+                    "ead",
+                    bold(method_name),
+                    ead_file,
+                    format_vals(ehtml_retval),
+                    html_file,
+                )
+            )
+        else:
+            passed_check = compare(ead_values, ehtml_values)
+            if not passed_check:
+                errors.append(
+                    f"ead field '{method_name}' differs'\nDIFF:\n"
+                    + diff(ead_values, ehtml_values, diff_cfg)
+                )
+
+        logging.info(f"{method_name}: [{passed_str(passed_check)}]")
+
 
     ead_comps = my_ead.component()
     ead_cids = [(c.id, c.level) for c in ead_comps]
