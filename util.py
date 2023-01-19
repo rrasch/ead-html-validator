@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from dateutil.parser import parse, ParserError
+from dateutil.relativedelta import relativedelta
 from lxml import etree as ET
 from pprint import pprint, pformat
 from resultset import ResultSet
@@ -68,6 +69,21 @@ def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
     else:
         return None
 
+
+def format_duration(duration):
+    attrs = ["years", "months", "days", "hours", "minutes", "seconds"]
+    delta = relativedelta(seconds=duration)
+    return ", ".join(
+        [
+            "%d %s"
+            % (
+                getattr(delta, attr),
+                attr if getattr(delta, attr) > 1 else attr[:-1],
+            )
+            for attr in attrs
+            if getattr(delta, attr)
+        ]
+    )
 
 def get_xpaths(tsv_file):
     xpath = {}

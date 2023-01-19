@@ -23,6 +23,7 @@ import inspect
 import logging
 import os.path
 import re
+import time
 import tomli
 import traceback
 import shutil
@@ -394,6 +395,8 @@ def read_excludes():
 
 def main():
 
+    start_time = time.time()
+
     if not sys.version_info >= (3, 7):
         print("Python 3.7 or higher is required.")
         exit(1)
@@ -585,7 +588,9 @@ def main():
     for error in errors:
         print(f"ERROR: {error}\n")
 
-    logging.info("Validation complete.")
+    end_time = time.time()
+    duration = util.format_duration(end_time - start_time)
+    logging.info(f"Validation complete in {duration}")
     exit(len(errors))
 
 if __name__ == "__main__":
