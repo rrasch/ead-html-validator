@@ -164,7 +164,7 @@ def validate_html(html_dir, args):
     html_files = []
     for root, dirs, files in os.walk(html_dir):
         for file in files:
-            if file.endswith(".html"):
+            if re.search(r"(?<!tidy)\.html$", file):
                 html_files.append(os.path.join(root, file))
 
     if args.broken_links:
