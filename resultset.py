@@ -48,16 +48,28 @@ class ResultSet:
             )
         return updated
 
-    def join(self):
-        if self.valute_type is not str:
+    def join(self, sep=" "):
+        if self.value_type is not str:
             raise TypeError(
                 f"ResultSet value type is {self.value_type} but join()"
                 " expects str"
             )
+        if self.isempty():
+            raise ValueError("ResultSet is empty.")
+
         total_text = ""
-        for result in self.results_list:
-            total_text += " " + result["value"]
-        return [total_text[1:]]
+        for value, lineno in self.results_uniq.items():
+            if total_text:
+                total_text += sep
+            total_text += value
+
+        joined = ResultSet(value_type=self.value_type)
+        joined.add(
+            self.results_list[0]["tag"],
+            total_text,
+            self.results_list[0]["lineno"],
+        )
+        return joined
 
     def append(self, result_set):
         if result_set is None:
@@ -70,7 +82,7 @@ class ResultSet:
                 self.results_uniq[result["value"]].append(result["lineno"])
 
     def grep(self, filter_func):
-        filtered = ResultSet(value_type=self.value_type())
+        filtered = ResultSet(value_type=self.value_type)
         for result in result_set.all_values():
             if filter_func(result["value"]):
                 filtered.add(result["tag"], result["value"], result["lineno"])
@@ -80,9 +92,9 @@ class ResultSet:
         return len(self.results_list) == 0
 
     def __str__(self):
-        return "\n".join(
+        return "\n\n".join(
             [
-                f"Lineno: {result['lineno']}, Tag: {result['tag']}, Value: {result['value']}"
+                f"Lineno: {result['lineno']}, Tag: {result['tag']}, Value: '{result['value']}'"
                 for result in self.results_list
             ]
         )
