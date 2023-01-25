@@ -75,7 +75,10 @@ class Ead:
         return self.xpath("eadheader/filedesc/titlestmt/author")
 
     def bioghist(self):
-        return self.xpath("archdesc[@level='collection']/bioghist/p")
+        return self.get_text("archdesc[@level='collection']/bioghist/p", sep="")
+
+    def c_count(self):
+        return int(self.root.xpath("count(//c)"))
 
     def chronlist(self):
         expr = (
@@ -83,6 +86,8 @@ class Ead:
             " 'dsc']//chronlist/chronitem"
         )
         chron_items = self.root.xpath(expr)
+        if not chron_items:
+            return None
         result = ResultSet(xpath=expr, value_type=dict)
         for item in chron_items:
             date = item.xpath("date")[0].text
@@ -161,21 +166,37 @@ class Ead:
         return self.get_archdesc_nodsc("function")
 
     def genreform(self):
-        return self.get_archdesc_nodsc("genreform")
+        return self.get_archdesc_nodsc_join("genreform")
 
     def geogname(self):
-        return self.get_archdesc_nodsc("geogname")
+        return self.get_archdesc_nodsc_join("geogname")
 
     def get_archdesc(self, field):
         return self.xpath(f"archdesc[@level='collection']/{field}/p")
 
-    def get_archdesc_nodsc(self, field):
-        return self.get_text(
-            f"archdesc[@level='collection']/*[name() != 'dsc']//{field}"
+    def get_archdesc_nodsc(self, field, **kwargs):
+        return util.xpath(
+            self.root,
+            f"archdesc[@level='collection']/*[name() != 'dsc']//{field}",
+            all_text=True,
+            **kwargs,
+        )
+
+    def get_archdesc_nodsc_join(self, field):
+        return self.get_archdesc_nodsc(
+            field,
+            # all_text=True,
+            join_text=True,
+            join_sep="; ",
         )
 
     def get_text(self, expr, **kwargs):
         return self.xpath(expr, all_text=True, **kwargs)
+
+    def get_text_join(self, expr):
+        return util.xpath(
+            self.root, expr, all_text=True, join_text=True, join_sep="; "
+        )
 
     def get_text_no_lineno(self, expr, return_list=True):
         node_text_list = set()
@@ -201,7 +222,7 @@ class Ead:
         return self.xpath("//langusage/language")
 
     def material_type(self):
-        return self.get_text("//genreform")
+        return self.get_text_join("//genreform")
 
     def name(self):
         return self.get_archdesc_nodsc("name")
@@ -231,7 +252,7 @@ class Ead:
         return self.xpath("archdesc[@level='collection']/phystech/p")
 
     def place(self):
-        return self.xpath("//geogname")
+        return self.get_text_join("//geogname")
 
     def prefercite(self):
         return self.xpath("archdesc[@level='collection']/prefercite/p")
@@ -293,7 +314,9 @@ class Ead:
     def userestrict(self):
         return self.get_archdesc("userestrict")
 
-    def xpath(self, expr, all_text=False, join_text=False, sep=" "):
+    def xpath(
+        self, expr, all_text=False, join_text=False, sep=" ", join_sep=" "
+    ):
         attrib = None
         match = re.search(r"(/@([A-Za-z]+))$", expr)
         if match:
@@ -308,25 +331,22 @@ class Ead:
         result = ResultSet(xpath=expr)
         for node in nodes:
             if attrib:
+                if attrib not in node.attrib:
+                    continue
                 text = node.get(attrib)
             elif all_text:
                 words = []
                 for itext in node.itertext():
-                    # words.extend(itext.split())
                     words.append(itext)
                 text = util.clean_text(sep.join(words))
             else:
                 text = util.clean_text(node.text or "")
-            if join_text:
-                total_text += " " + text
-            else:
-                result.add(node.tag, text, node.sourceline)
+            result.add(node.tag, text, node.sourceline)
 
-        if join_text:
-            result.add(nodes[0].tag, total_text[1:], nodes[0].sourceline)
+        if join_text and result:
+            result = result.join(join_sep)
 
-        return result
-
+        return result if result else None
 
     #     def unitdate_parse(self, expr):
     #         dates = self.root.xpath(
