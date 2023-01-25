@@ -3,6 +3,7 @@
 [top]
 checks = [
     "altformavail",
+    "c_count",
     "dao",
     "url",
 ]
@@ -15,3 +16,10 @@ checks = [
     "unitid",
 ]
 
+[dao]
+roles = [
+    "image-service",
+    "audio-service",
+    "video-service",
+    "external-link",
+]
