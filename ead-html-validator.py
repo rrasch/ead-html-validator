@@ -11,8 +11,10 @@ from pprint import pprint, pformat
 from requestmaterials import RequestMaterials
 from resultset import ResultSet
 from subprocess import PIPE
+
 # from thefuzz import fuzz
 # from thefuzz import process
+from tqdm import tqdm
 import argparse
 import constants
 import difflib
@@ -40,13 +42,15 @@ print = functools.partial(print, flush=True)
 # green = lambda text: colored(0, 255, 0, text)
 # blue = lambda text: colored(0, 0, 255, text)
 
+
 def colorize(color_code, text):
     return f"\033[{color_code}m{text}\033[0m" if COLORS_ENABLED else text
 
-red   = lambda text: colorize(31, text)
+
+red = lambda text: colorize(31, text)
 green = lambda text: colorize(32, text)
-blue  = lambda text: colorize(34, text)
-bold  = lambda text: colorize(1,  text)
+blue = lambda text: colorize(34, text)
+bold = lambda text: colorize(1, text)
 
 diff_color = {
     "+": green,
@@ -59,11 +63,13 @@ pass_color = {
     False: red,
 }
 
+
 def stringify_list(mylist):
     return [
         util.pretty_format(elem) if isinstance(elem, dict) else elem
         for elem in mylist
     ]
+
 
 def diff(obj1, obj2, diff_cfg):
     list1 = stringify_list(create_list(obj1))
@@ -84,6 +90,7 @@ def diff(obj1, obj2, diff_cfg):
         text = simple_diff(obj1, obj2, diff_cfg)
     return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"]
 
+
 def simple_diff(obj1, obj2, diff_cfg):
     max_len = diff_cfg["term_width"]
     str1 = str(obj1)
@@ -92,13 +99,14 @@ def simple_diff(obj1, obj2, diff_cfg):
     # return f"{str1[:max_len]}{sep}!={sep}{str2[:max_len]}"
     return f"{str1}{sep}!={sep}{str2}"
 
+
 def color_diff_str(str1, str2):
-    logging.debug(f"color_diff({str1}, {str2})")
+    # logging.debug(f"color_diff({str1}, {str2})")
     result = ""
     codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
     for code in codes:
         if code[0] == "equal":
-            result += str1[code[1] : code[2]]
+            result += blue(str1[code[1] : code[2]])
         elif code[0] == "delete":
             result += red(str1[code[1] : code[2]])
         elif code[0] == "insert":
@@ -113,6 +121,7 @@ def color_diff_str(str1, str2):
 def quote(val):
     return f"'{val}'"
 
+
 def color_diff_list(list1, list2):
     result = []
 
@@ -125,15 +134,17 @@ def color_diff_list(list1, list2):
 
     for code in codes:
         if code[0] == "equal":
-            result.extend(list1[code[1]:code[2]])
+            # result.extend(list1[code[1]:code[2]])
+            result.extend(map(blue, list1[code[1] : code[2]]))
         elif code[0] == "delete":
-            result.extend(map(red, list1[code[1]:code[2]]))
+            result.extend(map(red, list1[code[1] : code[2]]))
         elif code[0] == "insert":
-            result.extend(map(green, list2[code[3]:code[4]]))
+            result.extend(map(green, list2[code[3] : code[4]]))
         elif code[0] == "replace":
-            result.extend(map(red, list1[code[1]:code[2]]))
-            result.extend(map(green, list2[code[3]:code[4]]))
-    return  "[" + ", ".join(map(quote, result)) + "]"
+            result.extend(map(red, list1[code[1] : code[2]]))
+            result.extend(map(green, list2[code[3] : code[4]]))
+    return "[" + ",\n\n".join(map(quote, result)) + "]"
+
 
 def comparable_val(val):
     val = val or ""
@@ -151,14 +162,17 @@ def comparable_val(val):
         raise e
     return val
 
+
 def compare(val1, val2):
-    return comparable_val(val1) ==  comparable_val(val2)
+    return comparable_val(val1) == comparable_val(val2)
+
 
 def create_list(obj):
     if type(obj) is not list:
         return [obj]
     else:
         return obj
+
 
 def validate_html(html_dir, args):
     html_files = []
@@ -200,8 +214,8 @@ def validate_xml(xml_file):
     if xmllint:
         return util.do_cmd(
             [xmllint, "--noout", "--schema", "ead.xsd", xml_file],
-                    stdout=PIPE,
-                    stderr=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
         )
     else:
         try:
@@ -209,6 +223,7 @@ def validate_xml(xml_file):
             result = schema.validate(ET.parse(xml_file))
         except Exception as e:
             raise e
+
 
 def load_thefuzz():
     for libname in ["fuzz", "process"]:
@@ -219,6 +234,7 @@ def load_thefuzz():
         else:
             globals()[libname] = lib
 
+
 def get_term_width():
     try:
         term_size = os.get_terminal_size()
@@ -227,6 +243,7 @@ def get_term_width():
         term_width = 80
     return term_width
 
+
 def format_vals(vals):
     if type(vals) is dict:
         return "\n".join([f"Line {k}: '{v}'" for k, v in vals.items()])
@@ -234,10 +251,12 @@ def format_vals(vals):
         # return repr(vals)
         return str(vals)
 
+
 def passed_str(passed):
     status = "PASS" if passed else "FAIL"
     status = pass_color[passed](status)
     return status
+
 
 def check_retval(retval, name):
     if retval is not None and not isinstance(retval, ResultSet):
@@ -245,7 +264,10 @@ def check_retval(retval, name):
             f"Expected ResultSet for {name}, got {retval} instead."
         )
 
-def validate_component(c, dirpath, errors, diff_cfg, excludes):
+
+def validate_component(
+    c, dirpath, errors, diff_cfg, excludes, progress_bar, basedir
+):
     logging.debug("----")
     logging.debug(c.id)
     logging.debug(c.level)
@@ -279,7 +301,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
     logging.info(f"Performing checks for container {c.id}")
 
     # XXX: Should this be replaced by constants?
-    for method_name, comp_method in util.get_methods(c).items():
+    for method_name, comp_method in util.get_methods(c, "dao").items():
         match = re.search(r"^(sub_components)$", method_name)
         if match:
             logging.debug(f"Skipping {method_name}...")
@@ -290,7 +312,10 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             continue
 
         logging.debug(f"calling Component.{method_name}()")
-        comp_retval = comp_method()
+        args = []
+        if method_name == "dao":
+            args = [excludes["dao"]["roles"]]
+        comp_retval = comp_method(*args)
         logging.debug(f"retval={comp_retval}")
         check_retval(comp_retval, method_name)
 
@@ -301,7 +326,10 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
 
         logging.debug(f"calling CompHTML.{method_name}()")
         chtml_method = getattr(chtml, method_name)
-        chtml_retval = chtml_method()
+        args = []
+        if method_name == "dao":
+            args = [basedir, excludes["dao"]["roles"]]
+        chtml_retval = chtml_method(*args)
         logging.debug(f"retval={chtml_retval}")
         check_retval(chtml_retval, method_name)
 
@@ -343,8 +371,7 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             passed_check = compare(comp_values, chtml_values)
             if not passed_check:
                 errors.append(
-                    f"field '{method_name}' differs for c"
-                    f" id='{c.id}'\nDIFF:\n"
+                    f"field '{method_name}' differs for c id='{c.id}'\nDIFF:\n"
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
 
@@ -364,11 +391,15 @@ def validate_component(c, dirpath, errors, diff_cfg, excludes):
             f" got:\n{pformat(html_cids)}"
         )
 
+    progress_bar.update(1)
+
     for subc in c.sub_components():
         # logging.debug(subc)
         # logging.debug(subc.id)
         # logging.debug(subc.level)
-        validate_component(subc, new_dirpath, errors, diff_cfg, excludes)
+        validate_component(
+            subc, new_dirpath, errors, diff_cfg, excludes, progress_bar, basedir
+        )
 
 
 def build_level_tree(ead_elem, parent):
@@ -381,6 +412,7 @@ def build_level_tree(ead_elem, parent):
         child = Node((c.id, c.level), parent=parent)
         build_level_tree(c, child)
 
+
 def render_level_tree(ead_elem, root_name):
     root = Node(root_name)
     build_level_tree(ead_elem, root)
@@ -388,13 +420,14 @@ def render_level_tree(ead_elem, root_name):
     # pre, fill, node = next(iterator)
     return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
 
+
 def read_excludes():
     with open("excludes.toml", "rb") as f:
         data = tomli.load(f)
     return data
 
-def main():
 
+def main():
     start_time = time.time()
 
     if not sys.version_info >= (3, 7):
@@ -404,27 +437,50 @@ def main():
     script_name = Path(__file__).stem
 
     parser = argparse.ArgumentParser(
-        description="Validate finding aids html against ead xml file.")
+        description="Validate finding aids html against ead xml file."
+    )
     parser.add_argument("ead_file", metavar="EAD_FILE", help="ead file")
     parser.add_argument("html_dir", metavar="HTML_DIR", help="html directory")
-    parser.add_argument("--diff-type", default="simple",
+    parser.add_argument(
+        "--diff-type",
+        default="simple",
         choices=["color", "unified", "unified-color", "simple"],
-        help="diff type (default: %(default)s)"
+        help="diff type (default: %(default)s)",
     )
-    parser.add_argument("--verbose", "-v", action="count", default=0,
-        help=("Verbose mode. Multiple -v options increase the verbosity."
-            " The maximum is 3."))
-    parser.add_argument("--log-format", "-l",
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="count",
+        default=0,
+        help=(
+            "Verbose mode. Multiple -v options increase the verbosity."
+            " The maximum is 3."
+        ),
+    )
+    parser.add_argument(
+        "--log-format",
+        "-l",
         default=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
-        help="format for logging messages (default: %(default)s)")
-    parser.add_argument("--tidy", "-t", action="store_true",
-        help="Run HTML Tidy to test correctness of html")
-    parser.add_argument("--indent", "-i", action="store_true",
-        help="Indent HTML files using tidy.")
-    parser.add_argument("--broken-links", "-b", action="store_true",
-        help="Find broken urls")
-    parser.add_argument("--color", "-c", action="store_true",
-        help="Enable color output")
+        help="format for logging messages (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--tidy",
+        "-t",
+        action="store_true",
+        help="Run HTML Tidy to test correctness of html",
+    )
+    parser.add_argument(
+        "--indent",
+        "-i",
+        action="store_true",
+        help="Indent HTML files using tidy.",
+    )
+    parser.add_argument(
+        "--broken-links", "-b", action="store_true", help="Find broken urls"
+    )
+    parser.add_argument(
+        "--color", "-c", action="store_true", help="Enable color output"
+    )
     args = parser.parse_args()
 
     global COLORS_ENABLED
@@ -549,9 +605,10 @@ def main():
                     f"ead field '{method_name}' differs'\nDIFF:\n"
                     + diff(ead_values, ehtml_values, diff_cfg)
                 )
+                # print(errors[-1])
+                # exit(1)
 
         logging.info(f"{method_name}: [{passed_str(passed_check)}]")
-
 
     ead_comps = my_ead.component()
     ead_cids = [(c.id, c.level) for c in ead_comps]
@@ -567,10 +624,12 @@ def main():
     html_tree_str = "".join(html_tree)
     logging.debug(f"HTML Nesting Level Tree\n{html_tree_str}")
 
-    passed_check =  ead_tree[1:] == html_tree[1:]
+    passed_check = ead_tree[1:] == html_tree[1:]
     logging.info(f"nesting levels: [{passed_str(passed_check)}]")
     if not passed_check:
-        errors.append("Nesting error" + diff(ead_tree_str, html_tree_str, diff_cfg))
+        errors.append(
+            "Nesting error" + diff(ead_tree_str, html_tree_str, diff_cfg)
+        )
 
     logging.debug(f"EAD CIDS {ead_cids}")
     logging.debug(f"HTML CIDS {html_cids}")
@@ -582,8 +641,12 @@ def main():
             f" got:\n{pformat(html_cids)}"
         )
 
+    progress_bar = tqdm(total=my_ead.c_count())
+
     for c in ead_comps:
-        validate_component(c, html_dir, errors, diff_cfg, excludes)
+        validate_component(
+            c, html_dir, errors, diff_cfg, excludes, progress_bar, html_dir
+        )
 
     for error in errors:
         print(f"ERROR: {error}\n")
@@ -592,6 +655,7 @@ def main():
     duration = util.format_duration(end_time - start_time)
     logging.info(f"Validation complete in {duration}")
     exit(len(errors))
+
 
 if __name__ == "__main__":
     main()
