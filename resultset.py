@@ -1,4 +1,5 @@
 from collections import defaultdict
+import json
 
 
 class ResultSetIter:
@@ -10,6 +11,7 @@ class ResultSetIter:
 
     def __next__(self):
         pass
+
 
 class ResultSet:
     def __init__(self, value_type=str, xpath=None, sort=False):
@@ -31,11 +33,20 @@ class ResultSet:
     def all_values(self):
         return self.results_list
 
-    def values(self):
+    def _values(self):
         if self.value_type is str:
             return list(self.results_uniq.keys())
         else:
             return [result["value"] for result in self.results_list]
+
+    def values(self):
+        if self.value_type is str:
+            return list(self.results_uniq.keys())
+        else:
+            return [
+                json.dumps(result["value"], indent=2)
+                for result in self.results_list
+            ]
 
     def type(self):
         return self.value_type
@@ -48,7 +59,7 @@ class ResultSet:
             )
         return updated
 
-    def join(self, sep=" "):
+    def join(self, uniq=True, sep=" "):
         if self.value_type is not str:
             raise TypeError(
                 f"ResultSet value type is {self.value_type} but join()"
@@ -57,8 +68,13 @@ class ResultSet:
         if self.isempty():
             raise ValueError("ResultSet is empty.")
 
+        if uniq:
+            values = self.results_uniq.keys()
+        else:
+            values = [result["value"] for result in self.results_list]
+
         total_text = ""
-        for value, lineno in self.results_uniq.items():
+        for value in values:
             if total_text:
                 total_text += sep
             total_text += value
@@ -94,7 +110,8 @@ class ResultSet:
     def __str__(self):
         return "\n\n".join(
             [
-                f"Lineno: {result['lineno']}, Tag: {result['tag']}, Value: '{result['value']}'"
+                f"Lineno: {result['lineno']}, Tag: {result['tag']}, Value:"
+                f" '{result['value']}'"
                 for result in self.results_list
             ]
         )
