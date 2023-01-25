@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from lxml import etree as ET
 from resultset import ResultSet
-from string import punctuation as punc
+from string import punctuation
 from subprocess import PIPE
 import comphtml
 import logging
@@ -24,6 +24,7 @@ class EADHTML:
         )
         self.dom = ET.HTML(str(self.soup))
         self.html_file = html_file
+        self.main = self._main()
 
     def author(self):
         return self.get_group_div_text("author")
@@ -55,6 +56,9 @@ class EADHTML:
     def bioghist(self):
         return self.formatted_note("bioghist")
 
+    def c_count(self):
+        return len(self.soup.find_all(class_=re.compile(r"^data-level")))
+
     def chronlist(self):
         items = ResultSet(value_type=dict)
         clist = self.soup.find("span", class_="ead-chronlist")
@@ -81,6 +85,7 @@ class EADHTML:
 
     @staticmethod
     def clean_date(date):
+        punc = ",;"
         return re.sub(r",\s*(bulk|inclusive)\s*$", "", date).strip(f" {punc}")
 
     def collection(self):
@@ -123,8 +128,12 @@ class EADHTML:
     def contents(self):
         return [text for text in self.soup.stripped_strings]
 
+    def control_access(self):
+        return self.main.find(class_="md-group controlaccess")
+
     def control_access_group(self, field):
-        group = self.soup.find("div", class_=f"controlaccess-{field}-group")
+        ctrl_access = self.control_access()
+        group = ctrl_access.find("div", class_=f"controlaccess-{field}-group")
         if not group:
             return None
         result = ResultSet()
@@ -135,7 +144,8 @@ class EADHTML:
         return result
 
     def control_access_group_val(self, field):
-        group = self.soup.find("div", class_=f"controlaccess-{field}-group")
+        ctrl_access = self.control_access()
+        group = ctrl_access.find("div", class_=f"controlaccess-{field}-group")
         if not group:
             return None
         result = ResultSet()
@@ -146,8 +156,15 @@ class EADHTML:
         return result
 
     def corpname(self):
-        # return self.control_access_group("corpname")
-        return self.find_all(class_=re.compile(r"(ead-)?corpname$"))
+        corpnames = ResultSet()
+        for result in [
+            self.control_access_group_val("corpname"),
+            self.find_all(class_=re.compile(r"(ead-)?corpname$")),
+        ]:
+            print(f"result: {result}")
+            if result:
+                corpnames.append(result)
+        return corpnames if corpnames else None
 
     def creation_date(self):
         creation = self.soup.find("div", class_="creation")
@@ -204,9 +221,14 @@ class EADHTML:
         return self.formatted_note("extent")
 
     def famname(self):
-        return self.find_all(
-            "div", class_=re.compile("^famname"), get_text=False
-        )
+        famnames = ResultSet()
+        for result in [
+            self.find_all("div", class_=re.compile("^famname"), get_text=False),
+            self.control_access_group_val("famname"),
+        ]:
+            if result:
+                famnames.append(result)
+        return famnames if famnames else None
 
     def find_all(self, *args, root=None, attrib=None, get_text=True, **kwargs):
         if root is None:
@@ -251,22 +273,19 @@ class EADHTML:
             )
 
     def formatted_note(self, field):
-        note = self.soup.find("div", class_=f"md-group formattednote {field}")
-        if note is None:
+        notes = self.soup.find_all(
+            "div", class_=f"md-group formattednote {field}"
+        )
+        if not notes:
             return None
-        # text = note.div.p.get_text()
-        for tag in ["div", "p"]:
-            note_child = getattr(note, tag)
-            if note_child is not None:
-                # return note_child.get_text(strip=True)
-                result = ResultSet()
-                result.add(
-                    note_child.name,
-                    util.clean_text(note_child.get_text()),
-                    note_child.sourceline,
-                )
-                return result
-        return None
+        result = ResultSet()
+        for note in notes:
+            values = self.find_all(
+                re.compile("^(div|p)$"), root=note, recursive=False
+            )
+            if values:
+                result.append(values)
+        return result if result else None
 
     def function(self):
         return self.control_access_group("function")
@@ -300,6 +319,9 @@ class EADHTML:
     def language(self):
         return self.find_all(class_="ead-language")
 
+    def _main(self):
+        return self.soup.find("main")
+
     def material_type(self):
         return self.genreform()
 
@@ -309,23 +331,31 @@ class EADHTML:
     def names(self):
         all_names = ResultSet()
 
-        pers_regex = r"^(ead-)?persname( role-Donor)?$"
-        for name in [self.famname(), self.class_values(pers_regex)]:
-            if name:
-                all_names.append(name)
-
         corp_regex = r"^(ead-)?corpname( role-Donor)?$"
         corpname = self.find_all(
             lambda tag: not re.search(
                 r"repository", tag.parent.parent.get("class") or ""
             )
-            and re.search(corp_regex, tag.get("class") or "")
-            or re.search(corp_regex, tag.get("data-field") or ""),
+            and (
+                re.search(corp_regex, tag.get("class") or "")
+                or re.search(corp_regex, tag.get("data-field") or "")
+            ),
             get_text=False,
             root=self.soup.body,
         )
         if corpname:
             all_names.append(corpname)
+
+        corpname = self.control_access_group_val("corpname")
+        if corpname:
+            all_names.append(corpname)
+
+        pers_regex = r"^(ead-)?persname( role-Donor)?$"
+        # for name in [self.famname(), self.class_values(pers_regex)]:
+        for name in [self.famname(), self.persname()]:
+            print(f"NAME {name}")
+            if name:
+                all_names.append(name)
 
         return all_names if all_names else None
 
@@ -340,8 +370,10 @@ class EADHTML:
 
     def persname(self):
         all_persnames = ResultSet()
+        pers_regex = r"^(ead-)?persname( role-Donor)?$"
         for persnames in [
-            self.ead_class_values("persname"),
+            # self.ead_class_values("persname"),
+            self.class_values(pers_regex),
             self.control_access_group_val("persname"),
         ]:
             if persnames:
@@ -401,7 +433,7 @@ class EADHTML:
 
     def subjects(self):
         subj_set = ResultSet()
-        for field in ['subject', 'function', 'occupation']:
+        for field in ["subject", "function", "occupation"]:
             subjs = self.control_access_group(field)
             if subjs:
                 subj_set.append(subjs)
