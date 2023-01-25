@@ -101,14 +101,13 @@ class Component:
                 if result:
                     dao_data[field] = result.values()
 
-            if "link" in dao_data:
-                if dao_data["role"][0] not in roles:
-                    dao_data.pop("link")
-                # for url in dao_data["link"]:
-                #     host = parse.urlsplit(url).netloc
-                #     if host.endswith(".handle.net"):
-                #         target = util.resolve_handle(url)
-                #         logging.trace(f"dao link {url} resolves to {target}")
+            # role defaults to "external-link" for missing or empty
+            # role attribute
+            if "role" not in dao_data or not dao_data["role"][0]:
+                dao_data["role"] = ["external-link"]
+
+            if "link" in dao_data and dao_data["role"][0] not in roles:
+                dao_data.pop("link")
 
             # dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
             dao_set.add(dao.tag, {"dao": dao_data}, dao.sourceline)
