@@ -439,8 +439,11 @@ class EADHTML:
     def series(self):
         pass
 
-    def sponsor(self):
+    def _sponsor(self):
         return self.md_group("sponsor")
+
+    def sponsor(self):
+        return self.xpath("//main/div[@class='md-group sponsor']/div")
 
     def subject(self):
         return self.control_access_group("subject")
@@ -499,3 +502,6 @@ class EADHTML:
 
     def userestrict(self):
         return self.formatted_note("userestrict")
+
+    def xpath(self, xpath_expr):
+        return util.xpath(self.dom, xpath_expr, all_text=True)
