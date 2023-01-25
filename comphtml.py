@@ -87,6 +87,9 @@ class CompHTML:
             id_level.append((cid, re.split(r"[- ]", c["class"])[1]))
         return id_level
 
+    def container(self):
+        pass
+
     def contents(self):
         return [text for text in self.c.stripped_strings]
 
@@ -112,10 +115,6 @@ class CompHTML:
         origin = self.md_group("origination")
         if origin is None:
             return None
-        # return [
-        #     name.get_text()
-        #     for name in origin.find_all("div", class_=re.compile(r"name$"))
-        # ]
         return CompHTML.find_all(origin, "div", class_=re.compile(r"name$"))
 
     def custodhist(self):

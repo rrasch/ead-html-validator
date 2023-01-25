@@ -57,6 +57,16 @@ class Component:
     def bioghist_heading(self):
         return self.get_val("bioghist/head")
 
+    def container(self):
+        containers = ResultSet(value_type=dict)
+        for container in self.c.xpath("did/container"):
+            containers.add(
+                container.tag,
+                {container.get("id"): dict(container.attrib)},
+                container.sourceline,
+            )
+        return containers if containers else None
+
     def corpname(self):
         return self.get_val("controlaccess/corpname")
 
