@@ -8,7 +8,7 @@ top-level = [
     "url",
 ]
 
-container = [
+component = [
     "dao_desc",
     "dao_link",
     "dao_title",

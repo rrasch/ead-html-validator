@@ -298,7 +298,7 @@ def validate_component(
 
     logging.debug(f"component tag: {c.c.tag}")
 
-    logging.info(f"Performing checks for container {c.id}")
+    logging.info(f"Performing checks for component {c.id}")
 
     # XXX: Should this be replaced by constants?
     for method_name, comp_method in util.get_methods(c, "dao").items():
@@ -307,7 +307,7 @@ def validate_component(
             logging.debug(f"Skipping {method_name}...")
             continue
 
-        if method_name in config["exclude-checks"]["container"]:
+        if method_name in config["exclude-checks"]["component"]:
             logging.debug(f"Skipping {method_name}...")
             continue
 
@@ -339,7 +339,7 @@ def validate_component(
             chtml_values = chtml_retval
 
         missing_err_template = (
-            "Value not set for field '{}' in container"
+            "Value not set for field '{}' in component"
             " '{}' inside {} file '{}' \nbut found"
             " values:\n{}\ninside '{}'"
         )
@@ -486,7 +486,7 @@ def main():
         "--progress-bar",
         "-p",
         action="store_true",
-        help="Show progress bar for container checks",
+        help="Show progress bar for component checks",
     )
     args = parser.parse_args()
 
