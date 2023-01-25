@@ -325,6 +325,17 @@ class EADHTML:
     def material_type(self):
         return self.genreform()
 
+    def md_group(self, group):
+        groups = self.main.find_all(class_=f"md-group {group}", recursive=False)
+        if not groups:
+            return None
+        text = ResultSet()
+        for group in groups:
+            result = self.find_all(re.compile(r"^(div)$"), root=group)
+            if result:
+                text.append(result)
+        return text if text else None
+
     def name(self):
         return self.find_all(class_="ead-name")
 
@@ -427,6 +438,9 @@ class EADHTML:
 
     def series(self):
         pass
+
+    def sponsor(self):
+        return self.md_group("sponsor")
 
     def subject(self):
         return self.control_access_group("subject")

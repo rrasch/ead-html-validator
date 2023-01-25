@@ -266,6 +266,9 @@ class Ead:
     def separatedmaterial(self):
         return self.get_archdesc("separatedmaterial")
 
+    def sponsor(self):
+        return self.xpath("eadheader/filedesc/titlestmt/sponsor")
+
     def subject(self):
         return self.get_archdesc_nodsc("subject")
 
