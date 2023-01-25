@@ -85,6 +85,7 @@ def format_duration(duration):
         ]
     )
 
+
 def get_xpaths(tsv_file):
     xpath = {}
     with open(tsv_file) as f:
@@ -99,17 +100,17 @@ def get_xpaths(tsv_file):
     return xpath
 
 
-def get_methods(obj):
+def get_methods(obj, *includes):
     methods = {}
 
     for attr_name in sorted(dir(obj)):
         attr_val = getattr(obj, attr_name)
 
-        if attr_name.startswith("_") or not callable(attr_val):
-            continue
-
-        if len(inspect.signature(attr_val).parameters) > 0:
-            continue
+        if attr_name not in includes:
+            if attr_name.startswith("_") or not callable(attr_val):
+                continue
+            if len(inspect.signature(attr_val).parameters) > 0:
+                continue
 
         methods[attr_name] = attr_val
 
@@ -118,10 +119,9 @@ def get_methods(obj):
 
 def clean_text(text):
     text = re.sub(r"\s+", " ", text)
-    # text = re.sub(r'\s([?.!"](?:\s|$))', r'\1', text)
-    text = re.sub(
-        rf"\s([{re.escape(string.punctuation)}](?:\s|$))", r"\1", text
-    )
+    # text = re.sub(r'\s([?.!"](?:\s|$))', r"\1", text)
+    punc = re.sub(r"[-]", "", string.punctuation)
+    text = re.sub(rf"\s([{re.escape(punc)}](?:\s|$))", r"\1", text)
     text = text.strip()
     return text
 
@@ -135,6 +135,7 @@ def resolve_handle(url):
     soup = BeautifulSoup(response.text, "html.parser")
     return soup.a["href"]
 
+
 def strip_date(title):
     title_list = title.rsplit(":", 1)
     if len(title_list) == 1:
@@ -144,6 +145,7 @@ def strip_date(title):
         return title_list[0]
     except ParserError as e:
         return title
+
 
 def get_links(html_file):
     soup = BeautifulSoup(open(html_file), "html.parser")
@@ -171,7 +173,6 @@ def get_links(html_file):
 
 
 def find_broken_links(links):
-
     # Internal function for validating HTTP status code.
     def _validate_url(url):
         r = requests.head(url)
@@ -185,11 +186,20 @@ def find_broken_links(links):
 
     return broken_links
 
+
 def sort_dict(mydict):
     return dict(sorted(mydict.items(), key=lambda item: item[1]))
 
 
-def xpath(root, expr, all_text=False, join_text=False, sep=" ", join_sep=" "):
+def xpath(
+    root,
+    expr,
+    all_text=False,
+    join_text=False,
+    join_uniq=True,
+    sep=" ",
+    join_sep=" ",
+):
     attrib = None
     match = re.search(r"(/@([A-Za-z]+))$", expr)
     if match:
@@ -210,22 +220,17 @@ def xpath(root, expr, all_text=False, join_text=False, sep=" ", join_sep=" "):
         elif all_text:
             words = []
             for itext in node.itertext():
-                # words.extend(itext.split())
                 words.append(itext)
             text = clean_text(sep.join(words))
         else:
             text = clean_text(node.text or "")
-        if join_text:
-            if total_text:
-                total_text += join_sep
-            total_text += text
-        else:
-            result.add(node.tag, text, node.sourceline)
+        result.add(node.tag, text, node.sourceline)
 
     if join_text:
-        result.add(nodes[0].tag, total_text, nodes[0].sourceline)
+        result = result.join(sep=join_sep, uniq=join_uniq)
 
     return result if result else None
+
 
 def quote(val):
     if type(val) == str:
@@ -233,10 +238,11 @@ def quote(val):
     else:
         return str(val)
 
+
 def create_args_str(*args, **kwargs):
     sep = ", "
     arg_str = sep.join([quote(a) for a in args])
-    kw_str =  sep.join([f"{k}={quote(kwargs[k])}" for k in kwargs.keys()])
+    kw_str = sep.join([f"{k}={quote(kwargs[k])}" for k in kwargs.keys()])
 
     if arg_str and kw_str:
         return arg_str + sep + kw_str
@@ -244,6 +250,7 @@ def create_args_str(*args, **kwargs):
         return arg_str
     else:
         return kw_str
+
 
 def is_str(lst):
     return (
@@ -253,8 +260,10 @@ def is_str(lst):
         and "http" not in lst[0]
     )
 
+
 def pretty_format(mydict):
     return json.dumps(mydict, indent=2)
+
 
 # https://stackoverflow.com/a/35804945/1691778
 def addLoggingLevel(levelName, levelNum, methodName=None):
