@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
 from resultset import ResultSet
 import logging
+import os.path
 import re
 import util
 
@@ -130,7 +131,7 @@ class CompHTML:
             recursive=False,
         )
 
-    def dao(self):
+    def dao(self, html_dir, roles):
         daos = self._dao()
         if not daos:
             return None
@@ -138,16 +139,29 @@ class CompHTML:
         dao_set = ResultSet(value_type=dict)
         for i, dao in enumerate(daos):
             dao_data = {}
-            desc = CompHTML.find_all(dao, attrs={"data-ead-element": "daodesc"})
+
+            dao_data["role"] = [dao["class"].split()[2]]
+
+            get_text = dao_data["role"][0] != "external-link"
+            desc = CompHTML.find_all(
+                dao, attrs={"data-ead-element": "daodesc"}, get_text=get_text
+            )
             if desc:
                 dao_data["desc"] = desc.values()
-            links = CompHTML.find_all(
-                dao, "a", class_=re.compile(r"^dao-link"), attrib="href"
-            )
+
+            links = []
+            for a in dao.find_all(
+                "a", class_=re.compile(r"^dao-link"), href=True
+            ):
+                link = a["href"]
+                if link.startswith("/"):
+                    link = self.permalink(link, html_dir) or link
+                links.append(link)
             if links:
-                dao_data["link"] = links.values()
-            dao_data["role"] = [dao["class"].split()[2]]
-            dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
+                dao_data["link"] = links
+
+            # dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
+            dao_set.add(dao.name, {"dao": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 
@@ -228,12 +242,21 @@ class CompHTML:
         return self.formatted_note_heading("fileplan")
 
     @staticmethod
-    def find_all(root, *args, attrib=None, get_text=True, join_text=False,
-        sep="", join_sep=" ", **kwargs
+    def find_all(
+        root,
+        *args,
+        attrib=None,
+        get_text=True,
+        join_text=False,
+        join_uniq=True,
+        sep="",
+        join_sep=" ",
+        **kwargs,
     ):
         nodes = root.find_all(*args, **kwargs)
         if not nodes:
             return None
+
         total_text = ""
         find_expr = util.create_args_str(*args, **kwargs)
         result = ResultSet(xpath=find_expr)
@@ -245,42 +268,47 @@ class CompHTML:
             else:
                 text = node.contents[0]
             text = util.clean_text(text)
-
-            if join_text:
-                if total_text:
-                    total_text += join_sep
-                total_text += text
-            else:
-                result.add(node.name, text, node.sourceline)
+            result.add(node.name, text, node.sourceline)
 
         if join_text:
-            result.add(nodes[0].name, total_text, nodes[0].sourceline)
+            result = result.join(sep=join_sep, uniq=join_uniq)
 
         return result
 
     def formatted_note(self, field):
-        return self.c.find(
+        return self.c.find_all(
             "div", class_=f"md-group formattednote {field}", recursive=False
         )
 
     def formatted_note_heading(self, field):
-        note = self.formatted_note(field)
-        if note is None:
+        notes = self.formatted_note(field)
+        if not notes:
             return None
-        # return note.find(
-        #     re.compile(r"^h\d$"), class_="formattednote-header"
-        # ).get_text(" ", strip=True)
-        return CompHTML.find_all(
-            note, re.compile(r"^h\d$"), class_="formattednote-header", sep=""
-        )
+        heading = ResultSet()
+        for note in notes:
+            hdr = CompHTML.find_all(
+                note,
+                re.compile(r"^h\d$"),
+                class_="formattednote-header",
+                sep="",
+            )
+            if hdr:
+                heading.append(hdr)
+        return heading if heading else None
 
-    def formatted_note_text(self, field, p=True):
-        note = self.formatted_note(field)
-        if note is None:
+    def formatted_note_text(self, field, p=True, **kwargs):
+        notes = self.formatted_note(field)
+        if not notes:
             return None
-        text_node = note.div.p if p else note.div
-        # return util.clean_text(text_node.get_text(" ", strip=True))
-        return CompHTML.resultset(text_node, sep=" ")
+        text = ResultSet()
+        for note in notes:
+            # search_root = note if note.p else note.div
+            values = CompHTML.find_all(
+                note, re.compile("^(div|p)$"), recursive=False, **kwargs
+            )
+            if values:
+                text.append(values)
+        return text if text else None
 
     def function(self):
         return self.control_group("function")
@@ -331,7 +359,7 @@ class CompHTML:
         return self.control_group("occupation")
 
     def odd(self):
-        return self.formatted_note_text("odd", p=False)
+        return self.formatted_note_text("odd", p=False, sep=" ")
 
     def odd_heading(self):
         return self.formatted_note_heading("odd")
@@ -348,6 +376,26 @@ class CompHTML:
     def otherfindaid_heading(self):
         return self.formatted_note_heading("otherfindaid")
 
+    def permalink(self, link, html_dir):
+        dirparts = link.strip(os.sep).split(os.sep)
+        partner = dirparts[0]
+        eadid = dirparts[1]
+        logging.trace(f"parter: {partner}")
+        logging.trace(f"eadid: {eadid}")
+        logging.trace(f"dirparts: {dirparts[2:]}")
+
+        html_file = os.path.join(html_dir, *dirparts[2:], "index.html")
+        logging.debug("permalink html file: {html_file}")
+        if not os.path.isfile(html_file):
+            return None
+        soup = BeautifulSoup(open(html_file), "html.parser")
+        link = soup.find(class_="dl-permalink")
+        if not link:
+            return None
+        url = link.contents[1].strip()
+        logging.debug(f"permalink for {link} is {url}")
+        return url
+
     def persname(self):
         pass
 
@@ -356,7 +404,7 @@ class CompHTML:
         phys_desc = self.formatted_note("physdesc")
         if not phys_desc:
             return None
-        header = phys_desc.find(re.compile("h\d"), class_=re.compile(field))
+        header = phys_desc[0].find(re.compile("h\d"), class_=re.compile(field))
         if not header:
             return None
         sib = header.find_next_sibling("div")
@@ -367,10 +415,10 @@ class CompHTML:
 
     def physloc(self):
         loc = self.formatted_note("physloc")
-        if loc is None:
+        if not loc:
             return None
         # return "".join([span.get_text() for span in loc.find_all("span")])
-        return CompHTML.find_all(loc, "span", join_text=True, join_sep="")
+        return CompHTML.find_all(loc[0], "span", join_text=True, join_sep="")
 
     def physloc_heading(self):
         return self.formatted_note_heading("physloc")
@@ -435,7 +483,9 @@ class CompHTML:
                 and child.get("class") in ["dates", "delim"]
             ):
                 text += child.get_text()
-        return ResultSet().add(unit_title.name, text, unit_title.sourceline)
+        return ResultSet().add(
+            unit_title.name, util.clean_text(text), unit_title.sourceline
+        )
 
     def unitdate(self):
         # date = self.c.find(re.compile(r"^h\d$"), class_="unittitle").find(
