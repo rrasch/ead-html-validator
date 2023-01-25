@@ -266,7 +266,7 @@ def check_retval(retval, name):
 
 
 def validate_component(
-    c, dirpath, errors, diff_cfg, excludes, progress_bar, basedir
+    c, dirpath, errors, diff_cfg, config, progress_bar, basedir
 ):
     logging.debug("----")
     logging.debug(c.id)
@@ -307,14 +307,14 @@ def validate_component(
             logging.debug(f"Skipping {method_name}...")
             continue
 
-        if method_name in excludes["container"]["checks"]:
+        if method_name in config["exclude-checks"]["container"]:
             logging.debug(f"Skipping {method_name}...")
             continue
 
         logging.debug(f"calling Component.{method_name}()")
         args = []
         if method_name == "dao":
-            args = [excludes["dao"]["roles"]]
+            args = [config["dao"]["valid-roles"]]
         comp_retval = comp_method(*args)
         logging.debug(f"retval={comp_retval}")
         check_retval(comp_retval, method_name)
@@ -328,7 +328,7 @@ def validate_component(
         chtml_method = getattr(chtml, method_name)
         args = []
         if method_name == "dao":
-            args = [basedir, excludes["dao"]["roles"]]
+            args = [basedir, config["dao"]["valid-roles"]]
         chtml_retval = chtml_method(*args)
         logging.debug(f"retval={chtml_retval}")
         check_retval(chtml_retval, method_name)
@@ -398,7 +398,7 @@ def validate_component(
         # logging.debug(subc.id)
         # logging.debug(subc.level)
         validate_component(
-            subc, new_dirpath, errors, diff_cfg, excludes, progress_bar, basedir
+            subc, new_dirpath, errors, diff_cfg, config, progress_bar, basedir
         )
 
 
@@ -421,8 +421,8 @@ def render_level_tree(ead_elem, root_name):
     return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
 
 
-def read_excludes():
-    with open("excludes.toml", "rb") as f:
+def read_config():
+    with open("config.toml", "rb") as f:
         data = tomli.load(f)
     return data
 
@@ -501,8 +501,8 @@ def main():
         parser.print_help(sys.stderr)
         exit(1)
 
-    excludes = read_excludes()
-    logging.debug(excludes)
+    config = read_config()
+    logging.debug(config)
 
     ead_file = os.path.abspath(args.ead_file)
     html_dir = os.path.abspath(args.html_dir)
@@ -546,7 +546,7 @@ def main():
             logging.debug(f"Skipping {method_name}...")
             continue
 
-        if method_name in excludes["top"]["checks"]:
+        if method_name in config["exclude-checks"]["top-level"]:
             logging.debug(f"Skipping {method_name}...")
             continue
 
@@ -645,7 +645,7 @@ def main():
 
     for c in ead_comps:
         validate_component(
-            c, html_dir, errors, diff_cfg, excludes, progress_bar, html_dir
+            c, html_dir, errors, diff_cfg, config, progress_bar, html_dir
         )
 
     for error in errors:

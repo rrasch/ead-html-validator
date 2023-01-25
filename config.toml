@@ -1,15 +1,14 @@
-# excludes.toml
+# config.toml
 
-[top]
-checks = [
+[exclude-checks]
+top-level = [
     "altformavail",
     "c_count",
     "dao",
     "url",
 ]
 
-[container]
-checks = [
+container = [
     "dao_desc",
     "dao_link",
     "dao_title",
@@ -17,7 +16,7 @@ checks = [
 ]
 
 [dao]
-roles = [
+valid-roles = [
     "image-service",
     "audio-service",
     "video-service",
