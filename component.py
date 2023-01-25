@@ -82,14 +82,17 @@ class Component:
             return None
 
     def dao(self, roles):
-        xpath_dao = "did/*[self::dao or self::daogrp]"
+        # xpath_dao = "did/*[self::dao or self::daogrp]"
+        xpath_dao = ["did/dao", "did/daogrp"]
         xpath_fields = {
             "role": "(.|.//*)/@role",
             "desc": "daodesc/p",
             "link": "(.|.//*)/@href",
         }
 
-        daos = self.c.xpath(xpath_dao)
+        daos = []
+        for expr in xpath_dao:
+            daos.extend(self.c.xpath(expr))
         if not daos:
             return None
 
@@ -109,8 +112,7 @@ class Component:
             if "link" in dao_data and dao_data["role"][0] not in roles:
                 dao_data.pop("link")
 
-            # dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
-            dao_set.add(dao.tag, {"dao": dao_data}, dao.sourceline)
+            dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 

@@ -160,8 +160,7 @@ class CompHTML:
             if links:
                 dao_data["link"] = links
 
-            # dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
-            dao_set.add(dao.name, {"dao": dao_data}, dao.sourceline)
+            dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 
