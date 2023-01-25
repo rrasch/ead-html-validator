@@ -8,9 +8,6 @@ import util
 
 
 class Component:
-
-    XLINK_NS = "http://www.w3.org/1999/xlink"
-
     def __init__(self, c, parent):
         self.c = c
         self.parent = parent
@@ -64,12 +61,9 @@ class Component:
         return self.get_val("controlaccess/corpname")
 
     def creator(self):
-        # return self.get_text("did/origination[@label='Creator']")
         return self.get_val(
             "did/origination[@label='Creator']/*[substring(name(),"
-            " string-length(name()) - string-length('name') + 1) = 'name']",
-            # sep=None,
-            all_text=True,
+            " string-length(name()) - string-length('name') + 1) = 'name']"
         )
 
     def custodhist(self):
@@ -87,12 +81,12 @@ class Component:
         else:
             return None
 
-    def dao(self):
+    def dao(self, roles):
         xpath_dao = "did/*[self::dao or self::daogrp]"
         xpath_fields = {
+            "role": "(.|.//*)/@role",
             "desc": "daodesc/p",
             "link": "(.|.//*)/@href",
-            "role": "(.|.//*)/@role",
         }
 
         daos = self.c.xpath(xpath_dao)
@@ -108,13 +102,16 @@ class Component:
                     dao_data[field] = result.values()
 
             if "link" in dao_data:
-                for url in dao_data["link"]:
-                    host = parse.urlsplit(url).netloc
-                    if host.endswith(".handle.net"):
-                        target = util.resolve_handle(url)
-                        logging.trace(f"dao link {url} resolves to {target}")
+                if dao_data["role"][0] not in roles:
+                    dao_data.pop("link")
+                # for url in dao_data["link"]:
+                #     host = parse.urlsplit(url).netloc
+                #     if host.endswith(".handle.net"):
+                #         target = util.resolve_handle(url)
+                #         logging.trace(f"dao link {url} resolves to {target}")
 
-            dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
+            # dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
+            dao_set.add(dao.tag, {"dao": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 
@@ -123,7 +120,6 @@ class Component:
 
     def dao_link(self):
         links = ResultSet()
-        # href = f"{{{self.XLINK_NS}}}href"
         href = "href"
         daos = self._dao()
         if not daos:
@@ -140,7 +136,6 @@ class Component:
         return links if links else None
 
     def dao_title(self):
-        # title_attrib = f"{{{self.XLINK_NS}}}title"
         title_attrib = "title"
         daos = self._dao()
         if daos:
@@ -177,30 +172,14 @@ class Component:
     def geogname(self):
         return self.get_val("controlaccess/geogname")
 
-    # def get_text(self, xpath_expr, sep=" "):
-    #     nodes = self.c.xpath(xpath_expr)
-    #     if not nodes:
-    #         return None
-    #     text_dict = {
-    #         node.sourceline: " ".join(node.itertext()) for node in nodes
-    #     }
-    #     if sep is None:
-    #         return {
-    #             lineno: util.clean_text(text)
-    #             for lineno, text in text_dict.items()
-    #         }
-    #     else:
-    #         return {
-    #             nodes[0].sourceline: util.clean_text(
-    #                 sep.join(text_dict.values())
-    #             )
-    #         }
+    def get_text(self, expr, **kwargs):
+        return util.xpath(self.c, expr, all_text=True, **kwargs)
 
     def get_text(self, expr, **kwargs):
         return util.xpath(self.c, expr, all_text=True, join_text=True, **kwargs)
 
     def get_val(self, xpath_expr, **kwargs):
-        return util.xpath(self.c, xpath_expr, **kwargs)
+        return util.xpath(self.c, xpath_expr, all_text=True, **kwargs)
 
     def _id(self):
         return self.c.attrib["id"]
@@ -221,7 +200,7 @@ class Component:
         return self.get_val("controlaccess/occupation")
 
     def odd(self):
-        return self.get_text("odd/*[self::p or self::list]")
+        return self.get_text("odd/*[self::p or self::list]", join_uniq=False)
 
     def odd_heading(self):
         return self.get_text("odd/head")
