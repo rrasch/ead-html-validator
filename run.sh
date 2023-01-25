@@ -14,7 +14,7 @@ export PYTHONUNBUFFERED=true
 # for dtype in simple unified unified-color color
 for dtype in color
 do
-	./ead-html-validator.py  -vv -l "" --diff-type $dtype "$@" Omega-EAD.xml \
+	./ead-html-validator.py -p -vv -l "" --diff-type $dtype "$@" Omega-EAD.xml \
 		~/work/findingaids-hugo-public/tamwag/mos_2021 2>&1 | tee validator-$dtype.log
 done
 

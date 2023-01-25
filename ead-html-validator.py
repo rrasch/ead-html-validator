@@ -391,7 +391,8 @@ def validate_component(
             f" got:\n{pformat(html_cids)}"
         )
 
-    progress_bar.update(1)
+    if progress_bar:
+        progress_bar.update(1)
 
     for subc in c.sub_components():
         # logging.debug(subc)
@@ -480,6 +481,12 @@ def main():
     )
     parser.add_argument(
         "--color", "-c", action="store_true", help="Enable color output"
+    )
+    parser.add_argument(
+        "--progress-bar",
+        "-p",
+        action="store_true",
+        help="Show progress bar for container checks",
     )
     args = parser.parse_args()
 
@@ -641,7 +648,7 @@ def main():
             f" got:\n{pformat(html_cids)}"
         )
 
-    progress_bar = tqdm(total=my_ead.c_count())
+    progress_bar = tqdm(total=my_ead.c_count()) if args.progress_bar else None
 
     for c in ead_comps:
         validate_component(
