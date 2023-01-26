@@ -304,8 +304,9 @@ class CompHTML:
         text = ResultSet()
         for note in notes:
             # search_root = note if note.p else note.div
+            search_root = note.div if note.select("div > p") else note
             values = CompHTML.find_all(
-                note, re.compile("^(div|p)$"), recursive=False, **kwargs
+                search_root, re.compile("^(div|p)$"), recursive=False, **kwargs
             )
             if values:
                 text.append(values)
