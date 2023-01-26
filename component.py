@@ -207,7 +207,7 @@ class Component:
     def geogname(self):
         return self.get_val("controlaccess/geogname")
 
-    def get_text(self, expr, **kwargs):
+    def _get_text(self, expr, **kwargs):
         return util.xpath(self.c, expr, all_text=True, **kwargs)
 
     def get_text(self, expr, **kwargs):

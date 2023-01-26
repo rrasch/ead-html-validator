@@ -75,7 +75,9 @@ class Ead:
         return self.xpath("eadheader/filedesc/titlestmt/author")
 
     def bioghist(self):
-        return self.get_text("archdesc[@level='collection']/bioghist/p", sep="")
+        return self.get_text_join(
+            "archdesc[@level='collection']/bioghist/p", sep=""
+        )
 
     def c_count(self):
         return int(self.root.xpath("count(//c)"))
@@ -182,20 +184,31 @@ class Ead:
             **kwargs,
         )
 
-    def get_archdesc_nodsc_join(self, field):
+    def get_archdesc_nodsc_join(self, field, **kwargs):
         return self.get_archdesc_nodsc(
             field,
             # all_text=True,
             join_text=True,
             join_sep="; ",
+            **kwargs
         )
 
     def get_text(self, expr, **kwargs):
         return self.xpath(expr, all_text=True, **kwargs)
 
-    def get_text_join(self, expr):
+    def get_text_join(self, expr, **kwargs):
         return util.xpath(
-            self.root, expr, all_text=True, join_text=True, join_sep="; "
+            self.root, expr, all_text=True, join_text=True, **kwargs
+        )
+
+    def get_text_join_semi(self, expr, **kwargs):
+        return util.xpath(
+            self.root,
+            expr,
+            all_text=True,
+            join_text=True,
+            join_sep="; ",
+            **kwargs,
         )
 
     def get_text_no_lineno(self, expr, return_list=True):
@@ -222,7 +235,7 @@ class Ead:
         return self.xpath("//langusage/language")
 
     def material_type(self):
-        return self.get_text_join("//genreform")
+        return self.get_text_join_semi("//genreform")
 
     def name(self):
         return self.get_archdesc_nodsc("name")
@@ -252,7 +265,7 @@ class Ead:
         return self.xpath("archdesc[@level='collection']/phystech/p")
 
     def place(self):
-        return self.get_text_join("//geogname")
+        return self.get_text_join_semi("//geogname")
 
     def prefercite(self):
         return self.xpath("archdesc[@level='collection']/prefercite/p")
@@ -261,7 +274,9 @@ class Ead:
         return self.get_archdesc_nodsc("repository")
 
     def scopecontent(self):
-        return self.xpath("archdesc[@level='collection']/scopecontent/p")
+        return self.get_text_join(
+            "archdesc[@level='collection']/scopecontent/p"
+        )
 
     def separatedmaterial(self):
         return self.get_archdesc("separatedmaterial")

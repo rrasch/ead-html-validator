@@ -54,7 +54,7 @@ class EADHTML:
         return self.formatted_note("bibliography")
 
     def bioghist(self):
-        return self.formatted_note("bioghist")
+        return self.formatted_note("bioghist", join_text=True)
 
     def c_count(self):
         return len(self.soup.find_all(class_=re.compile(r"^data-level")))
@@ -272,12 +272,13 @@ class EADHTML:
                 f"Can't find {head_id} in {self.html_file}"
             )
 
-    def formatted_note(self, field):
+    def formatted_note(self, field, join_text=False):
         notes = self.soup.find_all(
             "div", class_=f"md-group formattednote {field}"
         )
         if not notes:
             return None
+
         result = ResultSet()
         for note in notes:
             values = self.find_all(
@@ -285,7 +286,13 @@ class EADHTML:
             )
             if values:
                 result.append(values)
-        return result if result else None
+
+        if not result:
+            return None
+        elif join_text:
+            return result.join()
+        else:
+            return result
 
     def function(self):
         return self.control_access_group("function")
@@ -446,12 +453,12 @@ class EADHTML:
         return self.xpath("//main/div[@class='md-group sponsor']/div")
 
     def subject(self):
-        return self.control_access_group("subject")
+        return self.control_access_group_val("subject")
 
     def subjects(self):
         subj_set = ResultSet()
         for field in ["subject", "function", "occupation"]:
-            subjs = self.control_access_group(field)
+            subjs = self.control_access_group_val(field)
             if subjs:
                 subj_set.append(subjs)
         return subj_set if subj_set else None
