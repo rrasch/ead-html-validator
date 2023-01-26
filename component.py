@@ -1,4 +1,5 @@
 from lxml import etree as ET
+from pprint import pprint
 from resultset import ResultSet
 from urllib import parse
 import constants as cs
@@ -60,12 +61,23 @@ class Component:
     def container(self):
         containers = ResultSet(value_type=dict)
         for container in self.c.xpath("did/container"):
+            container_data = dict(container.attrib)
+            container_data["name"] = container.text
             containers.add(
                 container.tag,
-                {container.get("id"): dict(container.attrib)},
+                {container.get("id"): container_data},
                 container.sourceline,
             )
-        return containers if containers else None
+
+        if not containers:
+            return None
+
+        first_container = containers.first_value()
+        return ResultSet().add(
+            first_container["tag"],
+            self.format_containers(containers),
+            first_container["lineno"],
+        )
 
     def corpname(self):
         return self.get_val("controlaccess/corpname")
@@ -173,6 +185,18 @@ class Component:
 
     def fileplan_heading(self):
         return self.get_val("fileplan/head")
+
+    def format_containers(self, containers):
+        text = ""
+        for data in containers.values():
+            cid = next(iter(data))
+            if text:
+                text += ", "
+            text += f"{data[cid]['type']}: {data[cid]['name']}"
+            if "parent" not in data[cid]:
+                label = data[cid]["label"]
+        text += f" (Material Type: {label})"
+        return text
 
     def function(self):
         return self.get_val("controlaccess/function")

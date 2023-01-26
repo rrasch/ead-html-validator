@@ -30,16 +30,19 @@ class ResultSet:
             self.results_uniq[value].append(lineno)
         return self
 
+    def first_value(self):
+        return self.results_list[0]
+
     def all_values(self):
         return self.results_list
 
-    def _values(self):
+    def values(self):
         if self.value_type is str:
             return list(self.results_uniq.keys())
         else:
             return [result["value"] for result in self.results_list]
 
-    def values(self):
+    def string_values(self):
         if self.value_type is str:
             return list(self.results_uniq.keys())
         else:

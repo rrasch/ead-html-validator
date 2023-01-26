@@ -319,10 +319,7 @@ def validate_component(
         logging.debug(f"retval={comp_retval}")
         check_retval(comp_retval, method_name)
 
-        if type(comp_retval) in [dict, ResultSet]:
-            comp_values = list(comp_retval.values())
-        else:
-            comp_values = comp_retval
+        comp_values = get_values(comp_retval)
 
         logging.debug(f"calling CompHTML.{method_name}()")
         chtml_method = getattr(chtml, method_name)
@@ -333,10 +330,7 @@ def validate_component(
         logging.debug(f"retval={chtml_retval}")
         check_retval(chtml_retval, method_name)
 
-        if type(chtml_retval) in [dict, ResultSet]:
-            chtml_values = list(chtml_retval.values())
-        else:
-            chtml_values = chtml_retval
+        chtml_values = get_values(chtml_retval)
 
         missing_err_template = (
             "Value not set for field '{}' in component"
@@ -427,6 +421,9 @@ def read_config():
         data = tomli.load(f)
     return data
 
+
+def get_values(rs):
+    return rs.string_values() if rs else rs
 
 def main():
     start_time = time.time()
@@ -562,10 +559,7 @@ def main():
         logging.debug(f"retval={ead_retval}")
         check_retval(ead_retval, method_name)
 
-        if type(ead_retval) in [ResultSet]:
-            ead_values = ead_retval.values()
-        else:
-            ead_values = ead_retval
+        ead_values = get_values(ead_retval)
 
         logging.debug(f"calling EADHTML.{method_name}()")
         ehtml_method = getattr(ehtml, method_name)
@@ -573,10 +567,7 @@ def main():
         logging.debug(f"retval={ehtml_retval}")
         check_retval(ehtml_retval, method_name)
 
-        if type(ehtml_retval) in [ResultSet]:
-            ehtml_values = ehtml_retval.values()
-        else:
-            ehtml_values = ehtml_retval
+        ehtml_values = get_values(ehtml_retval)
 
         missing_err_template = (
             "Value not set for {} field '{}'"

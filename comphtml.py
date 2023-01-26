@@ -88,7 +88,10 @@ class CompHTML:
         return id_level
 
     def container(self):
-        pass
+        wrapper = self.md_group("ead-container-wrapper")
+        if not wrapper:
+            return None
+        return CompHTML.find_all(wrapper, class_="ead-container")
 
     def contents(self):
         return [text for text in self.c.stripped_strings]
