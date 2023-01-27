@@ -5,6 +5,7 @@ top-level = [
     "altformavail",
     "c_count",
     "dao",
+    "langcode",
     "url",
 ]
 
