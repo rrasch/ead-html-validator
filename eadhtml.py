@@ -371,7 +371,6 @@ class EADHTML:
         pers_regex = r"^(ead-)?persname( role-Donor)?$"
         # for name in [self.famname(), self.class_values(pers_regex)]:
         for name in [self.famname(), self.persname()]:
-            print(f"NAME {name}")
             if name:
                 all_names.append(name)
 

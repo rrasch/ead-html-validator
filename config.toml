@@ -13,6 +13,7 @@ component = [
     "dao_desc",
     "dao_link",
     "dao_title",
+    "langcode",
     "unitid",
 ]
 

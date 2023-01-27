@@ -266,7 +266,7 @@ def check_retval(retval, name):
 
 
 def validate_component(
-    c, dirpath, errors, diff_cfg, config, progress_bar, basedir
+    c, dirpath, errors, diff_cfg, config, cmdl_args, progress_bar, basedir, ehtml_reg
 ):
     logging.debug("----")
     logging.debug(c.id)
@@ -281,7 +281,13 @@ def validate_component(
 
     html_file = os.path.join(new_dirpath, "index.html")
     logging.debug(f"HTML file: {html_file}")
-    ehtml = eadhtml.EADHTML(html_file)
+    if html_file in ehtml_reg:
+        logging.debug(f"Using existing EADHTML object for {html_file}.")
+        ehtml = ehtml_reg[html_file]
+    else:
+        logging.debug(f"Adding {html_file} to EADHTML registry.")
+        ehtml = eadhtml.EADHTML(html_file)
+        ehtml_reg[html_file] = ehtml
 
     try:
         chtml = ehtml.find_component(c.id)
@@ -290,7 +296,6 @@ def validate_component(
         errors.append(repr(e))
         return
 
-    # logging.debug(chtml)
     logging.debug(f"chtml id:     {chtml.id}")
     logging.debug(f"chtml level:  {chtml.level}")
     logging.debug(f"chtml title:  {chtml.title()}")
@@ -300,7 +305,6 @@ def validate_component(
 
     logging.info(f"Performing checks for component {c.id}")
 
-    # XXX: Should this be replaced by constants?
     for method_name, comp_method in util.get_methods(c, "dao").items():
         match = re.search(r"^(sub_components)$", method_name)
         if match:
@@ -369,6 +373,10 @@ def validate_component(
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
 
+        if cmdl_args.exit_on_error:
+            print(errors[-1])
+            exit(1)
+
         logging.info(f"{c.id} {method_name}: [{passed_str(passed_check)}]")
 
     ead_subc_list = c.sub_components()
@@ -389,11 +397,16 @@ def validate_component(
         progress_bar.update(1)
 
     for subc in c.sub_components():
-        # logging.debug(subc)
-        # logging.debug(subc.id)
-        # logging.debug(subc.level)
         validate_component(
-            subc, new_dirpath, errors, diff_cfg, config, progress_bar, basedir
+            subc,
+            new_dirpath,
+            errors,
+            diff_cfg,
+            config,
+            cmdl_args,
+            progress_bar,
+            basedir,
+            ehtml_reg,
         )
 
 
@@ -424,6 +437,7 @@ def read_config():
 
 def get_values(rs):
     return rs.string_values() if rs else rs
+
 
 def main():
     start_time = time.time()
@@ -485,6 +499,12 @@ def main():
         action="store_true",
         help="Show progress bar for component checks",
     )
+    parser.add_argument(
+        "--exit-on-error",
+        "-e",
+        action="store_true",
+        help="Exit script on first error",
+    )
     args = parser.parse_args()
 
     global COLORS_ENABLED
@@ -521,6 +541,12 @@ def main():
 
     html_file = os.path.join(html_dir, "index.html")
     ehtml = eadhtml.EADHTML(html_file)
+
+    ead_date = my_ead.creation_date().values()[0]
+    html_date = ehtml.creation_date().values()[0]
+    # if ead_date != html_date:
+    #     print(f"Creation date mismatch: '{ead_date}' != '{html_date}'")
+    #     exit(1)
 
     rqm_html_file = os.path.join(html_dir, "requestmaterials", "index.html")
     rqm = RequestMaterials(rqm_html_file)
@@ -603,8 +629,10 @@ def main():
                     f"ead field '{method_name}' differs'\nDIFF:\n"
                     + diff(ead_values, ehtml_values, diff_cfg)
                 )
-                # print(errors[-1])
-                # exit(1)
+
+        if args.exit_on_error and method_name != "creation_date":
+            print(errors[-1])
+            exit(1)
 
         logging.info(f"{method_name}: [{passed_str(passed_check)}]")
 
@@ -641,9 +669,23 @@ def main():
 
     progress_bar = tqdm(total=my_ead.c_count()) if args.progress_bar else None
 
+    ehtml_reg = {
+        all_html_file: all_ehtml,
+        html_file: ehtml,
+        rqm_html_file: rqm,
+    }
+
     for c in ead_comps:
         validate_component(
-            c, html_dir, errors, diff_cfg, config, progress_bar, html_dir
+            c,
+            html_dir,
+            errors,
+            diff_cfg,
+            config,
+            args,
+            progress_bar,
+            html_dir,
+            ehtml_reg,
         )
 
     for error in errors:
