@@ -373,7 +373,7 @@ def validate_component(
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
 
-        if cmdl_args.exit_on_error:
+        if not passed_check and cmdl_args.exit_on_error:
             print(errors[-1])
             exit(1)
 
@@ -630,7 +630,11 @@ def main():
                     + diff(ead_values, ehtml_values, diff_cfg)
                 )
 
-        if args.exit_on_error and method_name != "creation_date":
+        if (
+            not passed_check
+            and args.exit_on_error
+            and method_name != "creation_date"
+        ):
             print(errors[-1])
             exit(1)
 
