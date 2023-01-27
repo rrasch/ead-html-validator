@@ -20,7 +20,7 @@ class Component:
         return self.get_val("accessrestrict/p")
 
     def accessrestrict_heading(self):
-        return self.get_text("accessrestrict/head")
+        return self.get_text_join("accessrestrict/head")
 
     def accruals(self):
         return self.get_val("accruals/p")
@@ -53,7 +53,7 @@ class Component:
         return self.get_val("arrangement/head")
 
     def bioghist(self):
-        return self.get_val("bioghist/p")
+        return self.get_val("bioghist/p", sep="")
 
     def bioghist_heading(self):
         return self.get_val("bioghist/head")
@@ -172,13 +172,13 @@ class Component:
             return None
 
     def dimensions(self):
-        return self.get_text("did/physdesc/dimensions")
+        return self.get_text_join("did/physdesc/dimensions")
 
     def extent(self):
-        return self.get_text("did/physdesc/extent")
+        return self.get_text_join("did/physdesc/extent")
 
     def famname(self):
-        return self.get_text("controlaccess/famname")
+        return self.get_text_join("controlaccess/famname")
 
     def fileplan(self):
         return self.get_val("fileplan/p")
@@ -207,10 +207,10 @@ class Component:
     def geogname(self):
         return self.get_val("controlaccess/geogname")
 
-    def _get_text(self, expr, **kwargs):
+    def get_text(self, expr, **kwargs):
         return util.xpath(self.c, expr, all_text=True, **kwargs)
 
-    def get_text(self, expr, **kwargs):
+    def get_text_join(self, expr, **kwargs):
         return util.xpath(self.c, expr, all_text=True, join_text=True, **kwargs)
 
     def get_val(self, xpath_expr, **kwargs):
@@ -223,7 +223,7 @@ class Component:
         return self.get_val("did/langmaterial/language/@langcode")
 
     def language(self):
-        return self.get_text("did/langmaterial/language")
+        return self.get_text_join("did/langmaterial/language")
 
     def _level(self):
         return self.c.attrib["level"]
@@ -235,10 +235,12 @@ class Component:
         return self.get_val("controlaccess/occupation")
 
     def odd(self):
-        return self.get_text("odd/*[self::p or self::list]", join_uniq=False)
+        return self.get_text_join(
+            "odd/*[self::p or self::list]", join_uniq=False
+        )
 
     def odd_heading(self):
-        return self.get_text("odd/head")
+        return self.get_text_join("odd/head")
 
     def originalsloc(self):
         return self.get_val("originalsloc/p")
@@ -259,7 +261,7 @@ class Component:
         return self.get_val("did/physdesc/physfacet")
 
     def physloc(self):
-        return self.get_text("did/physloc", join_sep="; ")
+        return self.get_text_join("did/physloc", join_sep="; ")
 
     def phystech(self):
         return self.get_val("phystech/p")
@@ -286,7 +288,7 @@ class Component:
         return self.get_val("relatedmaterial/head")
 
     def separatedmaterial(self):
-        return self.get_text("separatedmaterial/p")
+        return self.get_text_join("separatedmaterial/p")
 
     def separatedmaterial_heading(self):
         return self.get_val("separatedmaterial/head")
@@ -321,7 +323,7 @@ class Component:
         return self.get_val("did/unitid")
 
     def unittitle(self):
-        return self.get_text("did/unittitle")
+        return self.get_text_join("did/unittitle")
 
     def userestrict(self):
         return self.get_val("userestrict/p")
