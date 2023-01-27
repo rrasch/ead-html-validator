@@ -268,7 +268,7 @@ class Ead:
         return self.get_text_join_semi("//geogname")
 
     def prefercite(self):
-        return self.xpath("archdesc[@level='collection']/prefercite/p")
+        return self.get_text("archdesc[@level='collection']/prefercite/p")
 
     def repository(self):
         return self.get_archdesc_nodsc("repository")
