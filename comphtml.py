@@ -297,7 +297,7 @@ class CompHTML:
                 heading.append(hdr)
         return heading if heading else None
 
-    def formatted_note_text(self, field, p=True, **kwargs):
+    def formatted_note_text(self, field, **kwargs):
         notes = self.formatted_note(field)
         if not notes:
             return None
