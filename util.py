@@ -197,7 +197,7 @@ def xpath(
     all_text=False,
     join_text=False,
     join_uniq=True,
-    sep=" ",
+    sep="",
     join_sep=" ",
 ):
     attrib = None
