@@ -43,14 +43,17 @@ print = functools.partial(print, flush=True)
 # blue = lambda text: colored(0, 0, 255, text)
 
 
-def colorize(color_code, text):
-    return f"\033[{color_code}m{text}\033[0m" if COLORS_ENABLED else text
+def colorize(text, *color_codes):
+    color_seq = ";".join(map(str, color_codes))
+    return f"\033[{color_seq}m{text}\033[0m" if COLORS_ENABLED else text
 
 
-red = lambda text: colorize(31, text)
-green = lambda text: colorize(32, text)
-blue = lambda text: colorize(34, text)
-bold = lambda text: colorize(1, text)
+red = lambda text: colorize(text, 31)
+redgray = lambda text: colorize(text, 31, 47)
+green = lambda text: colorize(text, 32)
+greengray = lambda text: colorize(text, 32, 47)
+blue = lambda text: colorize(text, 34)
+bold = lambda text: colorize(text, 1)
 
 diff_color = {
     "+": green,
@@ -108,11 +111,11 @@ def color_diff_str(str1, str2):
         if code[0] == "equal":
             result += blue(str1[code[1] : code[2]])
         elif code[0] == "delete":
-            result += red(str1[code[1] : code[2]])
+            result += redgray(str1[code[1] : code[2]])
         elif code[0] == "insert":
-            result += green(str2[code[3] : code[4]])
+            result += greengray(str2[code[3] : code[4]])
         elif code[0] == "replace":
-            result += red(str1[code[1] : code[2]]) + green(
+            result += redgray(str1[code[1] : code[2]]) + greengray(
                 str2[code[3] : code[4]]
             )
     return result
