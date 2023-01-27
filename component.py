@@ -61,7 +61,7 @@ class Component:
     def container(self):
         containers = ResultSet(value_type=dict)
         for container in self.c.xpath("did/container"):
-            container_data = dict(container.attrib)
+            container_data = {k: v.strip() for k, v in container.attrib.items()}
             container_data["name"] = container.text
             containers.add(
                 container.tag,
