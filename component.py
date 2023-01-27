@@ -236,9 +236,7 @@ class Component:
         return self.get_val("controlaccess/occupation")
 
     def odd(self):
-        return self.get_text_join(
-            "odd/*[self::p or self::list]", join_uniq=False
-        )
+        return self.get_text("odd/*[self::p or self::list]")
 
     def odd_heading(self):
         return self.get_text_join("odd/head")
