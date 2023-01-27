@@ -194,7 +194,7 @@ class Component:
                 text += ", "
             text += f"{data[cid]['type']}: {data[cid]['name']}"
             if "parent" not in data[cid]:
-                label = data[cid]["label"]
+                label = re.sub(r"\s*\[.*?\]\s*", "", data[cid]["label"])
         text += f" (Material Type: {label})"
         return text
 
