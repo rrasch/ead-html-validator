@@ -50,8 +50,10 @@ def colorize(text, *color_codes):
 
 red = lambda text: colorize(text, 31)
 redgray = lambda text: colorize(text, 31, 47)
+lightred = lambda text: colorize(text, 31, 101)
 green = lambda text: colorize(text, 32)
 greengray = lambda text: colorize(text, 32, 47)
+lightgreen = lambda text: colorize(text, 32, 102)
 blue = lambda text: colorize(text, 34)
 bold = lambda text: colorize(text, 1)
 
@@ -111,11 +113,11 @@ def color_diff_str(str1, str2):
         if code[0] == "equal":
             result += blue(str1[code[1] : code[2]])
         elif code[0] == "delete":
-            result += redgray(str1[code[1] : code[2]])
+            result += lightred(str1[code[1] : code[2]])
         elif code[0] == "insert":
-            result += greengray(str2[code[3] : code[4]])
+            result += lightgreen(str2[code[3] : code[4]])
         elif code[0] == "replace":
-            result += redgray(str1[code[1] : code[2]]) + greengray(
+            result += lightred(str1[code[1] : code[2]]) + lightgreen(
                 str2[code[3] : code[4]]
             )
     return result
