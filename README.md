@@ -20,6 +20,8 @@ following modules:
 - python-Levenshtein
 - requests
 - lxml
+- tomli
+- tqdm
 - thefuzz
 
 ## Installation

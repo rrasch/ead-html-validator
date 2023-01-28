@@ -6,4 +6,5 @@ python-Levenshtein
 requests
 lxml
 tomli
+tqdm
 thefuzz
