@@ -48,14 +48,28 @@ def colorize(text, *color_codes):
     return f"\033[{color_seq}m{text}\033[0m" if COLORS_ENABLED else text
 
 
-red = lambda text: colorize(text, 31)
-redgray = lambda text: colorize(text, 31, 47)
-lightred = lambda text: colorize(text, 31, 101)
-green = lambda text: colorize(text, 32)
-greengray = lambda text: colorize(text, 32, 47)
-lightgreen = lambda text: colorize(text, 32, 102)
-blue = lambda text: colorize(text, 34)
-bold = lambda text: colorize(text, 1)
+def colorize_space(text, color_text, color_space):
+    new_text = ""
+    for s in re.split("(\s+)", text):
+        if s.isspace():
+            new_text += color_space(s)
+        elif s:
+            new_text += color_text(s)
+    return new_text
+
+
+red           = lambda text: colorize(text, 31)
+red_gray      = lambda text: colorize(text, 31, 47)
+red_ltred     = lambda text: colorize(text, 31, 101)
+green         = lambda text: colorize(text, 32)
+green_gray    = lambda text: colorize(text, 32, 47)
+green_ltgreen = lambda text: colorize(text, 32, 102)
+blue          = lambda text: colorize(text, 34)
+bold          = lambda text: colorize(text, 1)
+
+delete_color = lambda text: colorize_space(text, red, red_ltred)
+insert_color = lambda text: colorize_space(text, green, green_ltgreen)
+
 
 diff_color = {
     "+": green,
@@ -113,11 +127,11 @@ def color_diff_str(str1, str2):
         if code[0] == "equal":
             result += blue(str1[code[1] : code[2]])
         elif code[0] == "delete":
-            result += lightred(str1[code[1] : code[2]])
+            result += delete_color(str1[code[1] : code[2]])
         elif code[0] == "insert":
-            result += lightgreen(str2[code[3] : code[4]])
+            result += insert_color(str2[code[3] : code[4]])
         elif code[0] == "replace":
-            result += lightred(str1[code[1] : code[2]]) + lightgreen(
+            result += delete_color(str1[code[1] : code[2]]) + insert_color(
                 str2[code[3] : code[4]]
             )
     return result
