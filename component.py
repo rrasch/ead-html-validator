@@ -260,7 +260,7 @@ class Component:
         return self.get_val("did/physdesc/physfacet")
 
     def physloc(self):
-        return self.get_text_join("did/physloc", join_sep="; ")
+        return self.get_text("did/physloc")
 
     def phystech(self):
         return self.get_val("phystech/p")

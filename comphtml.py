@@ -419,8 +419,7 @@ class CompHTML:
         loc = self.formatted_note("physloc")
         if not loc:
             return None
-        # return "".join([span.get_text() for span in loc.find_all("span")])
-        return CompHTML.find_all(loc[0], "span", join_text=True, join_sep="")
+        return CompHTML.find_all(loc[0], "span")
 
     def physloc_heading(self):
         return self.formatted_note_heading("physloc")

@@ -161,7 +161,6 @@ class EADHTML:
             self.control_access_group_val("corpname"),
             self.find_all(class_=re.compile(r"(ead-)?corpname$")),
         ]:
-            print(f"result: {result}")
             if result:
                 corpnames.append(result)
         return corpnames if corpnames else None
