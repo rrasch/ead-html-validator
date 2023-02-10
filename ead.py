@@ -136,7 +136,7 @@ class Ead:
             result = self.xpath(expr)
             if result:
                 creators.append(result)
-        return creators
+        return creators if creators else None
 
     def creators(self):
         creator_tags = ["corpname", "famname", "persname"]
