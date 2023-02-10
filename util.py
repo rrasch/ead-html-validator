@@ -10,6 +10,7 @@ import csv
 import inspect
 import json
 import logging
+import os.path
 import re
 import requests
 import string
@@ -44,6 +45,11 @@ def stringify_children(node):
             s += buf
     logging.debug(s)
     return s
+
+
+def change_ext(filename, new_ext):
+    basename, ext = os.path.splitext(filename)
+    return f"{basename}{new_ext}"
 
 
 def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
