@@ -2,7 +2,6 @@
 
 [exclude-checks]
 top-level = [
-    "altformavail",
     "c_count",
     "dao",
     "langcode",
