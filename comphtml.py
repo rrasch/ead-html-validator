@@ -374,7 +374,7 @@ class CompHTML:
         pass
 
     def occupation(self):
-        return self.control_group("occupation")
+        return self.control_group_val("occupation")
 
     def odd(self):
         return self.formatted_note_text("odd")
@@ -403,7 +403,7 @@ class CompHTML:
         logging.trace(f"dirparts: {dirparts[2:]}")
 
         html_file = os.path.join(html_dir, *dirparts[2:], "index.html")
-        logging.debug("permalink html file: {html_file}")
+        logging.debug(f"permalink html file: {html_file}")
         if not os.path.isfile(html_file):
             return None
         soup = BeautifulSoup(open(html_file), "html.parser")
