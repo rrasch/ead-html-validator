@@ -11,7 +11,7 @@ class CompHTML:
         self.c = c
         self.id = cid
         self.cid = cid
-        self.level = self._level()
+        self.level, self.recursion = self._level()
 
     def __str__(self):
         # return str(self.c)
@@ -84,7 +84,7 @@ class CompHTML:
                 cid = c["id"]
             else:
                 cid = c.find(re.compile(r"^h\d$"), recursive=False)["id"]
-            id_level.append((cid, re.split(r"[- ]", c["class"])[1]))
+            id_level.append((cid, util.parse_level(c)[0]))
         return id_level
 
     def container(self):
@@ -360,10 +360,11 @@ class CompHTML:
             and self.c.has_attr("class")
             and self.c["class"].startswith("level")
         ):
-            lvl = re.split("[- ]", self.c["class"])[1]
+            lvl, recursion = util.parse_level(self.c)
         else:
             lvl = None
-        return lvl
+            recursion = None
+        return (lvl, recursion)
 
     def md_group(self, group_name):
         return self.c.find(

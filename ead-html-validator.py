@@ -285,7 +285,16 @@ def check_retval(retval, name):
 
 
 def validate_component(
-    c, dirpath, errors, diff_cfg, config, cmdl_args, progress_bar, basedir, ehtml_reg
+    c,
+    dirpath,
+    errors,
+    diff_cfg,
+    config,
+    cmdl_args,
+    progress_bar,
+    basedir,
+    ehtml_reg,
+    recursion_depth,
 ):
     logging.debug("----")
     logging.debug(c.id)
@@ -295,8 +304,8 @@ def validate_component(
 
     new_dirpath = dirpath
 
-    if c.level == "series":
-        new_dirpath = os.path.join(new_dirpath, "contents", c.id)
+    if c.level == "series" and recursion_depth == 0:
+        new_dirpath = os.path.join(basedir, "contents", c.id)
 
     html_file = os.path.join(new_dirpath, "index.html")
     logging.debug(f"HTML file: {html_file}")
@@ -428,6 +437,7 @@ def validate_component(
             progress_bar,
             basedir,
             ehtml_reg,
+            recursion_depth + 1,
         )
 
 
@@ -727,6 +737,7 @@ def main():
             progress_bar,
             html_dir,
             ehtml_reg,
+            0
         )
 
     for error in errors:

@@ -267,6 +267,13 @@ def is_str(lst):
     )
 
 
+def parse_level(c):
+    level, recursion = c["class"].split()
+    level = level.split("-", maxsplit=1)[1]
+    recursion = int(recursion[-1])
+    return (level, recursion)
+
+
 def pretty_format(mydict):
     return json.dumps(mydict, indent=2)
 

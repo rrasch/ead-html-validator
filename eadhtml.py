@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from lxml import etree as ET
+from pprint import pformat, pprint
 from resultset import ResultSet
 from string import punctuation
 from subprocess import PIPE
@@ -112,7 +113,7 @@ class EADHTML:
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
             cid = c["id"] if c.has_attr("id") else c.h1["id"]
             comp = comphtml.CompHTML(c, cid)
-            if comp.level == "dl":
+            if comp.level.startswith("dl"):
                 comps.extend(comp.component())
             else:
                 comps.append(comp)
@@ -129,7 +130,8 @@ class EADHTML:
         id_level = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
             cid = c["id"] if c.has_attr("id") else c.h1["id"]
-            id_level.append((cid, re.split(r"[- ]", c["class"])[1]))
+            id_level.append((cid, util.parse_level(c)[0]))
+        logging.debug(pformat(id_level))
         return id_level
 
     def contents(self):

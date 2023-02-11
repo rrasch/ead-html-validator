@@ -6,6 +6,8 @@ top-level = [
     "dao",
     "langcode",
     "url",
+    "material_type",
+    "place",
 ]
 
 component = [
