@@ -5,7 +5,7 @@ from string import punctuation
 from subprocess import PIPE
 import comphtml
 import logging
-import pycountry
+# import pycountry
 import re
 import shutil
 import util
@@ -111,7 +111,14 @@ class EADHTML:
         comps = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
             cid = c["id"] if c.has_attr("id") else c.h1["id"]
-            comps.append(comphtml.CompHTML(c, cid))
+            comp = comphtml.CompHTML(c, cid)
+            if comp.level == "dl":
+                comps.extend(comp.component())
+            else:
+                comps.append(comp)
+        logging.trace(f"EADHTML components:")
+        for comp in comps:
+            logging.trace(f"({comp.level}, {comp.id})")
         return comps
 
     def component_id_level(self):
@@ -141,7 +148,7 @@ class EADHTML:
             result.add(
                 div.name, util.clean_text(div.get_text()), div.sourceline
             )
-        return result
+        return result if result else None
 
     def control_access_group_val(self, field):
         ctrl_access = self.control_access()
@@ -153,13 +160,13 @@ class EADHTML:
             result.add(
                 node.name, util.clean_text(node.get_text()), node.sourceline
             )
-        return result
+        return result if result else None
 
     def corpname(self):
         corpnames = ResultSet()
         for result in [
             self.control_access_group_val("corpname"),
-            self.find_all(class_=re.compile(r"(ead-)?corpname$")),
+            self.find_all(class_=re.compile(r"corpname( |$)"), get_text=False),
         ]:
             if result:
                 corpnames.append(result)

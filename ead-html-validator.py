@@ -389,6 +389,8 @@ def validate_component(
             if not passed_check:
                 errors.append(
                     f"field '{method_name}' differs for c id='{c.id}'\nDIFF:\n"
+                    + f"{c.ead_file}\n"
+                    + f"{html_file}\n"
                     + diff(comp_values, chtml_values, diff_cfg)
                 )
 
@@ -456,6 +458,10 @@ def read_config():
 
 def get_values(rs):
     return rs.string_values() if rs else rs
+
+
+def isnewer(file1, file2):
+    return os.stat(file1).st_mtime > os.stat(file2).st_mtime
 
 
 def main():
@@ -553,6 +559,17 @@ def main():
     logging.debug("ead file: %s", ead_file)
     logging.debug("html dir: %s", html_dir)
 
+    pretty_ead_file = util.change_ext(ead_file, "-pretty.xml")
+    if "pretty" not in ead_file and (
+        not os.path.isfile(pretty_ead_file)
+        or isnewer(ead_file, pretty_ead_file)
+    ):
+        util.do_cmd(
+            ["xsltproc", "-o", pretty_ead_file, "indent.xsl", ead_file],
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+
     validate_xml(ead_file)
     validate_html(html_dir, args)
 
@@ -563,9 +580,9 @@ def main():
 
     ead_date = my_ead.creation_date().values()[0]
     html_date = ehtml.creation_date().values()[0]
-    # if ead_date != html_date:
-    #     print(f"Creation date mismatch: '{ead_date}' != '{html_date}'")
-    #     exit(1)
+    if ead_date != html_date:
+        print(f"Creation date mismatch: '{ead_date}' != '{html_date}'")
+        exit(1)
 
     rqm_html_file = os.path.join(html_dir, "requestmaterials", "index.html")
     rqm = RequestMaterials(rqm_html_file)
@@ -646,14 +663,12 @@ def main():
             if not passed_check:
                 errors.append(
                     f"ead field '{method_name}' differs'\nDIFF:\n"
+                    + f"{ead_file}\n"
+                    + f"{html_file}\n"
                     + diff(ead_values, ehtml_values, diff_cfg)
                 )
 
-        if (
-            not passed_check
-            and args.exit_on_error
-            and method_name != "creation_date"
-        ):
+        if not passed_check and args.exit_on_error:
             print(errors[-1])
             exit(1)
 
@@ -679,6 +694,9 @@ def main():
         errors.append(
             "Nesting error" + diff(ead_tree_str, html_tree_str, diff_cfg)
         )
+        if args.exit_on_error:
+            print(errors[-1])
+            exit(1)
 
     logging.debug(f"EAD CIDS {ead_cids}")
     logging.debug(f"HTML CIDS {html_cids}")

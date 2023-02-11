@@ -96,6 +96,9 @@ class CompHTML:
     def contents(self):
         return [text for text in self.c.stripped_strings]
 
+    def control_access(self):
+        return self.md_group("controlaccess")
+
     def control_group(self, field):
         ctrl_access = self.md_group("controlaccess")
         if not ctrl_access:
@@ -111,6 +114,17 @@ class CompHTML:
         else:
             return None
 
+    def control_group_val(self, field):
+        ctrl_access = self.control_access()
+        if not ctrl_access:
+            return None
+        ctrl_group = ctrl_access.find(
+            "div", class_=f"controlaccess-{field}-group"
+        )
+        if not ctrl_group:
+            return None
+        return CompHTML.find_all(ctrl_group, class_="controlaccess-value")
+
     def corpname(self):
         return self.control_group("corpname")
 
@@ -118,7 +132,9 @@ class CompHTML:
         origin = self.md_group("origination")
         if origin is None:
             return None
-        return CompHTML.find_all(origin, "div", class_=re.compile(r"name$"))
+        return CompHTML.find_all(
+            origin, "div", class_=re.compile(r"name$"), get_text=False
+        )
 
     def custodhist(self):
         return self.formatted_note_text("custodhist")
@@ -316,10 +332,10 @@ class CompHTML:
         return self.control_group("function")
 
     def genreform(self):
-        return self.control_group("genreform")
+        return self.control_group_val("genreform")
 
     def geogname(self):
-        return self.control_group("geogname")
+        return self.control_group_val("geogname")
 
     def _id(self):
         return self.id
@@ -361,7 +377,7 @@ class CompHTML:
         return self.control_group("occupation")
 
     def odd(self):
-        return self.formatted_note_text("odd", p=False, sep=" ")
+        return self.formatted_note_text("odd")
 
     def odd_heading(self):
         return self.formatted_note_heading("odd")
@@ -470,7 +486,7 @@ class CompHTML:
         pass
 
     def subject(self):
-        return self.control_group("subject")
+        return self.control_group_val("subject")
 
     def title(self):
         # return self.c.find(re.compile("h\d"), class_="unittitle").text
