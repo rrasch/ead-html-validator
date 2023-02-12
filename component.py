@@ -190,16 +190,13 @@ class Component:
         return self.get_val("fileplan/head")
 
     def format_containers(self, containers):
-        text = ""
+        text = set()
         for data in containers.values():
             cid = next(iter(data))
-            if text:
-                text += ", "
-            text += f"{data[cid]['type']}: {data[cid]['name']}"
+            text.add(f"{data[cid]['type']}: {data[cid]['name']}")
             if "parent" not in data[cid]:
                 label = re.sub(r"\s*\[.*?\]\s*", "", data[cid]["label"])
-        text += f" (Material Type: {label})"
-        return text
+        return ", ".join(text) + f" (Material Type: {label})"
 
     def function(self):
         return self.get_val("controlaccess/function")
