@@ -388,9 +388,8 @@ class EADHTML:
 
     def persname(self):
         all_persnames = ResultSet()
-        pers_regex = r"^(ead-)?persname( role-Donor)?$"
+        pers_regex = r"persname( |$)"
         for persnames in [
-            # self.ead_class_values("persname"),
             self.class_values(pers_regex),
             self.control_access_group_val("persname"),
         ]:
