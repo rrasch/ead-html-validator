@@ -113,8 +113,10 @@ class EADHTML:
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
             cid = c["id"] if c.has_attr("id") else c.h1["id"]
             comp = comphtml.CompHTML(c, cid)
-            if comp.level.startswith("dl"):
-                comps.extend(comp.component())
+            if comp.level == "dl-presentation":
+                for present_comp in comp.component():
+                    present_comp.present_id = cid
+                    comps.append(present_comp)
             else:
                 comps.append(comp)
         logging.trace(f"EADHTML components:")
@@ -123,16 +125,7 @@ class EADHTML:
         return comps
 
     def component_id_level(self):
-        regex = re.compile(r"^level")
-        first_c = self.soup.find("div", class_=regex)
-        if first_c is None:
-            return []
-        id_level = []
-        for c in first_c.parent.find_all("div", class_=regex, recursive=False):
-            cid = c["id"] if c.has_attr("id") else c.h1["id"]
-            id_level.append((cid, util.parse_level(c)[0]))
-        logging.debug(pformat(id_level))
-        return id_level
+        return [(comp.id, comp.level) for comp in self.component()]
 
     def contents(self):
         return [text for text in self.soup.stripped_strings]

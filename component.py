@@ -132,6 +132,8 @@ class Component:
             if "role" not in dao_data or not dao_data["role"][0]:
                 dao_data["role"] = ["external-link"]
 
+            dao_data["desc"] = [";".join(dao_data["desc"])]
+
             if "link" in dao_data and dao_data["role"][0] not in roles:
                 dao_data.pop("link")
 

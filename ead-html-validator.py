@@ -294,6 +294,7 @@ def validate_component(
     progress_bar,
     basedir,
     ehtml_reg,
+    presentation_cids,
     recursion_depth,
 ):
     logging.debug("----")
@@ -306,6 +307,8 @@ def validate_component(
 
     if c.level == "series" and recursion_depth == 0:
         new_dirpath = os.path.join(basedir, "contents", c.id)
+    elif c.id in presentation_cids:
+        new_dirpath = os.path.join(basedir, "contents", presentation_cids[c.id])
 
     html_file = os.path.join(new_dirpath, "index.html")
     logging.debug(f"HTML file: {html_file}")
@@ -437,6 +440,7 @@ def validate_component(
             progress_bar,
             basedir,
             ehtml_reg,
+            presentation_cids,
             recursion_depth + 1,
         )
 
@@ -686,7 +690,12 @@ def main():
 
     ead_comps = my_ead.component()
     ead_cids = [(c.id, c.level) for c in ead_comps]
-    html_cids = all_ehtml.component_id_level()
+
+    # html_cids = all_ehtml.component_id_level()
+    html_comps = all_ehtml.component()
+    html_cids = [(c.id, c.level) for c in html_comps]
+
+    presentation_cids = {c.id: c.present_id for c in html_comps if c.present_id}
 
     logging.info("Performing nesting level check.")
 
@@ -708,8 +717,9 @@ def main():
             print(errors[-1])
             exit(1)
 
-    logging.debug(f"EAD CIDS {ead_cids}")
-    logging.debug(f"HTML CIDS {html_cids}")
+    logging.debug(f"EAD CIDS {pformat(ead_cids)}")
+    logging.debug(f"HTML CIDS {pformat(html_cids)}")
+    logging.debug(f"Presentation CIDS {pformat(presentation_cids)}")
 
     if ead_cids != html_cids:
         errors.append(
@@ -737,6 +747,7 @@ def main():
             progress_bar,
             html_dir,
             ehtml_reg,
+            presentation_cids,
             0
         )
 

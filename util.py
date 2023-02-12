@@ -221,15 +221,17 @@ def xpath(
     for node in nodes:
         if attrib:
             text = node.get(attrib)
-            if text is None:
-                continue
         elif all_text:
             words = []
             for itext in node.itertext():
                 words.append(itext)
-            text = clean_text(sep.join(words))
+            text = clean_text(sep.join(words)) if words else None
         else:
-            text = clean_text(node.text or "")
+            text = clean_text(node.text) if node.text else None
+
+        if text is None:
+            continue
+
         result.add(node.tag, text, node.sourceline)
 
     if join_text:

@@ -12,6 +12,7 @@ class CompHTML:
         self.id = cid
         self.cid = cid
         self.level, self.recursion = self._level()
+        self.present_id = None
 
     def __str__(self):
         # return str(self.c)
