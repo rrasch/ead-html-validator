@@ -250,7 +250,7 @@ class Ead:
             result = self.xpath(f"//{field}")
             if result:
                 names.append(result)
-        return names
+        return names if names else None
 
     def note(self):
         return self.xpath("eadheader/filedesc/notestmt/note/p")
