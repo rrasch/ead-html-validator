@@ -234,7 +234,7 @@ def xpath(
 
         result.add(node.tag, text, node.sourceline)
 
-    if join_text:
+    if join_text and result:
         result = result.join(sep=join_sep, uniq=join_uniq)
 
     return result if result else None

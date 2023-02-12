@@ -420,7 +420,6 @@ class CompHTML:
         pass
 
     def physdesc(self, field):
-        # phys_desc = self.c.find("div", class_=re.compile("physdesc"))
         phys_desc = self.formatted_note("physdesc")
         if not phys_desc:
             return None
@@ -428,7 +427,7 @@ class CompHTML:
         if not header:
             return None
         sib = header.find_next_sibling("div")
-        return CompHTML.resultset(sib) if sib else None
+        return CompHTML.resultset(sib) if sib and sib.get_text() else None
 
     def physfacet(self):
         return self.physdesc("physfacet")
