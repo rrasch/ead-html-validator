@@ -190,13 +190,13 @@ class Component:
         return self.get_val("fileplan/head")
 
     def format_containers(self, containers):
-        text = set()
+        text = {}
         for data in containers.values():
             cid = next(iter(data))
-            text.add(f"{data[cid]['type']}: {data[cid]['name']}")
+            text[f"{data[cid]['type']}: {data[cid]['name']}"] = True
             if "parent" not in data[cid]:
                 label = re.sub(r"\s*\[.*?\]\s*", "", data[cid]["label"])
-        return ", ".join(text) + f" (Material Type: {label})"
+        return ", ".join(text.keys()) + f" (Material Type: {label})"
 
     def function(self):
         return self.get_val("controlaccess/function")
@@ -223,7 +223,7 @@ class Component:
         return self.get_val("did/langmaterial/language/@langcode")
 
     def language(self):
-        return self.get_text_join("did/langmaterial/language")
+        return self.get_text("did/langmaterial/language")
 
     def _level(self):
         return self.c.attrib["level"]
