@@ -127,7 +127,7 @@ class CompHTML:
         return CompHTML.find_all(ctrl_group, class_="controlaccess-value")
 
     def corpname(self):
-        return self.control_group("corpname")
+        return self.control_group_val("corpname")
 
     def creator(self):
         origin = self.md_group("origination")
@@ -251,7 +251,7 @@ class CompHTML:
         return self.physdesc("extent")
 
     def famname(self):
-        return self.control_group("famname")
+        return self.control_group_val("famname")
 
     def fileplan(self):
         return self.formatted_note_text("fileplan")
@@ -417,7 +417,7 @@ class CompHTML:
         return url
 
     def persname(self):
-        pass
+        return self.control_group_val("persname")
 
     def physdesc(self, field):
         phys_desc = self.formatted_note("physdesc")
