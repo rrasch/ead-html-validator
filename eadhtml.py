@@ -150,12 +150,15 @@ class EADHTML:
         group = ctrl_access.find("div", class_=f"controlaccess-{field}-group")
         if not group:
             return None
-        result = ResultSet()
-        for node in group.find_all(class_="controlaccess-value"):
-            result.add(
-                node.name, util.clean_text(node.get_text()), node.sourceline
-            )
-        return result if result else None
+        return self.find_all(root=group, class_="controlaccess-value")
+
+    def control_access_group_val_all(self, field):
+        ctrl_values = ResultSet()
+        for group in self.soup.find_all(class_=f"controlaccess-{field}-group"):
+            values = self.find_all(root=group, class_="controlaccess-value")
+            if values:
+                ctrl_values.append(values)
+        return ctrl_values if ctrl_values else None
 
     def corpname(self):
         corpnames = ResultSet()
@@ -350,7 +353,7 @@ class EADHTML:
     def names(self):
         all_names = ResultSet()
 
-        corp_regex = r"^(ead-)?corpname( role-Donor)?$"
+        corp_regex = r"corpname( |$)"
         corpname = self.find_all(
             lambda tag: not re.search(
                 r"repository", tag.parent.parent.get("class") or ""
@@ -369,11 +372,13 @@ class EADHTML:
         if corpname:
             all_names.append(corpname)
 
-        pers_regex = r"^(ead-)?persname( role-Donor)?$"
-        # for name in [self.famname(), self.class_values(pers_regex)]:
-        for name in [self.famname(), self.persname()]:
-            if name:
-                all_names.append(name)
+        for name_type in ["famname", "persname"]:
+            for names in [
+                self.class_values(rf"{name_type}( |$)"),
+                self.control_access_group_val_all(name_type)
+            ]:
+                if names:
+                    all_names.append(names)
 
         return all_names if all_names else None
 
