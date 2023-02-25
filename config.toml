@@ -6,8 +6,6 @@ top-level = [
     "dao",
     "langcode",
     "url",
-    "material_type",
-    "place",
 ]
 
 component = [
@@ -24,4 +22,11 @@ valid-roles = [
     "audio-service",
     "video-service",
     "external-link",
+]
+
+[all-html]
+fields = [
+    "material_type",
+    "names",
+    "place",
 ]

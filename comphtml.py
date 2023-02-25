@@ -49,7 +49,7 @@ class CompHTML:
         return self.formatted_note_heading("appraisal")
 
     def arrangement(self):
-        return self.formatted_note_text("arrangement")
+        return self.formatted_note_long("arrangement")
 
     def arrangement_heading(self):
         return self.formatted_note_heading("arrangement")
@@ -92,7 +92,9 @@ class CompHTML:
         wrapper = self.md_group("ead-container-wrapper")
         if not wrapper:
             return None
-        return CompHTML.find_all(wrapper, class_="ead-container")
+        return CompHTML.find_all(
+            wrapper, class_="ead-container", ignore_space=False
+        )
 
     def contents(self):
         return [text for text in self.c.stripped_strings]
@@ -178,6 +180,7 @@ class CompHTML:
                 links.append(link)
             if links:
                 dao_data["link"] = links
+                # dao_data["link"] = util.change_handle_scheme(*links)
 
             dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
@@ -269,6 +272,7 @@ class CompHTML:
         join_uniq=True,
         sep="",
         join_sep=" ",
+        ignore_space=False,
         **kwargs,
     ):
         nodes = root.find_all(*args, **kwargs)
@@ -282,16 +286,30 @@ class CompHTML:
             if attrib:
                 text = node[attrib]
             elif get_text:
-                text = node.get_text(sep)
+                if ignore_space:
+                    strings = []
+                    for string in node.stripped_strings:
+                        strings.append(string)
+                    text = sep.join(strings)
+                else:
+                    text = node.get_text(sep)
             else:
-                text = node.contents[0]
-            text = util.clean_text(text)
+                text = ""
+                for child in node:
+                    if isinstance(child, Tag):
+                        text += child.get_text()
+                    elif isinstance(child, NavigableString):
+                        text += child
+                        break
+            text = util.clean_text(text or "")
+            if not text:
+                continue
             result.add(node.name, text, node.sourceline)
 
-        if join_text:
+        if join_text and result:
             result = result.join(sep=join_sep, uniq=join_uniq)
 
-        return result
+        return result.rs_or_none()
 
     def formatted_note(self, field):
         return self.c.find_all(
@@ -314,6 +332,15 @@ class CompHTML:
                 heading.append(hdr)
         return heading if heading else None
 
+    def formatted_note_long(self, *args, **kwargs):
+        notes = self.formatted_note_text(
+            *args,
+            sep=" ",
+            ignore_space=True,
+            **kwargs,
+        )
+        return notes.join(sep=" ") if notes else None
+
     def formatted_note_text(self, field, **kwargs):
         notes = self.formatted_note(field)
         if not notes:
@@ -321,7 +348,7 @@ class CompHTML:
         text = ResultSet()
         for note in notes:
             # search_root = note if note.p else note.div
-            search_root = note.div if note.select("div > p") else note
+            search_root = note.div if note.select(":scope > div > p") else note
             values = CompHTML.find_all(
                 search_root, re.compile("^(div|p)$"), recursive=False, **kwargs
             )
@@ -341,19 +368,24 @@ class CompHTML:
     def _id(self):
         return self.id
 
-    def langcode(self):
-        pass
+    def _lang_material(self, lang_type):
+        type_num = {
+            "language": 1,
+            "langmaterial": 2,
+        }
+        lang_type_num = type_num[lang_type]
+        lang_group = self.md_group("langmaterial")
+        if lang_group is None:
+            return None
+        return CompHTML.find_all(
+            lang_group, class_=re.compile(rf"^langmaterial{lang_type_num}")
+        )
+
+    def langmaterial(self):
+        return self._lang_material("langmaterial")
 
     def language(self):
-        lang = self.md_group("langmaterial")
-        if lang is None:
-            return None
-        # return lang.span.get_text()
-        for tag in ["span", "div"]:
-            lang_child = getattr(lang, tag)
-            if lang_child is not None:
-                return CompHTML.resultset(lang_child)
-        return None
+        return self._lang_material("language")
 
     def _level(self):
         if (
@@ -379,7 +411,7 @@ class CompHTML:
         return self.control_group_val("occupation")
 
     def odd(self):
-        return self.formatted_note_text("odd")
+        return self.formatted_note_long("odd")
 
     def odd_heading(self):
         return self.formatted_note_heading("odd")
@@ -423,11 +455,24 @@ class CompHTML:
         phys_desc = self.formatted_note("physdesc")
         if not phys_desc:
             return None
-        header = phys_desc[0].find(re.compile("h\d"), class_=re.compile(field))
-        if not header:
-            return None
-        sib = header.find_next_sibling("div")
-        return CompHTML.resultset(sib) if sib and sib.get_text() else None
+        result = ResultSet()
+        for header in phys_desc[0].find_all(
+            re.compile("h\d"), class_=re.compile(field)
+        ):
+            div = header.find_next_sibling("div")
+            if not (div and div.contents):
+                continue
+            first_child = div.contents[0]
+            istext = isinstance(first_child, NavigableString)
+            if (
+                istext and not first_child.strip() or not istext
+            ) and div.select(":scope > span"):
+                val = CompHTML.find_all(div, "span")
+            else:
+                val = CompHTML.resultset(div)
+            if val:
+                result.append(val)
+        return result if result else None
 
     def physfacet(self):
         return self.physdesc("physfacet")
@@ -484,13 +529,12 @@ class CompHTML:
         return self.formatted_note_heading("scopecontent")
 
     def sub_components(self):
-        pass
+        return self.components()
 
     def subject(self):
         return self.control_group_val("subject")
 
     def title(self):
-        # return self.c.find(re.compile("h\d"), class_="unittitle").text
         text = ""
         unit_title = self.c.find(
             re.compile("h\d"), class_="unittitle", recursive=False
@@ -500,22 +544,24 @@ class CompHTML:
                 isinstance(child, Tag)
                 and child.get("class") in ["dates", "delim"]
             ):
-                text += child.get_text()
-        return ResultSet().add(
-            unit_title.name, util.clean_text(text), unit_title.sourceline
-        )
+                # text += child.get_text()
+                text += util.strings(child)
+        text = util.clean_text(text)
+        if text:
+            return ResultSet().add(unit_title.name, text, unit_title.sourceline)
+        else:
+            return None
 
     def unitdate(self):
-        # date = self.c.find(re.compile(r"^h\d$"), class_="unittitle").find(
-        #     "span", class_="dates"
-        # )
-        # return date.get_text()
         unit_title = self.c.find(
             re.compile(r"^h\d$"), class_="unittitle", recursive=False
         )
         if not unit_title:
             return None
-        return CompHTML.find_all(unit_title, "span", class_="dates")
+        dates = CompHTML.find_all(unit_title, "span", class_="dates")
+        if dates:
+            dates = dates.update_values(util.clean_date)
+        return dates
 
     def unitid(self):
         odd = self.formatted_note("odd")

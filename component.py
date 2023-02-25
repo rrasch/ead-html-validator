@@ -1,5 +1,6 @@
+from constants import LONGTEXT_XPATH
 from lxml import etree as ET
-from pprint import pprint
+from pprint import pformat, pprint
 from resultset import ResultSet
 from urllib import parse
 import constants as cs
@@ -9,91 +10,113 @@ import util
 
 
 class Component:
-    def __init__(self, c, parent):
+    def __init__(self, c, parent=None):
         self.c = c
-        self.parent = parent
-        self.ead_file = parent.ead_file
+        self.parent = None
+        self.ead_file = None
+        if parent:
+            self.parent = parent
+            self.ead_file = parent.ead_file
         self.id = self._id()
         self.level = self._level()
 
     def accessrestrict(self):
-        return self.get_val("accessrestrict/p")
+        return self.get_text("accessrestrict/*[not(self::head)]")
 
     def accessrestrict_heading(self):
-        return self.get_text_join("accessrestrict/head")
+        return self.get_text("accessrestrict/head")
 
     def accruals(self):
-        return self.get_val("accruals/p")
+        return self.get_text("accruals/p")
 
     def accruals_heading(self):
-        return self.get_val("accruals/head")
+        return self.get_text("accruals/head")
 
     def acqinfo(self):
-        return self.get_val("acqinfo/p")
+        return self.get_text("acqinfo/p")
 
     def acqinfo_heading(self):
-        return self.get_val("acqinfo/head")
+        return self.get_text("acqinfo/head")
 
     def altformavail(self):
-        return self.get_val("altformavail/p")
+        return self.get_text("altformavail/p")
 
     def altformavail_heading(self):
-        return self.get_val("altformavail/head")
+        return self.get_text("altformavail/head")
 
     def appraisal(self):
-        return self.get_val("appraisal/p")
+        return self.get_text("appraisal/p")
 
     def appraisal_heading(self):
-        return self.get_val("appraisal/head")
+        return self.get_text("appraisal/head")
 
     def arrangement(self):
-        return self.get_val("arrangement/p")
+        return self.get_text_long(f"arrangement/{LONGTEXT_XPATH}")
 
     def arrangement_heading(self):
-        return self.get_val("arrangement/head")
+        return self.get_text("arrangement/head")
 
     def bioghist(self):
-        return self.get_val("bioghist/p", sep="")
+        # return self.get_text("bioghist/*[self::p or self::list]")
+        return self.get_text("bioghist/p")
 
     def bioghist_heading(self):
-        return self.get_val("bioghist/head")
+        return self.get_text("bioghist/head")
+
+    def component(self):
+        return self.sub_components()
 
     def container(self):
-        containers = ResultSet(value_type=dict)
+        containers = {}
         for container in self.c.xpath("did/container"):
-            # container_data = {k: v.strip() for k, v in container.attrib.items()}
-            container_data = dict(container.attrib)
-            container_data["name"] = container.text.strip()
-            containers.add(
-                container.tag,
-                {container.get("id"): container_data},
-                container.sourceline,
+            # data = {k: v.strip() for k, v in container.attrib.items()}
+            data = dict(container.attrib)
+            data.update(
+                {
+                    "name": container.text.strip(),
+                    "child": [],
+                    "tag": container.tag,
+                    "lineno": container.sourceline,
+                }
             )
+            if "parent" in data:
+                containers[data["parent"]]["child"].append(data["id"])
+            containers[data["id"]] = data
 
         if not containers:
             return None
 
-        first_container = containers.first_value()
-        return ResultSet().add(
-            first_container["tag"],
-            self.format_containers(containers),
-            first_container["lineno"],
-        )
+        result = ResultSet()
+        for cid in containers.keys():
+            data = containers[cid]
+            if "parent" in data:
+                continue
+            text = []
+            self.format_container(cid, containers, text)
+            if not text:
+                continue
+            label = re.sub(r"\s*\[.*?\]\s*", "", data["label"])
+            text = ", ".join(text) + f" (Material Type: {label})"
+            text = util.clean_text(text)
+            result.add(data["tag"], text, data["lineno"])
+
+        return result.rs_or_none()
 
     def corpname(self):
-        return self.get_val("controlaccess/corpname")
+        return self.get_text("controlaccess/corpname")
 
     def creator(self):
-        return self.get_val(
-            "did/origination[@label='Creator']/*[substring(name(),"
+        return self.get_text(
+            "did/origination[@label='Creator' or @label='source']/"
+            "*[substring(name(),"
             " string-length(name()) - string-length('name') + 1) = 'name']"
         )
 
     def custodhist(self):
-        return self.get_val("custodhist/p")
+        return self.get_text("custodhist/p")
 
     def custodhist_heading(self):
-        return self.get_val("custodhist/head")
+        return self.get_text("custodhist/head")
 
     def _dao(self, return_list=False):
         daos = self.c.xpath("did/*[self::dao or self::daogrp]")
@@ -123,9 +146,10 @@ class Component:
         for i, dao in enumerate(daos):
             dao_data = {}
             for field, expr in xpath_fields.items():
-                result = util.xpath(dao, expr)
+                result = util.xpath(dao, expr, all_text=True)
                 if result:
-                    dao_data[field] = result.values()
+                    dao_data[field] = list(map(str.strip, result.values()))
+                    # dao_data[field] = [val.strip() for val in result.values()]
 
             # role defaults to "external-link" for missing or empty
             # role attribute
@@ -134,15 +158,26 @@ class Component:
 
             dao_data["desc"] = [";".join(dao_data["desc"])]
 
-            if "link" in dao_data and dao_data["role"][0] not in roles:
+            has_link = "link" in dao_data
+
+            if has_link and dao_data["role"][0] not in roles:
                 dao_data.pop("link")
+            # else:
+            #     dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
+
+            # put dict back in order
+            dao_data = {
+                field: dao_data[field]
+                for field in xpath_fields.keys()
+                if field in dao_data
+            }
 
             dao_set.add(dao.tag, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
         return dao_set if dao_set else None
 
     def dao_desc(self):
-        return self.get_val("did/*[self::dao or self::daogrp]/daodesc/p")
+        return self.get_text("did/*[self::dao or self::daogrp]/daodesc/p")
 
     def dao_link(self):
         links = ResultSet()
@@ -178,34 +213,41 @@ class Component:
         return self.get_text_join("did/physdesc/dimensions")
 
     def extent(self):
-        return self.get_text_join("did/physdesc/extent")
+        extent_xpath = "did/physdesc/extent"
+        result = ResultSet(xpath=extent_xpath)
+        for extent in self.c.xpath(extent_xpath):
+            text = util.tag_text(extent)
+            unit = extent.get("unit")
+            if unit:
+                text += " " + unit
+            text = util.clean_text(text)
+            if text:
+                result.add(extent.tag, text, extent.sourceline)
+        return result.rs_or_none()
 
     def famname(self):
         return self.get_text_join("controlaccess/famname")
 
     def fileplan(self):
-        return self.get_val("fileplan/p")
+        return self.get_text("fileplan/p")
 
     def fileplan_heading(self):
-        return self.get_val("fileplan/head")
+        return self.get_text("fileplan/head")
 
-    def format_containers(self, containers):
-        text = {}
-        for data in containers.values():
-            cid = next(iter(data))
-            text[f"{data[cid]['type']}: {data[cid]['name']}"] = True
-            if "parent" not in data[cid]:
-                label = re.sub(r"\s*\[.*?\]\s*", "", data[cid]["label"])
-        return ", ".join(text.keys()) + f" (Material Type: {label})"
+    def format_container(self, cid, containers, text):
+        if containers[cid].get("type") and containers[cid].get("name"):
+            text.append(f"{containers[cid]['type']}: {containers[cid]['name']}")
+        for child_id in containers[cid]["child"]:
+            self.format_container(child_id, containers, text)
 
     def function(self):
-        return self.get_val("controlaccess/function")
+        return self.get_text("controlaccess/function")
 
     def genreform(self):
-        return self.get_val("controlaccess/genreform")
+        return self.get_text("controlaccess/genreform")
 
     def geogname(self):
-        return self.get_val("controlaccess/geogname")
+        return self.get_text("controlaccess/geogname")
 
     def get_text(self, expr, **kwargs):
         return util.xpath(self.c, expr, all_text=True, **kwargs)
@@ -213,14 +255,23 @@ class Component:
     def get_text_join(self, expr, **kwargs):
         return util.xpath(self.c, expr, all_text=True, join_text=True, **kwargs)
 
-    def get_val(self, xpath_expr, **kwargs):
-        return util.xpath(self.c, xpath_expr, all_text=True, **kwargs)
+    def get_text_long(self, expr, **kwargs):
+        return util.xpath(
+            self.c,
+            expr,
+            all_text=True,
+            join_text=True,
+            sep=" ",
+            join_sep=" ",
+            ignore_space=True,
+            **kwargs,
+        )
 
     def _id(self):
         return self.c.attrib["id"]
 
     def langcode(self):
-        return self.get_val("did/langmaterial/language/@langcode")
+        return self.get_text("did/langmaterial/language/@langcode")
 
     def language(self):
         return self.get_text("did/langmaterial/language")
@@ -232,70 +283,70 @@ class Component:
         pass
 
     def occupation(self):
-        return self.get_val("controlaccess/occupation")
+        return self.get_text("controlaccess/occupation")
 
     def odd(self):
-        return self.get_text("odd/*[self::p or self::list]")
+        return self.get_text_long(f"odd/{LONGTEXT_XPATH}")
 
     def odd_heading(self):
-        return self.get_text_join("odd/head")
+        return self.get_text("odd/head")
 
     def originalsloc(self):
-        return self.get_val("originalsloc/p")
+        return self.get_text("originalsloc/p")
 
     def originalsloc_heading(self):
-        return self.get_val("originalsloc/head")
+        return self.get_text("originalsloc/head")
 
     def otherfindaid(self):
-        return self.get_val("otherfindaid/p")
+        return self.get_text("otherfindaid/p")
 
     def otherfindaid_heading(self):
-        return self.get_val("otherfindaid/head")
+        return self.get_text("otherfindaid/head")
 
     def persname(self):
-        return self.get_val("controlaccess/persname")
+        return self.get_text("controlaccess/persname")
 
     def physfacet(self):
-        return self.get_val("did/physdesc/physfacet")
+        return self.get_text("did/physdesc/physfacet")
 
     def physloc(self):
         return self.get_text("did/physloc")
 
     def phystech(self):
-        return self.get_val("phystech/p")
+        return self.get_text("phystech/p")
 
     def phystech_heading(self):
-        return self.get_val("phystech/head")
+        return self.get_text("phystech/head")
 
     def prefercite(self):
-        return self.get_val("prefercite/p")
+        return self.get_text("prefercite/p")
 
     def prefercite_heading(self):
-        return self.get_val("prefercite/head")
+        return self.get_text("prefercite/head")
 
     def processinfo(self):
-        return self.get_val("processinfo/p")
+        return self.get_text("processinfo/p")
 
     def processinfo_heading(self):
-        return self.get_val("processinfo/head")
+        return self.get_text("processinfo/head")
 
     def relatedmaterial(self):
-        return self.get_val("relatedmaterial/p")
+        return self.get_text("relatedmaterial/p")
 
     def relatedmaterial_heading(self):
-        return self.get_val("relatedmaterial/head")
+        return self.get_text("relatedmaterial/head")
 
     def separatedmaterial(self):
-        return self.get_text_join("separatedmaterial/p")
+        return self.get_text("separatedmaterial/p")
 
     def separatedmaterial_heading(self):
-        return self.get_val("separatedmaterial/head")
+        return self.get_text("separatedmaterial/head")
 
     def scopecontent(self):
-        return self.get_val("scopecontent/p")
+        return self.get_text(f"scopecontent/{LONGTEXT_XPATH}")
 
     def scopecontent_heading(self):
-        return self.get_val("scopecontent/head")
+        return self.get_text("scopecontent/head")
 
     def sub_components(self):
         sub_comps = []
@@ -305,7 +356,7 @@ class Component:
         return sub_comps
 
     def subject(self):
-        return self.get_val("controlaccess/subject")
+        return self.get_text("controlaccess/subject")
 
     @staticmethod
     def _tostring(node):
@@ -315,16 +366,21 @@ class Component:
         return self.unittitle()
 
     def unitdate(self):
-        return self.get_val("did/unitdate")
+        dates = self.get_text_join(
+            "did/unitdate", join_uniq=False, join_sep=", "
+        )
+        if dates:
+            dates = dates.update_values(util.clean_date)
+        return dates
 
     def unitid(self):
-        return self.get_val("did/unitid")
+        return self.get_text("did/unitid")
 
     def unittitle(self):
         return self.get_text_join("did/unittitle")
 
     def userestrict(self):
-        return self.get_val("userestrict/p")
+        return self.get_text("userestrict/p")
 
     def userestrict_heading(self):
-        return self.get_val("userestrict/head")
+        return self.get_text("userestrict/head")

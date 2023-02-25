@@ -1,11 +1,14 @@
 #!/usr/bin/env -S python3 -u
 
-
 from anytree import Node, RenderTree
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from component import Component
+from contextlib import nullcontext
+from eaderr import Errors
 from importlib import import_module
 from lxml import etree as ET
+from multiprocessing import Manager
 from pathlib import Path
 from pprint import pprint, pformat
 from requestmaterials import RequestMaterials
@@ -45,7 +48,7 @@ print = functools.partial(print, flush=True)
 
 def colorize(text, *color_codes):
     color_seq = ";".join(map(str, color_codes))
-    return f"\033[{color_seq}m{text}\033[0m" if COLORS_ENABLED else text
+    return f"\033[{color_seq}m{text}\033[0m" if colors_enabled else text
 
 
 def colorize_space(text, color_text, color_space):
@@ -285,40 +288,33 @@ def check_retval(retval, name):
 
 
 def validate_component(
-    c,
-    dirpath,
-    errors,
-    diff_cfg,
+    cid,
+    comp_dir,
     config,
-    cmdl_args,
-    progress_bar,
     basedir,
-    ehtml_reg,
-    presentation_cids,
-    recursion_depth,
+    lock,
 ):
+    errors = Errors(config.get("exit_on_error", False))
+
+    c = Component(my_ead.get_component(cid))
+
     logging.debug("----")
     logging.debug(c.id)
     logging.debug(c.level)
     logging.debug(c.title())
     logging.debug("\n")
 
-    new_dirpath = dirpath
-
-    if c.level == "series" and recursion_depth == 0:
-        new_dirpath = os.path.join(basedir, "contents", c.id)
-    elif c.id in presentation_cids:
-        new_dirpath = os.path.join(basedir, "contents", presentation_cids[c.id])
-
-    html_file = os.path.join(new_dirpath, "index.html")
+    html_file = os.path.join(basedir, "contents", comp_dir, "index.html")
     logging.debug(f"HTML file: {html_file}")
-    if html_file in ehtml_reg:
-        logging.debug(f"Using existing EADHTML object for {html_file}.")
-        ehtml = ehtml_reg[html_file]
-    else:
-        logging.debug(f"Adding {html_file} to EADHTML registry.")
-        ehtml = eadhtml.EADHTML(html_file)
-        ehtml_reg[html_file] = ehtml
+
+    with lock:
+        if html_file in ehtml_reg:
+            logging.debug(f"Using existing EADHTML object for {html_file}.")
+            ehtml = ehtml_reg[html_file]
+        else:
+            logging.debug(f"Adding {html_file} to EADHTML registry.")
+            ehtml = eadhtml.EADHTML(html_file, parser=config["html_parser"])
+            ehtml_reg[html_file] = ehtml
 
     try:
         chtml = ehtml.find_component(c.id)
@@ -337,7 +333,7 @@ def validate_component(
     logging.info(f"Performing checks for component {c.id}")
 
     for method_name, comp_method in util.get_methods(c, "dao").items():
-        match = re.search(r"^(sub_components)$", method_name)
+        match = re.search(r"component", method_name)
         if match:
             logging.debug(f"Skipping {method_name}...")
             continue
@@ -403,12 +399,8 @@ def validate_component(
                     f"field '{method_name}' differs for c id='{c.id}'\nDIFF:\n"
                     + f"{c.ead_file}\n"
                     + f"{html_file}\n"
-                    + diff(comp_values, chtml_values, diff_cfg)
+                    + diff(comp_values, chtml_values, config["diff"])
                 )
-
-        if not passed_check and cmdl_args.exit_on_error:
-            print(errors[-1])
-            exit(1)
 
         logging.info(f"{c.id} {method_name}: [{passed_str(passed_check)}]")
 
@@ -426,52 +418,41 @@ def validate_component(
             f" got:\n{pformat(html_cids)}"
         )
 
-    if progress_bar:
-        progress_bar.update(1)
-
-    for subc in c.sub_components():
-        validate_component(
-            subc,
-            new_dirpath,
-            errors,
-            diff_cfg,
-            config,
-            cmdl_args,
-            progress_bar,
-            basedir,
-            ehtml_reg,
-            presentation_cids,
-            recursion_depth + 1,
-        )
+    return errors
 
 
-def build_level_tree(ead_elem, parent):
-    if isinstance(ead_elem, Component):
-        comps = ead_elem.sub_components()
-    else:
-        comps = ead_elem.component()
+def get_comp_dirs(elem, comp_dirs, depth, elem_dir, presentation_cids):
+    for c in elem.component():
+        if c.id in presentation_cids:
+            c_dir = presentation_cids[c.id]
+        elif depth == 0 and c.level in ["series", "otherlevel", "recordgrp"]:
+            c_dir = c.id
+        else:
+            c_dir = elem_dir
+        comp_dirs[c.id] = c_dir
+        get_comp_dirs(c, comp_dirs, depth + 1, c_dir, presentation_cids)
 
-    for c in comps:
+
+def build_level_tree(elem, parent):
+    for c in elem.component():
         child = Node((c.id, c.level), parent=parent)
         build_level_tree(c, child)
 
 
-def render_level_tree(ead_elem, root_name):
+def render_level_tree(elem, root_name):
     root = Node(root_name)
-    build_level_tree(ead_elem, root)
-    # iterator = iter(RenderTree(root))
-    # pre, fill, node = next(iterator)
+    build_level_tree(elem, root)
     return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
 
 
-def read_config():
-    with open("config.toml", "rb") as f:
+def read_config(config_file):
+    with open(config_file, "rb") as f:
         data = tomli.load(f)
     return data
 
 
 def get_values(rs):
-    return rs.string_values() if rs else rs
+    return rs.string_values() if rs else None
 
 
 def isnewer(file1, file2):
@@ -485,6 +466,7 @@ def main():
         print("Python 3.7 or higher is required.")
         exit(1)
 
+    script_dir = os.path.dirname(os.path.realpath(__file__))
     script_name = Path(__file__).stem
 
     parser = argparse.ArgumentParser(
@@ -499,8 +481,8 @@ def main():
         help="diff type (default: %(default)s)",
     )
     parser.add_argument(
-        "--verbose",
         "-v",
+        "--verbose",
         action="count",
         default=0,
         help=(
@@ -509,45 +491,57 @@ def main():
         ),
     )
     parser.add_argument(
-        "--log-format",
         "-l",
+        "--log-format",
         default=f"%(asctime)s - {script_name} - %(levelname)s - %(message)s",
         help="format for logging messages (default: %(default)s)",
     )
     parser.add_argument(
-        "--tidy",
         "-t",
+        "--tidy",
         action="store_true",
         help="Run HTML Tidy to test correctness of html",
     )
     parser.add_argument(
-        "--indent",
         "-i",
+        "--indent",
         action="store_true",
         help="Indent HTML files using tidy.",
     )
     parser.add_argument(
-        "--broken-links", "-b", action="store_true", help="Find broken urls"
+        "-b", "--broken-links", action="store_true", help="Find broken urls"
     )
     parser.add_argument(
-        "--color", "-c", action="store_true", help="Enable color output"
+        "-c", "--color", action="store_true", help="Enable color output"
     )
     parser.add_argument(
-        "--progress-bar",
         "-p",
+        "--progress-bar",
         action="store_true",
         help="Show progress bar for component checks",
     )
     parser.add_argument(
-        "--exit-on-error",
         "-e",
+        "--exit-on-error",
         action="store_true",
         help="Exit script on first error",
     )
+    parser.add_argument(
+        "--html-parser",
+        default="html5lib",
+        choices=["html.parser", "html5lib"],
+        help="HTML parser to be used by Beautiful Soup (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-m",
+        "--multiprocessing",
+        action="store_true",
+        help="Parallelize validation of component checks",
+    )
     args = parser.parse_args()
 
-    global COLORS_ENABLED
-    COLORS_ENABLED = args.color or "color" in args.diff_type
+    global colors_enabled
+    colors_enabled = args.color or "color" in args.diff_type
 
     logging.basicConfig(format=args.log_format, datefmt="%m/%d/%Y %I:%M:%S %p")
 
@@ -564,7 +558,7 @@ def main():
         parser.print_help(sys.stderr)
         exit(1)
 
-    config = read_config()
+    config = read_config(os.path.join(script_dir, "config.toml"))
     logging.debug(config)
 
     ead_file = os.path.abspath(args.ead_file)
@@ -574,12 +568,13 @@ def main():
     logging.debug("html dir: %s", html_dir)
 
     pretty_ead_file = util.change_ext(ead_file, "-pretty.xml")
+    indent_file = os.path.join(script_dir, "indent.xsl")
     if "pretty" not in ead_file and (
         not os.path.isfile(pretty_ead_file)
         or isnewer(ead_file, pretty_ead_file)
     ):
         util.do_cmd(
-            ["xsltproc", "-o", pretty_ead_file, "indent.xsl", ead_file],
+            ["xsltproc", "-o", pretty_ead_file, indent_file, ead_file],
             stdout=PIPE,
             stderr=PIPE,
         )
@@ -587,41 +582,45 @@ def main():
     validate_xml(ead_file)
     validate_html(html_dir, args)
 
+    global my_ead
     my_ead = ead.Ead(ead_file)
 
-    html_file = os.path.join(html_dir, "index.html")
-    ehtml = eadhtml.EADHTML(html_file)
+    print(f"The EAD has {my_ead.c_count()} components.")
+
+    top_html_file = os.path.join(html_dir, "index.html")
+    top_ehtml = eadhtml.EADHTML(top_html_file, parser=args.html_parser)
 
     ead_date = my_ead.creation_date().values()[0]
-    html_date = ehtml.creation_date().values()[0]
+    html_date = top_ehtml.creation_date().values()[0]
     if ead_date != html_date:
         print(f"Creation date mismatch: '{ead_date}' != '{html_date}'")
         exit(1)
 
     rqm_html_file = os.path.join(html_dir, "requestmaterials", "index.html")
-    rqm = RequestMaterials(rqm_html_file)
+    rqm = RequestMaterials(rqm_html_file, parser=args.html_parser)
     logging.debug(pformat(rqm.find_links()))
 
     all_html_file = os.path.join(html_dir, "all", "index.html")
-    all_ehtml = eadhtml.EADHTML(all_html_file)
-    names = all_ehtml.names()
+    all_ehtml = eadhtml.EADHTML(all_html_file, parser=args.html_parser)
 
     load_thefuzz()
 
-    errors = []
-
     term_width = get_term_width()
 
-    diff_cfg = {
+    config["diff"] = {
         "type": args.diff_type,
         "term_width": term_width,
         "sep": "-" * term_width,
     }
 
+    config.update(vars(args))
+
+    errors = Errors(config.get("exit_on_error", False))
+
     logging.info("Performing top level checks.")
 
     for method_name, ead_method in util.get_methods(my_ead).items():
-        match = re.search(r"^(component)$", method_name)
+        match = re.search(r"component", method_name)
         if match:
             logging.debug(f"Skipping {method_name}...")
             continue
@@ -638,8 +637,15 @@ def main():
         ead_values = get_values(ead_retval)
 
         logging.debug(f"calling EADHTML.{method_name}()")
+        if method_name in config["all-html"]["fields"]:
+            logging.debug("Using all html.")
+            ehtml = all_ehtml
+            html_file = all_html_file
+        else:
+            ehtml = top_ehtml
+            html_file = top_html_file
         ehtml_method = getattr(ehtml, method_name)
-        ehtml_retval = ehtml_method() if method_name != "names" else names
+        ehtml_retval = ehtml_method()
         logging.debug(f"retval={ehtml_retval}")
         check_retval(ehtml_retval, method_name)
 
@@ -679,12 +685,8 @@ def main():
                     f"ead field '{method_name}' differs'\nDIFF:\n"
                     + f"{ead_file}\n"
                     + f"{html_file}\n"
-                    + diff(ead_values, ehtml_values, diff_cfg)
+                    + diff(ead_values, ehtml_values, config["diff"])
                 )
-
-        if not passed_check and args.exit_on_error:
-            print(errors[-1])
-            exit(1)
 
         logging.info(f"{method_name}: [{passed_str(passed_check)}]")
 
@@ -711,11 +713,8 @@ def main():
     logging.info(f"nesting levels: [{passed_str(passed_check)}]")
     if not passed_check:
         errors.append(
-            "Nesting error" + diff(ead_tree_str, html_tree_str, diff_cfg)
+            "Nesting error" + diff(ead_tree_str, html_tree_str, config["diff"])
         )
-        if args.exit_on_error:
-            print(errors[-1])
-            exit(1)
 
     logging.debug(f"EAD CIDS {pformat(ead_cids)}")
     logging.debug(f"HTML CIDS {pformat(html_cids)}")
@@ -730,26 +729,56 @@ def main():
 
     progress_bar = tqdm(total=my_ead.c_count()) if args.progress_bar else None
 
+    global ehtml_reg
     ehtml_reg = {
         all_html_file: all_ehtml,
-        html_file: ehtml,
-        rqm_html_file: rqm,
+        top_html_file: top_ehtml,
     }
 
-    for c in ead_comps:
-        validate_component(
-            c,
-            html_dir,
-            errors,
-            diff_cfg,
-            config,
-            args,
-            progress_bar,
-            html_dir,
-            ehtml_reg,
-            presentation_cids,
-            0
-        )
+    comp_dirs = {}
+    get_comp_dirs(my_ead, comp_dirs, 0, "", presentation_cids)
+
+    if args.multiprocessing:
+        manager = Manager()
+        lock = manager.Lock()
+
+        with ProcessPoolExecutor() as executor:
+            tasks = {
+                executor.submit(
+                    validate_component,
+                    cid,
+                    comp_dirs[cid],
+                    config,
+                    html_dir,
+                    lock,
+                ): cid
+                for cid in my_ead.all_component_ids()
+            }
+
+            for future in as_completed(tasks):
+                cid = tasks[future]
+                result = None
+                try:
+                    # print(f"future: {future}")
+                    # print(f"component id: {cid}")
+                    result = future.result()
+                except SystemExit as e:
+                    print(f"{cid} exited with value: {e}")
+                except Exception as e:
+                    print(f"{e}")
+                else:
+                    errors.extend(result)
+
+                if result or result is None:
+                    break
+    else:
+        dummy_lock = nullcontext()
+
+        for cid in my_ead.all_component_ids():
+            result = validate_component(
+                cid, comp_dirs[cid], config, html_dir, dummy_lock
+            )
+            errors.extend(result)
 
     for error in errors:
         print(f"ERROR: {error}\n")
@@ -757,6 +786,7 @@ def main():
     end_time = time.time()
     duration = util.format_duration(end_time - start_time)
     logging.info(f"Validation complete in {duration}")
+    print(f"Validation complete in {duration}")
     exit(len(errors))
 
 

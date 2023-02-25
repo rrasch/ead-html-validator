@@ -9,3 +9,8 @@ unititle
 """.split()
 
 XLINK_NS = "http://www.w3.org/1999/xlink"
+
+LONGTEXT_TAGS = ["p", "list", "chronlist"]
+LONGTEXT_XPATH = (
+    "*[" + " or ".join([f"self::{tag}" for tag in LONGTEXT_TAGS]) + "]"
+)

@@ -3,9 +3,9 @@ import re
 
 
 class RequestMaterials:
-    def __init__(self, html_file):
+    def __init__(self, html_file, parser="html5lib"):
         self.soup = BeautifulSoup(
-            open(html_file), "html.parser", multi_valued_attributes=None
+            open(html_file), parser, multi_valued_attributes=None
         )
         self.html_file = html_file
 
@@ -14,6 +14,6 @@ class RequestMaterials:
             a.get("href")
             for a in self.soup.find_all(
                 lambda tag: tag.name == "a"
-                and re.search(r"request", tag.parent.get("class") or "")
+                and re.search(r"request", tag.parent.get("class", ""))
             )
         ]
