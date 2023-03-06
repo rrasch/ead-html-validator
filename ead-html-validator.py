@@ -195,7 +195,7 @@ def create_list(obj):
         return obj
 
 
-def validate_html(html_dir, args):
+def validate_html(html_dir, args, tidyrc):
     html_files = []
     for root, dirs, files in os.walk(html_dir):
         for file in files:
@@ -217,8 +217,8 @@ def validate_html(html_dir, args):
     if (args.tidy or args.indent) and path_tidy:
         for file in html_files:
             ret = util.do_cmd(
-                [path_tidy, file],
-                allowed_returncodes=[1, 2],
+                [path_tidy, "-config", tidyrc, file],
+                allowed_returncodes=[1],
                 stdout=PIPE,
                 stderr=PIPE,
             )
@@ -568,18 +568,21 @@ def main():
 
     pretty_ead_file = util.change_ext(ead_file, "-pretty.xml")
     indent_file = os.path.join(script_dir, "indent.xsl")
-    if "pretty" not in ead_file and (
+    xsltproc = shutil.which("xsltproc")
+    if xsltproc and "pretty" not in ead_file and (
         not os.path.isfile(pretty_ead_file)
         or isnewer(ead_file, pretty_ead_file)
     ):
         util.do_cmd(
-            ["xsltproc", "-o", pretty_ead_file, indent_file, ead_file],
+            [xsltproc, "-o", pretty_ead_file, indent_file, ead_file],
             stdout=PIPE,
             stderr=PIPE,
         )
 
     validate_xml(ead_file)
-    validate_html(html_dir, args)
+
+    tidyrc = os.path.join(script_dir, "tidyrc")
+    validate_html(html_dir, args, tidyrc)
 
     global my_ead
     my_ead = ead.Ead(ead_file)

@@ -17,6 +17,11 @@ import requests
 import string
 import subprocess
 
+
+class CommandFailedError(Exception):
+    pass
+
+
 # https://stackoverflow.com/a/35804945/1691778
 def addLoggingLevel(levelName, levelNum, methodName=None):
     """
@@ -155,8 +160,11 @@ def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
 
     if process and process.returncode in ok_returncodes:
         return process
+    elif process:
+        print(process.stderr)
+        process.check_returncode()
     else:
-        return None
+        raise CommandFailedError(f"Error running {cmd}")
 
 
 # https://beckism.com/2009/03/named_entities_python/

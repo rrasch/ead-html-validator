@@ -1,0 +1,9 @@
+# tidyrc
+
+indent: auto
+indent-spaces: 2
+quiet: yes
+tidy-mark: no
+wrap: 0
+new-blocklevel-tags: aside, emph, footer, header, lb, main, nav, path, section, svg
+
