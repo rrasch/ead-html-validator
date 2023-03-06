@@ -1,5 +1,6 @@
 anytree
 beautifulsoup4
+html5lib
 pycountry
 python-dateutil
 python-Levenshtein
