@@ -4,7 +4,6 @@ from anytree import Node, RenderTree
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from component import Component
-from contextlib import nullcontext
 from eaderr import Errors
 from importlib import import_module
 from lxml import etree as ET
@@ -772,6 +771,7 @@ def main():
                 if result or result is None:
                     break
     else:
+        from contextlib import nullcontext
         dummy_lock = nullcontext()
 
         for cid in my_ead.all_component_ids():
