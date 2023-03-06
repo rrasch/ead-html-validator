@@ -1,5 +1,5 @@
 anytree
-beautifulsoup4
+beautifulsoup4 >= 4.11.2
 html5lib
 pycountry
 python-dateutil
