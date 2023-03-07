@@ -11,7 +11,7 @@ import util
 
 
 class Ead:
-    def __init__(self, ead_file):
+    def __init__(self, ead_file, save_no_ns=False):
         logging.debug(f"ead_file={ead_file}")
         self.ead_file = ead_file
 
@@ -31,8 +31,9 @@ class Ead:
             logging.debug(self.root)
 
         ET.cleanup_namespaces(self.tree)
-        no_ns_file = os.path.splitext(ead_file)[0] + "-no-ns.xml"
-        self.tree.write(no_ns_file)
+        if save_no_ns:
+            no_ns_file = os.path.splitext(ead_file)[0] + "-no-ns.xml"
+            self.tree.write(no_ns_file)
 
         logging.debug(self.root.tag)
 
