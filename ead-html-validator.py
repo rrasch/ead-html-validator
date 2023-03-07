@@ -505,7 +505,7 @@ def main():
         "-i",
         "--indent",
         action="store_true",
-        help="Indent HTML files using tidy.",
+        help="Indent XML with xsltproc and HTML files using tidy.",
     )
     parser.add_argument(
         "-b", "--broken-links", action="store_true", help="Find broken urls"
@@ -569,9 +569,14 @@ def main():
     pretty_ead_file = util.change_ext(ead_file, "-pretty.xml")
     indent_file = os.path.join(script_dir, "indent.xsl")
     xsltproc = shutil.which("xsltproc")
-    if xsltproc and "pretty" not in ead_file and (
-        not os.path.isfile(pretty_ead_file)
-        or isnewer(ead_file, pretty_ead_file)
+    if (
+        args.indent
+        and xsltproc
+        and "pretty" not in ead_file
+        and (
+            not os.path.isfile(pretty_ead_file)
+            or isnewer(ead_file, pretty_ead_file)
+        )
     ):
         util.do_cmd(
             [xsltproc, "-o", pretty_ead_file, indent_file, ead_file],
