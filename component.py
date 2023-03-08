@@ -156,13 +156,12 @@ class Component:
             if "role" not in dao_data or not dao_data["role"][0]:
                 dao_data["role"] = ["external-link"]
 
+            if dao_data["role"][0] not in roles:
+                continue
+
             dao_data["desc"] = [";".join(dao_data["desc"])]
 
-            has_link = "link" in dao_data
-
-            if has_link and dao_data["role"][0] not in roles:
-                dao_data.pop("link")
-            # else:
+            # if "link" in dao_data
             #     dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
 
             # put dict back in order

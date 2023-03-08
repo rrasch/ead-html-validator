@@ -162,6 +162,8 @@ class CompHTML:
             dao_data = {}
 
             dao_data["role"] = [dao["class"].split()[2]]
+            if dao_data["role"][0] not in roles:
+                continue
 
             get_text = dao_data["role"][0] != "external-link"
             desc = CompHTML.find_all(
@@ -180,7 +182,6 @@ class CompHTML:
                 links.append(link)
             if links:
                 dao_data["link"] = links
-                # dao_data["link"] = util.change_handle_scheme(*links)
 
             dao_set.add(dao.name, {f"dao {i + 1}.": dao_data}, dao.sourceline)
 
