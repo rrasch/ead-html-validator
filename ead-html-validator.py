@@ -377,7 +377,7 @@ def validate_component(
                     "html",
                     html_file,
                     format_vals(comp_retval),
-                    c.ead_file,
+                    my_ead.ead_file,
                 )
             )
         elif comp_retval is None and chtml_retval is not None:
@@ -386,7 +386,7 @@ def validate_component(
                     method_name,
                     c.id,
                     "ead xml",
-                    c.ead_file,
+                    my_ead.ead_file,
                     format_vals(chtml_retval),
                     html_file,
                 )
@@ -396,7 +396,7 @@ def validate_component(
             if not passed_check:
                 errors.append(
                     f"field '{method_name}' differs for c id='{c.id}'\nDIFF:\n"
-                    + f"{c.ead_file}\n"
+                    + f"{my_ead.ead_file}\n"
                     + f"{html_file}\n"
                     + diff(comp_values, chtml_values, config["diff"])
                 )
