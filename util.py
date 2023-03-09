@@ -312,6 +312,10 @@ def get_xpaths(tsv_file):
     return xpath
 
 
+def has_newline(text_list):
+    return any("\n" in text for text in text_list)
+
+
 def is_str(lst):
     return (
         len(lst) == 1

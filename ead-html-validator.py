@@ -13,7 +13,6 @@ from pprint import pprint, pformat
 from requestmaterials import RequestMaterials
 from resultset import ResultSet
 from subprocess import PIPE
-
 # from thefuzz import fuzz
 # from thefuzz import process
 from tqdm import tqdm
@@ -27,6 +26,7 @@ import inspect
 import logging
 import os.path
 import re
+import textwrap
 import time
 import tomli
 import traceback
@@ -112,13 +112,30 @@ def diff(obj1, obj2, diff_cfg):
     return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"]
 
 
-def simple_diff(obj1, obj2, diff_cfg):
+def indent_and_join(text_list):
+    return (
+        "[\n"
+        + ",\n".join([textwrap.indent(text, "  ") for text in text_list])
+        + "\n]"
+    )
+
+
+def simple_diff(list1, list2, diff_cfg):
     max_len = diff_cfg["term_width"]
-    str1 = str(obj1)
-    str2 = str(obj2)
-    sep = "\n" if len(str1) + len(str2) + 3 > 80 else " "
-    # return f"{str1[:max_len]}{sep}!={sep}{str2[:max_len]}"
-    return f"{str1}{sep}!={sep}{str2}"
+    str1 = str(list1)
+    str2 = str(list2)
+    if (
+        "\n" not in str1
+        and "\n" not in str2
+        and len(str1) + len(str2) + 3 <= max_len
+    ):
+        sep = " "
+    else:
+        str1 = indent_and_join(list1)
+        str2 = indent_and_join(list2)
+        sep = "\n"
+    diff_text = f"X{str1}{sep}!={sep}{str2}"
+    return diff_text
 
 
 def color_diff_str(str1, str2):
