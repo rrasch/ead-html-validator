@@ -5,6 +5,7 @@ top-level = [
     "c_count",
     "dao",
     "langcode",
+    "language",
     "url",
 ]
 

@@ -257,10 +257,15 @@ class Ead:
         return self.unittitle()
 
     def langcode(self):
-        return self.get_text("//langusage/language/@langcode")
+        return self.get_text(
+            "eadheader/profiledesc/langusage/language/@langcode"
+        )
 
     def language(self):
-        return self.get_text("//langusage/language")
+        return self.get_text("eadheader/profiledesc/langusage/language")
+
+    def langusage(self):
+        return self.get_text("eadheader/profiledesc/langusage")
 
     def material_type(self):
         return self.get_text("//genreform")

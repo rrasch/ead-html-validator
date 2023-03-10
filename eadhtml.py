@@ -413,6 +413,15 @@ class EADHTML:
     def language(self):
         return self.find_all(class_="ead-language")
 
+    def langusage(self):
+        lang_usage = self.find_all(class_="langusage")
+        if lang_usage:
+            return lang_usage.update_values(
+                lambda text: re.sub(r"^Language:\s+", "", text)
+            )
+        else:
+            return None
+
     def _main(self):
         return self.soup.find("main")
 
