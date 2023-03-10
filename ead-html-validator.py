@@ -609,7 +609,7 @@ def main():
     global my_ead
     my_ead = ead.Ead(ead_file)
 
-    print(f"The EAD has {my_ead.c_count()} components.")
+    logging.info(f"The EAD has {my_ead.c_count()} components.")
 
     top_html_file = os.path.join(html_dir, "index.html")
     top_ehtml = eadhtml.EADHTML(top_html_file, parser=args.html_parser)
@@ -805,14 +805,18 @@ def main():
             )
             errors.extend(result)
 
-    for error in errors:
-        print(f"ERROR: {error}\n")
-
     end_time = time.time()
     duration = util.format_duration(end_time - start_time)
+
+    if errors:
+        print(f"There are {len(errors)}.")
+        for error in errors:
+            print(f"ERROR: {error}\n")
+
+
     logging.info(f"Validation complete in {duration}")
     print(f"Validation complete in {duration}")
-    exit(len(errors))
+    exit(1 if errors else 0)
 
 
 if __name__ == "__main__":
