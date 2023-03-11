@@ -379,7 +379,9 @@ class CompHTML:
         if lang_group is None:
             return None
         return CompHTML.find_all(
-            lang_group, class_=re.compile(rf"^langmaterial{lang_type_num}")
+            lang_group,
+            # class_=re.compile(rf"^langmaterial{lang_type_num}")
+            class_=f"ead-{lang_type}"
         )
 
     def langmaterial(self):
