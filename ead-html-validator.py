@@ -809,13 +809,12 @@ def main():
     duration = util.format_duration(end_time - start_time)
 
     if errors:
-        print(f"There are {len(errors)}.")
+        print(f"There are {len(errors)} errors.")
         for error in errors:
             print(f"ERROR: {error}\n")
 
 
     logging.info(f"Validation complete in {duration}")
-    print(f"Validation complete in {duration}")
     exit(1 if errors else 0)
 
 
