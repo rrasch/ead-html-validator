@@ -247,17 +247,17 @@ def validate_html(html_dir, args, tidyrc):
                         wfh.write(ret.stdout)
 
 
-def validate_xml(xml_file):
+def validate_xml(xml_file, schema_file):
     xmllint = shutil.which("xmllint")
     if xmllint:
         return util.do_cmd(
-            [xmllint, "--noout", "--schema", "ead.xsd", xml_file],
+            [xmllint, "--noout", "--schema", schema_file, xml_file],
             stdout=PIPE,
             stderr=PIPE,
         )
     else:
         try:
-            schema = ET.XMLSchema(ET.parse("ead.xsd"))
+            schema = ET.XMLSchema(ET.parse(schema_file))
             result = schema.validate(ET.parse(xml_file))
         except Exception as e:
             raise e
@@ -601,7 +601,8 @@ def main():
             stderr=PIPE,
         )
 
-    validate_xml(ead_file)
+    schema_file = os.path.join(script_dir, "ead.xsd")
+    validate_xml(ead_file, schema_file)
 
     tidyrc = os.path.join(script_dir, "tidyrc")
     validate_html(html_dir, args, tidyrc)
