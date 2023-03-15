@@ -1,6 +1,7 @@
 #!/usr/bin/env -S python3 -u
 
 from anytree import Node, RenderTree
+from cachetools import LRUCache
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from component import Component
@@ -36,6 +37,14 @@ import util
 
 
 print = functools.partial(print, flush=True)
+
+
+class EHTMLCache(LRUCache):
+    def popitem(self):
+        html_file, ehtml = super().popitem()
+        logging.debug(f"HTML file '{html_file}' removed from EADHTML cache")
+        return html_file, ehtml
+
 
 # def colorize(r, g, b, text):
 #     return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
@@ -134,7 +143,7 @@ def simple_diff(list1, list2, diff_cfg):
         str1 = indent_and_join(list1)
         str2 = indent_and_join(list2)
         sep = "\n"
-    diff_text = f"X{str1}{sep}!={sep}{str2}"
+    diff_text = f"{str1}{sep}!={sep}{str2}"
     return diff_text
 
 
@@ -324,13 +333,13 @@ def validate_component(
     logging.debug(f"HTML file: {html_file}")
 
     with lock:
-        if html_file in ehtml_reg:
+        if html_file in ehtml_cache:
             logging.debug(f"Using existing EADHTML object for {html_file}.")
-            ehtml = ehtml_reg[html_file]
+            ehtml = ehtml_cache[html_file]
         else:
-            logging.debug(f"Adding {html_file} to EADHTML registry.")
+            logging.debug(f"Adding {html_file} to EADHTML cache.")
             ehtml = eadhtml.EADHTML(html_file, parser=config["html_parser"])
-            ehtml_reg[html_file] = ehtml
+            ehtml_cache[html_file] = ehtml
 
     try:
         chtml = ehtml.find_component(c.id)
@@ -754,11 +763,12 @@ def main():
 
     progress_bar = tqdm(total=my_ead.c_count()) if args.progress_bar else None
 
-    global ehtml_reg
-    ehtml_reg = {
-        all_html_file: all_ehtml,
-        top_html_file: top_ehtml,
-    }
+    del all_ehtml
+    del top_ehtml
+    del rqm
+
+    global ehtml_cache
+    ehtml_cache = EHTMLCache(maxsize=10)
 
     comp_dirs = {}
     get_comp_dirs(my_ead, comp_dirs, 0, "", presentation_cids)
