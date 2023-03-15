@@ -26,6 +26,7 @@ import functools
 import inspect
 import logging
 import os.path
+import pkg_resources
 import re
 import textwrap
 import time
@@ -582,6 +583,12 @@ def main():
         print("You can only specify -v a maximum of 3 times.", file=sys.stderr)
         parser.print_help(sys.stderr)
         exit(1)
+
+    logging.debug(f"Running Python {sys.version}")
+    installed_pkgs = sorted(
+        [f"{pkg.key}=={pkg.version}" for pkg in pkg_resources.working_set]
+    )
+    logging.debug(f"Installed packages: {pformat(installed_pkgs)}")
 
     config = read_config(os.path.join(script_dir, "config.toml"))
     logging.debug(config)
