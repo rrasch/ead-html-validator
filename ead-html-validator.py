@@ -3,7 +3,7 @@
 from anytree import Node, RenderTree
 from cachetools import LRUCache
 from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from component import Component
 from eaderr import Errors
 from importlib import import_module
@@ -29,6 +29,7 @@ import os.path
 import pkg_resources
 import re
 import textwrap
+import threading
 import time
 import tomli
 import traceback
@@ -562,9 +563,18 @@ def main():
         "-m",
         "--multiprocessing",
         action="store_true",
-        help="Parallelize validation of component checks",
+        help="Parallelize component checks with multiple processes",
+    )
+    parser.add_argument(
+        "--threading",
+        action="store_true",
+        help="Parallelize component checks with threads",
     )
     args = parser.parse_args()
+
+    if args.multiprocessing and args.threading:
+        print("Can't set both --multiprocessing and --threading.")
+        exit(1)
 
     global colors_enabled
     colors_enabled = args.color or "color" in args.diff_type
@@ -780,11 +790,18 @@ def main():
     comp_dirs = {}
     get_comp_dirs(my_ead, comp_dirs, 0, "", presentation_cids)
 
-    if args.multiprocessing:
-        manager = Manager()
-        lock = manager.Lock()
+    if args.multiprocessing or args.threading:
+        if args.multiprocessing:
+            exec_class_name = "ProcessPoolExecutor"
+            manager = Manager()
+            lock = manager.Lock()
+        else:
+            exec_class_name = "ThreadPoolExecutor"
+            lock = threading.Lock()
 
-        with ProcessPoolExecutor() as executor:
+        exec_class = globals()[exec_class_name]
+
+        with exec_class() as executor:
             tasks = {
                 executor.submit(
                     validate_component,
