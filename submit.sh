@@ -8,29 +8,26 @@
 #SBATCH --mem=8GB
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=rasan@nyu.edu
-#SBATCH --output=slurm-%j.out
-
-set -u
+#SBATCH --output=validator-%j.log
 
 . /etc/profile
 
-APP_NAME=ead-html-validaor
+set -u
 
-APP_HOME=$HOME/work/$NAME
+APP_NAME=ead-html-validator
 
-export PATH=$HOME/bin:$PATH
+APP_HOME=$HOME/work/$APP_NAME
 
-module load module load python/intel/3.8.6
+module load python/intel/3.8.6
 
 source $HOME/venv/$APP_NAME/bin/activate
 
-# set -x
+echo "Date              = $(date)"
+echo "Hostname          = $(hostname -s)"
+echo "Working Directory = $(pwd)"
+echo ""
+echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
+echo "Number of Tasks Allocated      = $SLURM_NTASKS"
+echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
-srun \
-	--job-name=${APP_NAME} \
-	--nodes=1 \
-	--ntasks=1 \
-	--cpus-per-task=$SLURM_CPUS_PER_TASK \
-	--exclusive \
-	$APP_HOME/runtimes.sh &
-
+$APP_HOME/runtimes.sh
