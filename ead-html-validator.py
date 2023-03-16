@@ -8,7 +8,7 @@ from component import Component
 from eaderr import Errors
 from importlib import import_module
 from lxml import etree as ET
-from multiprocessing import Manager
+from multiprocessing import Manager, get_context
 from pathlib import Path
 from pprint import pprint, pformat
 from requestmaterials import RequestMaterials
@@ -800,15 +800,17 @@ def main():
     if args.multiprocessing or args.threading:
         if args.multiprocessing:
             exec_class_name = "ProcessPoolExecutor"
+            exec_args = {"mp_context": get_context("fork")}  # needed for Macs
             manager = Manager()
             lock = manager.Lock()
         else:
             exec_class_name = "ThreadPoolExecutor"
+            exec_args = {}
             lock = threading.Lock()
 
         exec_class = globals()[exec_class_name]
 
-        with exec_class() as executor:
+        with exec_class(**exec_args) as executor:
             tasks = {
                 executor.submit(
                     validate_component,
