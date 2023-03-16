@@ -14,7 +14,7 @@ NOW=$(date +'%Y-%m-%d')
 
 CSV_FILE="validator_runtimes_${NOW}.csv"
 
-readarray -d '' EAD_FILES < <(find "$EAD_DIR" -name '*.xml' -print0 \
+readarray -d '' EAD_FILES < <(find "$EAD_DIR/" -name '*.xml' -print0 \
 	| egrep -vz '(no-ns|pretty).xml$')
 
 ARGS=("" "--multiprocessing" "--threading")
