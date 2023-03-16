@@ -323,6 +323,7 @@ def validate_component(
 ):
     errors = Errors(config.get("exit_on_error", False))
 
+    global my_ead
     c = Component(my_ead.get_component(cid))
 
     logging.debug("----")
@@ -334,6 +335,7 @@ def validate_component(
     html_file = os.path.join(basedir, "contents", comp_dir, "index.html")
     logging.debug(f"HTML file: {html_file}")
 
+    global ehtml_cache
     with lock:
         if html_file in ehtml_cache:
             logging.debug(f"Using existing EADHTML object for {html_file}.")
