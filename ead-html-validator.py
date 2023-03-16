@@ -572,6 +572,11 @@ def main():
         action="store_true",
         help="Parallelize component checks with threads",
     )
+    parser.add_argument(
+        "--duration",
+        action="store_true",
+        help="Print rumtime duration as non-logging message",
+    )
     args = parser.parse_args()
 
     if args.multiprocessing and args.threading:
@@ -850,8 +855,8 @@ def main():
         for error in errors:
             print(f"ERROR: {error}\n")
 
-
-    logging.info(f"Validation complete in {duration}")
+    print_method = print if args.duration else logging.info
+    print_method(f"Validation complete in {duration}")
     exit(1 if errors else 0)
 
 
