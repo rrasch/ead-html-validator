@@ -19,10 +19,11 @@ readarray -d '' EAD_FILES < <(find "$EAD_DIR/" -name '*.xml' -print0 \
 
 ARGS=("" "--multiprocessing" "--threading")
 
-echo "partner,collection" > $CSV_FILE
+echo -n "partner,collection" > $CSV_FILE
 echo -n ",duration no parallelization" >> $CSV_FILE
 echo -n ",duration multi-process" >> $CSV_FILE
 echo -n ",duration multi-threads" >> $CSV_FILE
+echo >> $CSV_FILE
 
 for file in "${EAD_FILES[@]}"
 do
@@ -45,7 +46,8 @@ do
 		data_file="mprofile_${partner}_${collection}_${desc}_${NOW}.dat"
 		start_time=$(date +%s)
 		set +e
-		$MPROF -o $data_file $CMD ${ARGS[$i]} "$file" "$html_dir"
+# 		$MPROF -o $data_file $CMD ${ARGS[$i]} "$@" "$file" "$html_dir"
+		$CMD ${ARGS[$i]} "$@" "$file" "$html_dir"
 		set -e
 		end_time=$(date +%s)
 		duration=$((end_time - start_time))
