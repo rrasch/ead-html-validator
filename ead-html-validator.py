@@ -1,4 +1,4 @@
-#!/usr/bin/env -S python3 -u
+#!/usr/bin/env -S python3
 
 from anytree import Node, RenderTree
 from cachetools import LRUCache
@@ -38,7 +38,7 @@ import sys
 import util
 
 
-print = functools.partial(print, flush=True)
+# print = functools.partial(print, flush=True)
 
 
 class EHTMLCache(LRUCache):
@@ -800,7 +800,18 @@ def main():
     if args.multiprocessing or args.threading:
         if args.multiprocessing:
             exec_class_name = "ProcessPoolExecutor"
-            exec_args = {"mp_context": get_context("fork")}  # needed for Macs
+
+            max_cpus = len(os.sched_getaffinity(0))
+            ishpc = "CLUSTER" in os.environ
+            isslurm = any(env.startswith("SLURM") for env in os.environ)
+            if ishpc and not isslurm:
+                max_cpus = 2
+            logging.info(f"Using {max_cpus} CPUs for multiprocessing.")
+
+            exec_args = {
+                "mp_context": get_context("fork"),  # needed for Macs
+                "max_workers": max_cpus,
+            }
             manager = Manager()
             lock = manager.Lock()
         else:
@@ -820,7 +831,7 @@ def main():
                     html_dir,
                     lock,
                 ): cid
-                for cid in my_ead.all_component_ids()
+                for cid in sorted(my_ead.all_component_ids())
             }
 
             for future in as_completed(tasks):
@@ -833,7 +844,7 @@ def main():
                 except SystemExit as e:
                     print(f"{cid} exited with value: {e}")
                 except Exception as e:
-                    print(f"{e}")
+                    print(f"{cid} failed with exception: {e}")
                 else:
                     errors.extend(result)
 
@@ -843,7 +854,7 @@ def main():
         from contextlib import nullcontext
         dummy_lock = nullcontext()
 
-        for cid in my_ead.all_component_ids():
+        for cid in sorted(my_ead.all_component_ids()):
             result = validate_component(
                 cid, comp_dirs[cid], config, html_dir, dummy_lock
             )
