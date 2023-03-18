@@ -798,26 +798,35 @@ def main():
     get_comp_dirs(my_ead, comp_dirs, 0, "", presentation_cids)
 
     if args.multiprocessing or args.threading:
+        try:
+            num_cpus = len(os.sched_getaffinity(0))  # Only works on Unix
+        except AttributeError:
+            num_cpus = cpu_count()
+        ishpc = "CLUSTER" in os.environ
+        isslurm = any(env.startswith("SLURM") for env in os.environ)
+        # hpc cluster reports large number of cpus which leads to a large
+        # number of processes which may get killed by the os for lack of
+        # resources. Limit to 2 except when running under slurm.
+        if ishpc and not isslurm:
+            num_cpus = 2
+
         if args.multiprocessing:
             exec_class_name = "ProcessPoolExecutor"
-
-            max_cpus = len(os.sched_getaffinity(0))
-            ishpc = "CLUSTER" in os.environ
-            isslurm = any(env.startswith("SLURM") for env in os.environ)
-            if ishpc and not isslurm:
-                max_cpus = 2
-            logging.info(f"Using {max_cpus} CPUs for multiprocessing.")
-
             exec_args = {
                 "mp_context": get_context("fork"),  # needed for Macs
-                "max_workers": max_cpus,
+                "max_workers": num_cpus,
             }
             manager = Manager()
             lock = manager.Lock()
         else:
             exec_class_name = "ThreadPoolExecutor"
-            exec_args = {}
+            exec_args = {"max_workers": min(32, num_cpus + 4)}
             lock = threading.Lock()
+
+        logging.info(
+            f"Using {exec_args['max_workers']} max workers for"
+            f" {exec_class_name}."
+        )
 
         exec_class = globals()[exec_class_name]
 
