@@ -22,6 +22,8 @@ module load python/intel/3.8.6
 
 source $HOME/venv/$APP_NAME/bin/activate
 
+export PATH=$HOME/bin:$PATH
+
 echo "Date              = $(date)"
 echo "Hostname          = $(hostname -s)"
 echo "Working Directory = $(pwd)"
