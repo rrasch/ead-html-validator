@@ -6,6 +6,7 @@ top-level = [
     "dao",
     "langcode",
     "language",
+    "materialspec",
     "url",
 ]
 
@@ -14,6 +15,7 @@ component = [
     "dao_link",
     "dao_title",
     "langcode",
+    "materialspec",
     "unitid",
 ]
 

@@ -402,6 +402,9 @@ class CompHTML:
             recursion = None
         return (lvl, recursion)
 
+    def materialspec(self):
+        return self.formatted_note_text("materialspec")
+
     def md_group(self, group_name):
         return self.c.find(
             "div", class_=f"md-group {group_name}", recursive=False

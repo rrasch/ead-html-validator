@@ -278,6 +278,9 @@ class Component:
     def _level(self):
         return self.c.attrib["level"]
 
+    def materialspec(self):
+        return self.get_text("did/materialspec")
+
     def name(self):
         pass
 

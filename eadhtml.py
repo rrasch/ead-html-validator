@@ -425,6 +425,9 @@ class EADHTML:
     def _main(self):
         return self.soup.find("main")
 
+    def materialspec(self):
+        return self.formatted_note("materialspec")
+
     def material_type(self):
         return self.get_field("genreform", all_values=True)
 

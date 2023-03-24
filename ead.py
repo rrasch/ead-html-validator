@@ -267,6 +267,9 @@ class Ead:
     def langusage(self):
         return self.get_text("eadheader/profiledesc/langusage")
 
+    def materialspec(self):
+        return self.get_text(f"{self.archdesc_xpath}/did/materialspec")
+
     def material_type(self):
         return self.get_text("//genreform")
 
