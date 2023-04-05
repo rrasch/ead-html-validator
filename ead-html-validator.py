@@ -774,6 +774,8 @@ def main():
             "Nesting error" + diff(ead_tree_str, html_tree_str, config["diff"])
         )
 
+    del ead_tree, ead_tree_str, html_tree, html_tree_str
+
     logging.debug(f"EAD CIDS {pformat(ead_cids)}")
     logging.debug(f"HTML CIDS {pformat(html_cids)}")
     logging.debug(f"Presentation CIDS {pformat(presentation_cids)}")
