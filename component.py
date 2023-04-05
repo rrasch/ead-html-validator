@@ -161,8 +161,8 @@ class Component:
 
             dao_data["desc"] = [";".join(dao_data["desc"])]
 
-            # if "link" in dao_data
-            #     dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
+            if "link" in dao_data:
+                dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
 
             # put dict back in order
             dao_data = {
@@ -236,6 +236,8 @@ class Component:
     def format_container(self, cid, containers, text):
         if containers[cid].get("type") and containers[cid].get("name"):
             text.append(f"{containers[cid]['type']}: {containers[cid]['name']}")
+        elif containers[cid].get("name"):
+            text.append(containers[cid]["name"])
         for child_id in containers[cid]["child"]:
             self.format_container(child_id, containers, text)
 
