@@ -774,6 +774,7 @@ def main():
             "Nesting error" + diff(ead_tree_str, html_tree_str, config["diff"])
         )
 
+    del all_ehtml, top_ehtml, rqm
     del ead_tree, ead_tree_str, html_tree, html_tree_str
 
     logging.debug(f"EAD CIDS {pformat(ead_cids)}")
@@ -788,10 +789,6 @@ def main():
         )
 
     progress_bar = tqdm(total=my_ead.c_count()) if args.progress_bar else None
-
-    del all_ehtml
-    del top_ehtml
-    del rqm
 
     global ehtml_cache
     ehtml_cache = EHTMLCache(maxsize=10)
