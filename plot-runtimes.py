@@ -16,6 +16,7 @@ def plot_runtimes(df):
     # reduce dataframe to only rows where exit code is 0
     # for every form of parallelization
     df = df[df[retval_cols].eq(0).all(axis=1)]
+    df = df.sort_values(runtime_cols[0]).reset_index(drop=True)
     df.plot(y=runtime_cols, use_index=True)
     plt.show()
 
