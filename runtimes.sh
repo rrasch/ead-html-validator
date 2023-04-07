@@ -19,7 +19,7 @@ readarray -d '' EAD_FILES < <(find "$EAD_DIR/" -name '*.xml' -print0 \
 
 ARGS=("" "--multiprocessing" "--threading")
 
-echo -n "partner,collection" > $CSV_FILE
+echo -n "partner,collection,num components" > $CSV_FILE
 echo -n ",duration no parallelization,exit code no parallelization" >> $CSV_FILE
 echo -n ",duration multi-process,exit code multi-process" >> $CSV_FILE
 echo -n ",duration multi-threads,exit code multi-threads" >> $CSV_FILE
@@ -48,7 +48,8 @@ do
 		echo "$index_file doesn't exist. Skipping $partner/$collection ..."
 		continue
 	fi
-	echo -n "$partner,$collection" >> $CSV_FILE
+	num_components=$(xmllint --xpath "count(//*[local-name()='c'])" "$file")
+	echo -n "$partner,$collection,$num_components" >> $CSV_FILE
 	for i in "${!ARGS[@]}"
 	do
 		desc=${ARGS[$i]#--}
