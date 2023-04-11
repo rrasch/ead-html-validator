@@ -35,6 +35,8 @@ def plot_runtimes(df):
     ax.set_ylabel("runtime (hours)")
     ax.set_xticklabels(labels)
 
+    plt.savefig("bar_chart.jpg")
+
     df[runtime_cols] = df[duration_cols] / 60
 
     # # reduce dataframe to only rows where exit code is 0
@@ -47,9 +49,14 @@ def plot_runtimes(df):
 
     idx_max_value = df[runtime_cols[1]].idxmax()
 
-    ax = df.plot(y=runtime_cols, use_index=True, figsize=(10, 6), rot=90)
-    ax.set_title("Individual EAD HTML Validator Runtimes Longer Than 5 Minutes")
-    ax.set_xlabel("EADs (sorted by no parallelization runtime)")
+    linestyle = ["o-", "*-", "x-"]
+
+    ax = df.plot(
+        y=runtime_cols, use_index=True, figsize=(10, 6), rot=90, style=linestyle
+    )
+    ax.set_facecolor(plt.cm.Blues(0.2))
+    ax.set_title("EAD HTML Validator Runtimes Longer Than 5 Minutes")
+    ax.set_xlabel("collection name (bcms_0002 not included)")
     ax.set_ylabel("runtime (minutes)")
     ax.set_xticks(ticks=range(len(df)), labels=df["collection"])
     ax.annotate(
@@ -60,10 +67,8 @@ def plot_runtimes(df):
         arrowprops=dict(arrowstyle="-|>"),
     )
 
-    # plt.hist(df[duration_cols[0]])
-
     plt.tight_layout()
-
+    plt.savefig("line_graph.jpg")
     plt.show()
 
 
