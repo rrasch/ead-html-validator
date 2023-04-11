@@ -30,8 +30,8 @@ def plot_runtimes(df):
     )
 
     ax.bar_label(ax.containers[0], fmt="%.2f hours", label_type="edge")
-    ax.set_title("Total Runtimes for EAD HTML Validator")
-    ax.set_xlabel("parallelization method (8 CPUs)")
+    ax.set_title("Total Runtimes for EAD HTML Validator", pad=15)
+    ax.set_xlabel("parallelization method (8 CPUs)", labelpad=15)
     ax.set_ylabel("runtime (hours)")
     ax.set_xticklabels(labels)
 
@@ -55,8 +55,10 @@ def plot_runtimes(df):
         y=runtime_cols, use_index=True, figsize=(10, 6), rot=90, style=linestyle
     )
     ax.set_facecolor(plt.cm.Blues(0.2))
-    ax.set_title("EAD HTML Validator Runtimes Longer Than 5 Minutes")
-    ax.set_xlabel("collection name (bcms_0002 not included)")
+    ax.set_title(
+        "EAD HTML Validator Runtimes Longer Than 5 Minutes (8 CPUs)", pad=15
+    )
+    ax.set_xlabel("collection name (bcms_0002 not included)", labelpad=15)
     ax.set_ylabel("runtime (minutes)")
     ax.set_xticks(ticks=range(len(df)), labels=df["collection"])
     ax.annotate(
