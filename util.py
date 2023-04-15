@@ -325,6 +325,10 @@ def is_str(lst):
     )
 
 
+def is_url(url):
+    return urlparse(url).scheme in ["http", "https"]
+
+
 def parse_level(c):
     level, recursion = c["class"].split()
     level = level.split("-", maxsplit=1)[1]
