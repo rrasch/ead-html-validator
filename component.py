@@ -3,6 +3,7 @@ from lxml import etree as ET
 from pprint import pformat, pprint
 from resultset import ResultSet
 from urllib import parse
+from uuid import uuid4
 import constants as cs
 import logging
 import re
@@ -71,6 +72,8 @@ class Component:
         for container in self.c.xpath("did/container"):
             # data = {k: v.strip() for k, v in container.attrib.items()}
             data = dict(container.attrib)
+            if "id" not in data:
+                data["id"] = str(uuid4())
             data.update(
                 {
                     "name": container.text.strip(),
