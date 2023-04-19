@@ -151,18 +151,21 @@ class Component:
                     dao_data[field] = list(map(str.strip, result.values()))
                     # dao_data[field] = [val.strip() for val in result.values()]
 
-            # role defaults to "external-link" for missing or empty
-            # role attribute
-            if "role" not in dao_data or not dao_data["role"][0]:
+            missing_role = "role" not in dao_data or not dao_data["role"][0]
+            if (
+                missing_role
+                and "link" in dao_data
+                and not util.is_url(dao_data["link"][0])
+            ):
+                dao_data["role"] = ["non-url"]
+                non_urls = dao_data.pop("link", None)
+            elif missing_role:
                 dao_data["role"] = ["external-link"]
 
             if dao_data["role"][0] not in roles:
                 continue
 
             dao_data["desc"] = [";".join(dao_data["desc"])]
-
-            if "non-url" in dao_data["role"]:
-                non_urls = dao_data.pop("link", None)
 
             if "link" in dao_data:
                 dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
