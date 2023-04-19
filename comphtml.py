@@ -529,7 +529,7 @@ class CompHTML:
         return self.formatted_note_heading("separatedmaterial")
 
     def scopecontent(self):
-        return self.formatted_note_text("scopecontent")
+        return self.formatted_note_long("scopecontent")
 
     def scopecontent_heading(self):
         return self.formatted_note_heading("scopecontent")

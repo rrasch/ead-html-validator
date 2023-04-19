@@ -347,7 +347,7 @@ class Component:
         return self.get_text("separatedmaterial/head")
 
     def scopecontent(self):
-        return self.get_text(f"scopecontent/{LONGTEXT_XPATH}")
+        return self.get_text_long(f"scopecontent/{LONGTEXT_XPATH}")
 
     def scopecontent_heading(self):
         return self.get_text("scopecontent/head")
