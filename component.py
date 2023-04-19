@@ -161,6 +161,9 @@ class Component:
 
             dao_data["desc"] = [";".join(dao_data["desc"])]
 
+            if "non-url" in dao_data["role"]:
+                non_urls = dao_data.pop("link", None)
+
             if "link" in dao_data:
                 dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
 

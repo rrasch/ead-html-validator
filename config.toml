@@ -25,6 +25,7 @@ valid-roles = [
     "audio-service",
     "video-service",
     "external-link",
+    "non-url",
 ]
 
 [all-html]
