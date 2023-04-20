@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, NavigableString, Tag
 from lxml import etree as ET
 from pprint import pformat, pprint
 from resultset import ResultSet
@@ -288,7 +288,11 @@ class EADHTML:
                 else:
                     text = node.get_text(sep)
             else:
-                text = node.contents[0]
+                first_child = node.contents[0]
+                if isinstance(first_child, NavigableString):
+                    text = first_child
+                else:
+                    text = first_child.get_text()
             text = util.clean_text(text or "")
             if not text:
                 continue
