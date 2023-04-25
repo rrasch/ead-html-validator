@@ -573,7 +573,14 @@ class EADHTML:
         return self.find_all(re.compile(r"^h\d$"), class_="subtitle")
 
     def title(self):
-        return self.get_field("title")
+        title_set = ResultSet()
+        for titles in [
+            self.get_field("title"),
+            self.find_all(attrs={"data-field": "title"}),
+        ]:
+            if titles:
+                title_set.append(titles)
+        return title_set.rs_or_none()
 
     def title_head(self):
         return EADHTML.resultset(self.soup.title)
