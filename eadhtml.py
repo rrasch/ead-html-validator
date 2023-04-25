@@ -487,6 +487,9 @@ class EADHTML:
     def occupation(self):
         return self.get_field("occupation")
 
+    def originalsloc(self):
+        return self.formatted_note("originalsloc")
+
     def odd(self):
         return self.formatted_note("odd")
 

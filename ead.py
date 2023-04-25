@@ -294,6 +294,9 @@ class Ead:
     def occupation(self):
         return self.get_archdesc_nodsc("occupation")
 
+    def originalsloc(self):
+        return self.get_archdesc("originalsloc")
+
     def persname(self):
         return self.get_archdesc_nodsc("persname")
 
