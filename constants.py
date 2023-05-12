@@ -14,3 +14,7 @@ LONGTEXT_TAGS = ["p", "list", "chronlist"]
 LONGTEXT_XPATH = (
     "*[" + " or ".join([f"self::{tag}" for tag in LONGTEXT_TAGS]) + "]"
 )
+
+DEFAULT_HEADINGS = {
+    "accessrestrict": "Conditions Governing Access",
+}

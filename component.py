@@ -25,7 +25,7 @@ class Component:
         return self.get_text("accessrestrict/*[not(self::head)]")
 
     def accessrestrict_heading(self):
-        return self.get_text("accessrestrict/head")
+        return self.heading("accessrestrict")
 
     def accruals(self):
         return self.get_text("accruals/p")
@@ -276,6 +276,13 @@ class Component:
             ignore_space=True,
             **kwargs,
         )
+
+    def heading(self, field):
+        head = self.get_text(f"{field}/head")
+        if head:
+            return head
+        default = cs.DEFAULT_HEADINGS.get(field, None)
+        return ResultSet().add("None", default, -1) if default else None
 
     def _id(self):
         return self.c.attrib["id"]
