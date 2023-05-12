@@ -281,8 +281,12 @@ class Component:
         head = self.get_text(f"{field}/head")
         if head:
             return head
+        field_exists = self.c.xpath(field)
         default = cs.DEFAULT_HEADINGS.get(field, None)
-        return ResultSet().add("None", default, -1) if default else None
+        if field_exists and default:
+            return ResultSet().add("None", default, -1)
+        else:
+            None
 
     def _id(self):
         return self.c.attrib["id"]
