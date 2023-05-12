@@ -361,15 +361,8 @@ def validate_component(
 
     logging.info(f"Performing checks for component {c.id}")
 
-    for method_name, comp_method in util.get_methods(c, "dao").items():
-        match = re.search(r"component", method_name)
-        if match:
-            logging.debug(f"Skipping {method_name}...")
-            continue
-
-        if method_name in config["exclude-checks"]["component"]:
-            logging.debug(f"Skipping {method_name}...")
-            continue
+    for method_name in config["checks"]["component"]:
+        comp_method = getattr(c, method_name)
 
         logging.debug(f"calling Component.{method_name}()")
         args = []
@@ -677,15 +670,8 @@ def main():
 
     logging.info("Performing top level checks.")
 
-    for method_name, ead_method in util.get_methods(my_ead).items():
-        match = re.search(r"component", method_name)
-        if match:
-            logging.debug(f"Skipping {method_name}...")
-            continue
-
-        if method_name in config["exclude-checks"]["top-level"]:
-            logging.debug(f"Skipping {method_name}...")
-            continue
+    for method_name in config["checks"]["top-level"]:
+        ead_method = getattr(my_ead, method_name)
 
         logging.debug(f"calling EAD.{method_name}()")
         ead_retval = ead_method()
