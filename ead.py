@@ -96,6 +96,7 @@ class Ead:
         result = ResultSet(xpath=expr, value_type=dict)
         for item in chron_items:
             date = item.xpath("date")[0].text.strip()
+            date = " ".join(date.split())
             events = []
             for event in item.xpath(".//event"):
                 events.append(util.clean_text("".join(event.itertext())))
