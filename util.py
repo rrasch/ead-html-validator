@@ -97,13 +97,20 @@ def change_handle_scheme(*links):
 
 def clean_date(date):
     punc = ",;"
-    return date.strip(f" {punc}")
+    date = date.strip(f" {punc}")
+    date = re.sub(rf"\s([{re.escape(punc)}](?:\s|$))", r"\1", date)
+    return date
+
+
+def clean_date_normal(date):
+    return "-".join(set(date.split("/", maxsplit=1)))
 
 
 def clean_text(text):
     text = re.sub(r"\s+", " ", text)
     # text = re.sub(r'\s([?.!"](?:\s|$))', r"\1", text)
     punc = re.sub(r"[-&#<>]", "", string.punctuation)
+    # strip whitespace before punctuation
     text = re.sub(rf"\s([{re.escape(punc)}](?:\s|$))", r"\1", text)
 
     # chars showing up in the query strings of urls

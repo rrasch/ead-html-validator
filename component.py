@@ -390,12 +390,24 @@ class Component:
         return self.unittitle()
 
     def unitdate(self):
-        dates = self.get_text_join(
-            "did/unitdate", join_uniq=False, join_sep=", "
-        )
-        if dates:
-            dates = dates.update_values(util.clean_date)
-        return dates
+        date_xpath = "did/unitdate[@datechar='creation']"
+        unitdates = ResultSet(xpath=date_xpath)
+
+        for date in self.c.xpath(date_xpath):
+            val = date.text.strip()
+            if val:
+                val = util.clean_date(val)
+                if "type" in date.attrib:
+                    val += ", " + date.get("type")
+            elif "normal" in date.attrib:
+                val = date.get("normal")
+                val = util.clean_date_normal(val)
+                print(val)
+
+            if val:
+                unitdates.add(date.tag, val, date.sourceline)
+
+        return unitdates.rs_or_none()
 
     def unitid(self):
         return self.get_text("did/unitid")
