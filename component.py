@@ -407,7 +407,7 @@ class Component:
             if val:
                 unitdates.add(date.tag, val, date.sourceline)
 
-        return unitdates.rs_or_none()
+        return unitdates.join(uniq=False, sep="; ") if unitdates else None
 
     def unitid(self):
         return self.get_text("did/unitid")

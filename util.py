@@ -96,7 +96,8 @@ def change_handle_scheme(*links):
 
 
 def clean_date(date):
-    punc = ",;"
+    punc = ",;/?"
+    date = " ".join(date.split())
     date = date.strip(f" {punc}")
     date = re.sub(rf"\s([{re.escape(punc)}](?:\s|$))", r"\1", date)
     return date

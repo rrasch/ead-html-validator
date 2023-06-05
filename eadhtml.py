@@ -592,7 +592,10 @@ class EADHTML:
         return self.get_group_div_text("unit_date")
 
     def unitdate_all(self):
-        return self.unitdate().update_values(EADHTML.clean_date)
+        dates = self.unitdate()
+        if dates:
+            dates = dates.update_values(EADHTML.clean_date)
+        return dates
 
     def unitdate_bulk(self):
         return self.unitdate().grep(lambda date: "bulk" in date)

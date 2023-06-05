@@ -356,7 +356,7 @@ class Ead:
         return self.get_text(f"{self.archdesc_xpath}/did/unitdate{expr}")
 
     def unitdate_all(self):
-        return self.unitdate("")
+        return self.unitdate("[@datechar='creation']")
 
     def _unitdate_bulk(self):
         return self.unitdate("[@type='bulk']")
