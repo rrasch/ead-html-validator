@@ -274,6 +274,7 @@ class CompHTML:
         sep="",
         join_sep=" ",
         ignore_space=False,
+        clean_txt=True,
         **kwargs,
     ):
         nodes = root.find_all(*args, **kwargs)
@@ -302,7 +303,8 @@ class CompHTML:
                     elif isinstance(child, NavigableString):
                         text += child
                         break
-            text = util.clean_text(text or "")
+            if clean_txt:
+                text = util.clean_text(text or "")
             if not text:
                 continue
             result.add(node.name, text, node.sourceline)
@@ -564,7 +566,9 @@ class CompHTML:
         )
         if not unit_title:
             return None
-        dates = CompHTML.find_all(unit_title, "span", class_="dates")
+        dates = CompHTML.find_all(
+            unit_title, "span", class_="dates", clean_txt=False
+        )
         if dates:
             dates = dates.update_values(util.clean_date)
         return dates

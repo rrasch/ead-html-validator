@@ -267,6 +267,7 @@ class EADHTML:
         join_sep="",
         join_unique=True,
         ignore_space=False,
+        clean_txt=True,
         **kwargs,
     ):
         if root is None:
@@ -293,7 +294,8 @@ class EADHTML:
                     text = first_child
                 else:
                     text = first_child.get_text()
-            text = util.clean_text(text or "")
+            if clean_txt:
+                text = util.clean_text(text or "")
             if not text:
                 continue
             result.add(node.name, text, node.sourceline)
@@ -383,10 +385,10 @@ class EADHTML:
         return result if result else None
 
     # XXX use recursive
-    def get_group_div_text(self, group_name):
+    def get_group_div_text(self, group_name, **kwargs):
         group = self.soup.find("div", class_=f"md-group {group_name}")
         if group and group.div:
-            return self.find_all("div", root=group)
+            return self.find_all("div", root=group, **kwargs)
         else:
             return None
 
@@ -589,13 +591,14 @@ class EADHTML:
         return EADHTML.resultset(self.soup.title)
 
     def unitdate(self):
-        return self.get_group_div_text("unit_date")
+        return self.get_group_div_text("unit_date", clean_txt=False)
 
     def unitdate_all(self):
         dates = self.unitdate()
         if dates:
-            dates = dates.update_values(EADHTML.clean_date)
-        return dates
+            dates = dates.update_values(util.clean_date)
+            dates = dates.join(uniq=False, sep="")
+        return dates.rs_or_none()
 
     def unitdate_bulk(self):
         return self.unitdate().grep(lambda date: "bulk" in date)

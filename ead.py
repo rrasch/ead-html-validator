@@ -353,7 +353,23 @@ class Ead:
         return self.get_archdesc_nodsc("title")
 
     def unitdate(self, expr):
-        return self.get_text(f"{self.archdesc_xpath}/did/unitdate{expr}")
+        date_xpath = f"{self.archdesc_xpath}/did/unitdate{expr}"
+        unitdates = ResultSet(xpath=date_xpath)
+
+        for date in self.root.xpath(date_xpath):
+            val = date.text.strip()
+            if val:
+                val = util.clean_date(val)
+                if "type" in date.attrib:
+                    val += ", " + date.get("type")
+            elif "normal" in date.attrib:
+                val = date.get("normal")
+                val = util.clean_date_normal(val)
+
+            if val:
+                unitdates.add(date.tag, val, date.sourceline)
+
+        return unitdates.join(uniq=False, sep="; ") if unitdates else None
 
     def unitdate_all(self):
         return self.unitdate("[@datechar='creation']")

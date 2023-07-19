@@ -402,7 +402,6 @@ class Component:
             elif "normal" in date.attrib:
                 val = date.get("normal")
                 val = util.clean_date_normal(val)
-                print(val)
 
             if val:
                 unitdates.add(date.tag, val, date.sourceline)
