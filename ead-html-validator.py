@@ -531,6 +531,11 @@ def main():
         help="Indent XML with xsltproc and HTML files using tidy.",
     )
     parser.add_argument(
+        "--indent-dir",
+        default=os.getcwd(),
+        help="Directory where indented xml files are stored (default: %(default)s)",
+    )
+    parser.add_argument(
         "-b", "--broken-links", action="store_true", help="Find broken urls"
     )
     parser.add_argument(
@@ -609,7 +614,12 @@ def main():
     logging.debug("ead file: %s", ead_file)
     logging.debug("html dir: %s", html_dir)
 
-    pretty_ead_file = util.change_ext(ead_file, "-pretty.xml")
+    if args.indent_dir:
+        pretty_ead_file = os.path.join(
+            args.indent_dir, Path(ead_file).stem + "-pretty.xml"
+        )
+    else:
+        pretty_ead_file = util.change_ext(ead_file, "-pretty.xml")
     indent_file = os.path.join(script_dir, "indent.xsl")
     xsltproc = shutil.which("xsltproc")
     if (
