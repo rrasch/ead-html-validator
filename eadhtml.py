@@ -598,7 +598,9 @@ class EADHTML:
         if dates:
             dates = dates.update_values(util.clean_date)
             dates = dates.join(uniq=False, sep="")
-        return dates.rs_or_none()
+            return dates
+        else:
+            return None
 
     def unitdate_bulk(self):
         return self.unitdate().grep(lambda date: "bulk" in date)
