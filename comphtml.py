@@ -55,7 +55,7 @@ class CompHTML:
         return self.formatted_note_heading("arrangement")
 
     def bioghist(self):
-        return self.formatted_note_text("bioghist")
+        return self.formatted_note_long("bioghist")
 
     def bioghist_heading(self):
         return self.formatted_note_heading("bioghist")

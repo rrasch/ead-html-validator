@@ -59,7 +59,8 @@ class Component:
 
     def bioghist(self):
         # return self.get_text("bioghist/*[self::p or self::list]")
-        return self.get_text("bioghist/p")
+        # return self.get_text("bioghist/p")
+        return self.get_text_long(f"bioghist/{LONGTEXT_XPATH}")
 
     def bioghist_heading(self):
         return self.get_text("bioghist/head")
