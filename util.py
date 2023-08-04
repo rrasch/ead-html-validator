@@ -321,6 +321,13 @@ def has_newline(text_list):
     return any("\n" in text for text in text_list)
 
 
+def is_dlts_handle(url_str):
+    url = urlparse(url_str)
+    return url.netloc == "hdl.handle.net" and re.search(
+        r"^/2333.1/[a-z0-9]+$", url.path
+    )
+
+
 def is_str(lst):
     return (
         len(lst) == 1
