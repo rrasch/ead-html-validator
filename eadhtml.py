@@ -256,6 +256,9 @@ class EADHTML:
                 famnames.append(result)
         return famnames if famnames else None
 
+    def fasb_version(self):
+        return self.soup.find("meta", attrs={"name": "appversion"})["content"]
+
     def find_all(
         self,
         *args,
