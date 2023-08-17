@@ -15,6 +15,7 @@ following modules:
 
 - anytree
 - beautifulsoup4
+- inflect
 - pycountry
 - python-dateutil
 - python-Levenshtein
