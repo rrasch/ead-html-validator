@@ -19,11 +19,24 @@ component = [
 
 [dao]
 valid-roles = [
-    "image-service",
+    "Image-Service",
+    "audio-master",
+    "audio-reading-room",
     "audio-service",
-    "video-service",
+    "audio-service",
+    "electronic-records-master",
+    "electronic-records-reading-room",
     "external-link",
+    "image-service",
+    "image-service",
+    "image-thumbnail",
+    "image-thumbnail",
     "non-url",
+    "video-master",
+    "video-reading-room",
+    "video-service",
+    "video-service",
+    "video-streaming",
 ]
 
 [all-html]

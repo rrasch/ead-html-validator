@@ -23,6 +23,7 @@ import difflib
 import ead
 import eadhtml
 import functools
+import inflect
 import inspect
 import logging
 import os.path
@@ -646,10 +647,15 @@ def main():
     global my_ead
     my_ead = ead.Ead(ead_file)
 
-    logging.info(f"The EAD has {my_ead.c_count()} components.")
+    num_comp = my_ead.c_count()
+    p = inflect.engine()
+    p.num(num_comp)
+    logging.info(f"The EAD has {p.no('component')}.")
 
     top_html_file = os.path.join(html_dir, "index.html")
     top_ehtml = eadhtml.EADHTML(top_html_file, parser=args.html_parser)
+
+    logging.info(f"FASB Version: {top_ehtml.fasb_version()}")
 
     ead_date = my_ead.creation_date().values()[0]
     html_date = top_ehtml.creation_date().values()[0]
@@ -868,7 +874,8 @@ def main():
     duration = util.format_duration(end_time - start_time)
 
     if errors:
-        print(f"There are {len(errors)} errors.")
+        p.num(len(errors))
+        print(f"There {p.plural_verb('is')} {p.no('error')}.")
         for error in errors:
             print(f"ERROR: {error}\n")
 

@@ -2,6 +2,7 @@ anytree
 beautifulsoup4 >= 4.11.2
 cachetools
 html5lib
+inflect
 pycountry
 python-dateutil
 python-Levenshtein

@@ -152,24 +152,29 @@ class Component:
             for field, expr in xpath_fields.items():
                 result = util.xpath(dao, expr, all_text=True)
                 if result:
-                    dao_data[field] = list(map(str.strip, result.values()))
-                    # dao_data[field] = [val.strip() for val in result.values()]
+                    dao_data[field] = result.values()
 
-            missing_role = "role" not in dao_data or not dao_data["role"][0]
-            if (
-                missing_role
-                and "link" in dao_data
-                and not util.is_url(dao_data["link"][0])
-            ):
+            is_invalid_url = "link" in dao_data and not util.is_url(
+                dao_data["link"][0]
+            )
+            is_missing_role = "role" not in dao_data or not dao_data["role"][0]
+
+            if is_invalid_url:
                 dao_data["role"] = ["non-url"]
-                non_urls = dao_data.pop("link", None)
-            elif missing_role:
+                invalid_urls = dao_data.pop("link", None)
+                if invalid_urls:
+                    logging.debug(f"{invalid_urls=}")
+            elif is_missing_role:
+                dao_data["role"] = ["external-link"]
+            elif not dao_data["role"][0].endswith("-reading-room") and any(
+                not util.is_dlts_handle(link) for link in dao_data["link"]
+            ):
                 dao_data["role"] = ["external-link"]
 
             if dao_data["role"][0] not in roles:
                 continue
 
-            dao_data["desc"] = [";".join(dao_data["desc"])]
+            dao_data["desc"] = [";".join(dao_data.get("desc", []))]
 
             if "link" in dao_data:
                 dao_data["link"] = util.change_handle_scheme(*dao_data["link"])

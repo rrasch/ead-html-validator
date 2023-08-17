@@ -338,7 +338,7 @@ def is_str(lst):
 
 
 def is_url(url):
-    return urlparse(url).scheme in ["http", "https"]
+    return urlparse(url).scheme in ["http", "https"] and not url.endswith("\n")
 
 
 def parse_level(c):
