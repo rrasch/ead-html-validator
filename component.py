@@ -161,22 +161,35 @@ class Component:
 
             if is_invalid_url:
                 dao_data["role"] = ["non-url"]
-                invalid_urls = dao_data.pop("link", None)
-                if invalid_urls:
-                    logging.debug(f"{invalid_urls=}")
             elif is_missing_role:
                 dao_data["role"] = ["external-link"]
-            elif not dao_data["role"][0].endswith("-reading-room") and any(
-                not util.is_dlts_handle(link) for link in dao_data["link"]
-            ):
+            elif dao_data["role"][0].endswith("-reading-room"):
+                pass
+            elif dao_data["role"][0] in [
+                "image-service",
+                "audio-service",
+                "video-service",
+                "image-thumbnail",
+            ]:
+                if any(
+                    not util.is_dlts_handle(link) for link in dao_data["link"]
+                ):
+                    dao_data["role"] = ["external-link"]
+            else:
                 dao_data["role"] = ["external-link"]
-
-            if dao_data["role"][0] not in roles:
-                continue
 
             dao_data["desc"] = [";".join(dao_data.get("desc", []))]
 
-            if "link" in dao_data:
+            if is_invalid_url:
+                invalid_urls = dao_data.pop("link", None)
+                if invalid_urls:
+                    logging.debug(f"{invalid_urls=}")
+            elif dao_data["role"][0].endswith("-reading-room"):
+                dao_data.pop("link", None)
+            elif dao_data["role"][0] == "image-thumbnail":
+                dao_data.pop("desc", None)
+                dao_data.pop("link", None)
+            elif "link" in dao_data:
                 dao_data["link"] = util.change_handle_scheme(*dao_data["link"])
 
             # put dict back in order
