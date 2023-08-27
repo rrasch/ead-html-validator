@@ -253,7 +253,7 @@ class Component:
         return result.rs_or_none()
 
     def famname(self):
-        return self.get_text_join("controlaccess/famname")
+        return self.get_text("controlaccess/famname")
 
     def fileplan(self):
         return self.get_text("fileplan/p")
