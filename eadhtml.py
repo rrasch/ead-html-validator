@@ -237,7 +237,9 @@ class EADHTML:
 
     def ead_class_values(self, class_name, all_values=False, get_text=True):
         return self.class_values_helper(
-            f"ead-{class_name}", all_values=all_values, get_text=get_text
+            re.compile(rf"^ead-{class_name}($| )"),
+            all_values=all_values,
+            get_text=get_text,
         )
 
     def editionstmt(self):
