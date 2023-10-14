@@ -27,27 +27,42 @@ following modules:
 
 ## Installation
 
-Checkout validator repository on github:
+Ensure that you have Python 3.9+ installed on your system:
+```
+    python3.9 -V
+```
 
-    $ cd ~
-    $ git clone https://github.com/rrasch/ead-html-validator.git
+To install Python 3.9 on a Linux system:
+```
+    sudo su -
+    dnf install python39 -y
+```
+
+Checkout validator repository on github:
+```
+    cd ~
+    git clone https://github.com/rrasch/ead-html-validator.git
+```
 
 Set up virtual environment:
-
-    $ mkdir ~/venv
-    $ cd ~/venv
-    $ python3 -m venv ead-html-validator
-    $ source ead-html-validator/bin/activate
-    $ pip3 install -r ~/ead-html-validator/requirements.txt
+```
+    mkdir ~/venv
+    cd ~/venv
+    python3.9 -m venv ead-html-validator
+    source ead-html-validator/bin/activate
+    pip3 install -r ~/ead-html-validator/requirements.txt
+```
 
 Test out the script:
-
-    $ cd ~/ead-html-validator
-    $ ./ead-html-validator.py
+```
+    cd ~/ead-html-validator
+    ./ead-html-validator.py
+```
 
 To exit the virtual enviroment:
-
-    $ deactivate
+```
+    deactivate
+```
 
 ## Usage ##
 
@@ -57,8 +72,9 @@ The tools takes in two arguments:
 - the path to a directory containing HTML files
 
 The command line looks like the following
-
+```
     ead-html-validator <ead_xml_file> <finding_aids_html_dir>
+```
 
 ## Debugging
 
