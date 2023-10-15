@@ -1,13 +1,13 @@
 from collections import defaultdict
-from constants import LONGTEXT_XPATH
+from ead_html_validator.component import Component
+from ead_html_validator.constants import LONGTEXT_XPATH
+from ead_html_validator.resultset import ResultSet
 from lxml import etree as ET
 from pprint import pprint
-from resultset import ResultSet
-import component
+import ead_html_validator.util as util
 import logging
 import os.path
 import re
-import util
 
 
 class Ead:
@@ -121,11 +121,11 @@ class Ead:
     def component(self):
         components = []
         for c in self.root.xpath("//c[not(ancestor::c)]"):
-            components.append(component.Component(c, self))
+            components.append(Component(c, self))
         return components
 
     def all_components(self):
-        return [component.Component(c, self) for c in self.root.xpath("//c")]
+        return [Component(c, self) for c in self.root.xpath("//c")]
 
     def all_component_ids(self):
         return [c.get("id") for c in self.root.xpath("//c")]

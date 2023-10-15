@@ -1,9 +1,9 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
-from resultset import ResultSet
+from ead_html_validator.resultset import ResultSet
+import ead_html_validator.util as util
 import logging
 import os.path
 import re
-import util
 
 
 class CompHTML:

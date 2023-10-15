@@ -2,10 +2,10 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from dateutil.parser import parse, ParserError
 from dateutil.relativedelta import relativedelta
+from ead_html_validator.resultset import ResultSet
 from html.entities import codepoint2name
 from lxml import etree as ET
 from pprint import pprint, pformat
-from resultset import ResultSet
 from urllib.parse import urlparse, urlsplit, urlunsplit
 import csv
 import inspect

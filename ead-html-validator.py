@@ -4,24 +4,22 @@ from anytree import Node, RenderTree
 from cachetools import LRUCache
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from component import Component
-from eaderr import Errors
+from ead_html_validator import Component
+from ead_html_validator import EADHTML
+from ead_html_validator import Ead
+from ead_html_validator import Errors
+from ead_html_validator import RequestMaterials
+from ead_html_validator import ResultSet
+from ead_html_validator import util
 from importlib import import_module
 from lxml import etree as ET
 from multiprocessing import Manager, get_context
 from pathlib import Path
 from pprint import pprint, pformat
-from requestmaterials import RequestMaterials
-from resultset import ResultSet
 from subprocess import PIPE
-# from thefuzz import fuzz
-# from thefuzz import process
 from tqdm import tqdm
 import argparse
-import constants
 import difflib
-import ead
-import eadhtml
 import functools
 import inflect
 import inspect
@@ -29,17 +27,16 @@ import logging
 import os.path
 import pkg_resources
 import re
+import shutil
+import sys
 import textwrap
 import threading
 import time
 import tomli
 import traceback
-import shutil
-import sys
-import util
 
 
-# print = functools.partial(print, flush=True)
+print = functools.partial(print, flush=True)
 
 
 class EHTMLCache(LRUCache):

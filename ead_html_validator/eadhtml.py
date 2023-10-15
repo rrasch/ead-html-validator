@@ -1,15 +1,14 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
+from ead_html_validator.comphtml import CompHTML
+from ead_html_validator.resultset import ResultSet
 from lxml import etree as ET
 from pprint import pformat, pprint
-from resultset import ResultSet
 from string import punctuation
 from subprocess import PIPE
-import comphtml
+import ead_html_validator.util as util
 import logging
-# import pycountry
 import re
 import shutil
-import util
 
 
 class ComponentNotFoundError(Exception):
@@ -130,7 +129,7 @@ class EADHTML:
         comps = []
         for c in first_c.parent.find_all("div", class_=regex, recursive=False):
             cid = c["id"] if c.has_attr("id") else c.h1["id"]
-            comp = comphtml.CompHTML(c, cid)
+            comp = CompHTML(c, cid)
             if comp.level == "dl-presentation":
                 for present_comp in comp.component():
                     present_comp.present_id = cid
@@ -314,9 +313,9 @@ class EADHTML:
         node = self.soup.find(attrs={"id": cid})
         if node is not None:
             if node.name == "div":
-                return comphtml.CompHTML(node, cid)
+                return CompHTML(node, cid)
             elif node.name.startswith("h"):
-                return comphtml.CompHTML(node.parent, cid)
+                return CompHTML(node.parent, cid)
             else:
                 raise ValueError("Invalid tag for component")
         else:
@@ -327,7 +326,7 @@ class EADHTML:
     def find_component_by_heading(self, head_id):
         head = self.soup.find(re.compile(r"^h\d$"), {"id": head_id})
         if head is not None:
-            return comphtml.CompHTML(head.parent, head_id)
+            return CompHTML(head.parent, head_id)
         else:
             raise ComponentNotFoundError(
                 f"Can't find {head_id} in {self.html_file}"

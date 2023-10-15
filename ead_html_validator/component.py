@@ -1,13 +1,13 @@
-from constants import LONGTEXT_XPATH
+from ead_html_validator.constants import LONGTEXT_XPATH
+from ead_html_validator.resultset import ResultSet
+import ead_html_validator.constants as cs
+import ead_html_validator.util as util
 from lxml import etree as ET
 from pprint import pformat, pprint
-from resultset import ResultSet
 from urllib import parse
 from uuid import uuid4
-import constants as cs
 import logging
 import re
-import util
 
 
 class Component:
