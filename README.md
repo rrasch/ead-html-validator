@@ -27,12 +27,17 @@ following modules:
 
 ## Installation
 
+Make sure you have python version 3.7 or greater.  The following
+[document](Install-Python.md) gives some direction for installing python on various
+operating systems: [Install-Python.md](Install-Python.md)
+
 Checkout validator repository on github:
 
     $ cd ~
     $ git clone https://github.com/rrasch/ead-html-validator.git
 
-Set up virtual environment:
+Set up a virtual environment.  For example, to create one in
+your home directory:
 
     $ mkdir ~/venv
     $ cd ~/venv
@@ -42,10 +47,9 @@ Set up virtual environment:
 
 Test out the script:
 
-    $ cd ~/ead-html-validator
-    $ ./ead-html-validator.py
+    $ ead-html-validator.py
 
-To exit the virtual enviroment:
+To exit the virtual environment:
 
     $ deactivate
 
@@ -58,9 +62,8 @@ The tools takes in two arguments:
 
 The command line looks like the following
 
-    ead-html-validator <ead_xml_file> <finding_aids_html_dir>
+    ead-html-validator.py <ead_xml_file> <finding_aids_html_dir>
 
 ## Debugging
 
 Add the -d switch for debugging output
-

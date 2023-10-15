@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ead-html-validator"
+version = "0.0.1"
+authors = [
+  { name="Rasan Rasch", email="rrasch.dev@gmail.com" },
+]
+description = "Validate finding aids html generated from eads"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["ead", "finding aids"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "anytree",
+    "beautifulsoup4 >= 4.11.2",
+    "cachetools",
+    "html5lib",
+    "inflect",
+    "pycountry",
+    "python-dateutil",
+    "python-Levenshtein",
+    "requests",
+    "lxml",
+    "tomli",
+    "tqdm",
+    "thefuzz",
+]
+
+[tool.setuptools]
+packages = ["ead_html_validator"]
+script-files = ["ead-html-validator.py"]
+
+[project.urls]
+"Homepage" = "https://github.com/rrasch/ead-html-validor"
