@@ -143,7 +143,7 @@ class Ead:
         for field in ["corpname", "famname", "persname"]:
             expr = (
                 f"{self.archdesc_xpath}/did/origination[@label='Creator'"
-                f" or @label='source']/{field}"
+                f" or @label='creator' or @label='source']/{field}"
             )
             result = self.xpath(expr)
             if result:
@@ -158,7 +158,7 @@ class Ead:
         logging.debug(creator_expr)
         creator_xpath = (
             f"{self.archdesc_xpath}/did/"
-            "origination[@label='Creator' or"
+            "origination[@label='Creator' or @label='creator' or"
             f" @label='source']/*[{creator_expr}]"
         )
         logging.debug(creator_xpath)
