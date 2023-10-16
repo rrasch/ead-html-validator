@@ -111,7 +111,8 @@ class Component:
 
     def creator(self):
         return self.get_text(
-            "did/origination[@label='Creator' or @label='source']/"
+            "did/origination[@label='Creator' or @label='creator'"
+            " or @label='source']/"
             "*[substring(name(),"
             " string-length(name()) - string-length('name') + 1) = 'name']"
         )
