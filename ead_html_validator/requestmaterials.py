@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from typing import List
 import re
 
 
@@ -9,7 +10,7 @@ class RequestMaterials:
         )
         self.html_file = html_file
 
-    def find_links(self):
+    def find_links(self) -> List[str]:
         return [
             a.get("href")
             for a in self.soup.find_all(

@@ -5,7 +5,8 @@ from dateutil.relativedelta import relativedelta
 from ead_html_validator.resultset import ResultSet
 from html.entities import codepoint2name
 from lxml import etree as ET
-from pprint import pprint, pformat
+from subprocess import CalledProcessError, CompletedProcess, run
+from typing import Callable, Dict, List, Tuple
 from urllib.parse import urlparse, urlsplit, urlunsplit
 import csv
 import inspect
@@ -15,7 +16,6 @@ import os.path
 import re
 import requests
 import string
-import subprocess
 
 
 class CommandFailedError(Exception):
@@ -23,7 +23,7 @@ class CommandFailedError(Exception):
 
 
 # https://stackoverflow.com/a/35804945/1691778
-def addLoggingLevel(levelName, levelNum, methodName=None):
+def addLoggingLevel(levelName, levelNum, methodName=None) -> None:
     """
     Comprehensively adds a new logging level to the `logging` module and the
     currently configured logging class.
@@ -80,12 +80,12 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     setattr(logging, methodName, logToRoot)
 
 
-def change_ext(filename, new_ext):
+def change_ext(filename, new_ext) -> str:
     basename, ext = os.path.splitext(filename)
     return f"{basename}{new_ext}"
 
 
-def change_handle_scheme(*links):
+def change_handle_scheme(*links) -> List[str]:
     new_links = []
     for link in links:
         url_parts = list(urlsplit(link))
@@ -95,16 +95,16 @@ def change_handle_scheme(*links):
     return new_links
 
 
-def clean_date(date):
+def clean_date(date) -> str:
     date = " ".join(date.split())
     return date
 
 
-def clean_date_normal(date):
+def clean_date_normal(date) -> str:
     return "-".join(set(date.split("/", maxsplit=1)))
 
 
-def clean_text(text):
+def clean_text(text) -> str:
     text = re.sub(r"\s+", " ", text)
     # text = re.sub(r'\s([?.!"](?:\s|$))', r"\1", text)
     punc = re.sub(r"[-&#<>]", "", string.punctuation)
@@ -128,11 +128,11 @@ def clean_text(text):
     return text
 
 
-def clean_text2(text):
+def clean_text2(text) -> str:
     return " ".join(text.split()).strip()
 
 
-def create_args_str(*args, **kwargs):
+def create_args_str(*args, **kwargs) -> str:
     sep = ", "
     arg_str = sep.join([quote(a) for a in args])
     kw_str = sep.join([f"{k}={quote(kwargs[k])}" for k in kwargs.keys()])
@@ -145,7 +145,7 @@ def create_args_str(*args, **kwargs):
         return kw_str
 
 
-def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
+def do_cmd(cmdlist, allowed_returncodes=None, **kwargs) -> CompletedProcess:
     cmd = list(map(str, cmdlist))
     logging.debug("Running command: %s", " ".join(cmd))
 
@@ -155,10 +155,10 @@ def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
 
     process = None
     try:
-        process = subprocess.run(
+        process = run(
             cmd, check=False, universal_newlines=True, **kwargs
         )
-    except subprocess.CalledProcessError as e:
+    except CalledProcessError as e:
         logging.exception(e)
     except Exception as e:
         logging.exception(e)
@@ -166,7 +166,7 @@ def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
     if process and process.returncode in ok_returncodes:
         return process
     elif process:
-        print(process.stderr)
+        logging.error(process.stderr)
         process.check_returncode()
     else:
         raise CommandFailedError(f"Error running {cmd}")
@@ -175,7 +175,7 @@ def do_cmd(cmdlist, allowed_returncodes=None, **kwargs):
 # https://beckism.com/2009/03/named_entities_python/
 def encode_named_entities(
     text, convert_less_than=False, convert_greater_than=False
-):
+) -> str:
     """Converts UTF-8 characters into HTML entities
 
     By default, all non-ASCII characters and ampersand will be converted to named
@@ -217,7 +217,7 @@ def encode_named_entities(
     return "".join(new_text_list)
 
 
-def find_broken_links(links):
+def find_broken_links(links) -> List[str]:
     # Internal function for validating HTTP status code.
     def _validate_url(url):
         r = requests.head(url)
@@ -232,7 +232,7 @@ def find_broken_links(links):
     return broken_links
 
 
-def format_duration(duration):
+def format_duration(duration) -> str:
     attrs = ["years", "months", "days", "hours", "minutes", "seconds"]
     delta = relativedelta(seconds=duration)
     return ", ".join(
@@ -248,7 +248,7 @@ def format_duration(duration):
     )
 
 
-def get_links(html_file):
+def get_links(html_file) -> List[str]:
     soup = BeautifulSoup(open(html_file), "html.parser")
     link = soup.find("link", rel="canonical")
     base_url = None
@@ -273,7 +273,7 @@ def get_links(html_file):
     return list(links)
 
 
-def get_methods(obj, *includes):
+def get_methods(obj, *includes) -> Dict[str, Callable]:
     methods = {}
 
     for attr_name in sorted(dir(obj)):
@@ -290,7 +290,7 @@ def get_methods(obj, *includes):
     return methods
 
 
-def get_text_long(self, expr, **kwargs):
+def get_text_long(self, expr, **kwargs) -> ResultSet:
     return util.xpath(
         self.root,
         expr,
@@ -303,7 +303,7 @@ def get_text_long(self, expr, **kwargs):
     )
 
 
-def get_xpaths(tsv_file):
+def get_xpaths(tsv_file) -> Dict[str, str]:
     xpath = {}
     with open(tsv_file) as f:
         read_tsv = csv.reader(f, delimiter="\t")
@@ -317,18 +317,18 @@ def get_xpaths(tsv_file):
     return xpath
 
 
-def has_newline(text_list):
+def has_newline(text_list) -> bool:
     return any("\n" in text for text in text_list)
 
 
-def is_dlts_handle(url_str):
+def is_dlts_handle(url_str) -> bool:
     url = urlparse(url_str)
     return url.netloc == "hdl.handle.net" and re.search(
         r"^/2333.1/[a-z0-9]+$", url.path
     )
 
 
-def is_str(lst):
+def is_str(lst) -> bool:
     return (
         len(lst) == 1
         and type(lst[0]) is str
@@ -337,22 +337,22 @@ def is_str(lst):
     )
 
 
-def is_url(url):
+def is_url(url) -> bool:
     return urlparse(url).scheme in ["http", "https"] and not url.endswith("\n")
 
 
-def parse_level(c):
+def parse_level(c) -> Tuple[str, int]:
     level, recursion = c["class"].split()
     level = level.split("-", maxsplit=1)[1]
     recursion = int(recursion[-1])
     return (level, recursion)
 
 
-def pretty_format(mydict):
+def pretty_format(mydict) -> str:
     return json.dumps(mydict, indent=2)
 
 
-def quote(val):
+def quote(val) -> str:
     if type(val) == str:
         return f"'{val}'"
     else:
@@ -360,7 +360,7 @@ def quote(val):
 
 
 # https://stackoverflow.com/questions/18159221/remove-namespace-and-prefix-from-xml-in-python-using-lxml
-def remove_namespace(doc, namespace):
+def remove_namespace(doc, namespace) ->  None:
     """Remove namespace in the passed document in place."""
     ns = "{%s}" % namespace
     nsl = len(ns)
@@ -374,18 +374,18 @@ def remove_namespace(doc, namespace):
                 elem.attrib[attr_name[nsl:]] = elem.attrib.pop(attr_name)
 
 
-def resolve_handle(url):
+def resolve_handle(url) -> str:
     response = requests.get(url, allow_redirects=False)
     soup = BeautifulSoup(response.text, "html.parser")
     return soup.a["href"]
 
 
-def sort_dict(mydict):
+def sort_dict(mydict) -> dict:
     return dict(sorted(mydict.items(), key=lambda item: item[1]))
 
 
 # https://stackoverflow.com/questions/4624062/get-all-text-inside-a-tag-in-lxml
-def stringify_children(node):
+def stringify_children(node) -> str:
     s = node.text
     if s is None:
         s = ""
@@ -399,14 +399,14 @@ def stringify_children(node):
     return s
 
 
-def strings(tag):
+def strings(tag) -> str:
     text = ""
     for string in tag.strings:
         text += string
     return text
 
 
-def strip_date(title):
+def strip_date(title) -> str:
     title_list = title.rsplit(":", 1)
     if len(title_list) == 1:
         return title
@@ -417,7 +417,7 @@ def strip_date(title):
         return title
 
 
-def tag_text(tag):
+def tag_text(tag) -> str:
     return "".join(tag.itertext())
 
 
@@ -430,7 +430,7 @@ def xpath(
     sep="",
     join_sep="",
     ignore_space=False,
-):
+) -> ResultSet:
     attrib = None
     match = re.search(r"(/@([A-Za-z]+))$", expr)
     if match:
