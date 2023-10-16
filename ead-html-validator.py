@@ -604,7 +604,7 @@ def main():
     logging.debug(f"Installed packages: {pformat(installed_pkgs)}")
 
     config = read_config(os.path.join(script_dir, "config.toml"))
-    logging.debug(config)
+    logging.debug("config: %s", pformat(config))
 
     ead_file = os.path.abspath(args.ead_file)
     html_dir = os.path.abspath(args.html_dir)
