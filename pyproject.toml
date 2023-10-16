@@ -40,3 +40,7 @@ script-files = ["ead-html-validator.py"]
 
 [project.urls]
 "Homepage" = "https://github.com/rrasch/ead-html-validor"
+
+[tool.black]
+line-length = 80
+preview = true
