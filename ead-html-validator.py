@@ -3,7 +3,11 @@
 from anytree import Node, RenderTree
 from cachetools import LRUCache
 from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import (
+    ProcessPoolExecutor,
+    ThreadPoolExecutor,
+    as_completed,
+)
 from ead_html_validator import Component
 from ead_html_validator import EADHTML
 from ead_html_validator import Ead
@@ -18,6 +22,7 @@ from pathlib import Path
 from pprint import pprint, pformat
 from subprocess import PIPE
 from tqdm import tqdm
+from typing import List
 import argparse
 import difflib
 import functools
@@ -46,20 +51,20 @@ class EHTMLCache(LRUCache):
         return html_file, ehtml
 
 
-# def colorize(r, g, b, text):
+# def colorize(r, g, b, text) -> str:
 #     return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
 #
-# red = lambda text: colored(255, 0, 0, text)
-# green = lambda text: colored(0, 255, 0, text)
-# blue = lambda text: colored(0, 0, 255, text)
+# red   = lambda text: colorize(255, 0, 0, text)
+# green = lambda text: colorize(0, 255, 0, text)
+# blue  = lambda text: colorize(0, 0, 255, text)
 
 
-def colorize(text, *color_codes):
+def colorize(text, *color_codes) -> str:
     color_seq = ";".join(map(str, color_codes))
     return f"\033[{color_seq}m{text}\033[0m" if colors_enabled else text
 
 
-def colorize_space(text, color_text, color_space):
+def colorize_space(text, color_text, color_space) -> str:
     new_text = ""
     for s in re.split("(\s+)", text):
         if s.isspace():
@@ -94,14 +99,14 @@ pass_color = {
 }
 
 
-def stringify_list(mylist):
+def stringify_list(mylist) -> List[str]:
     return [
         util.pretty_format(elem) if isinstance(elem, dict) else elem
         for elem in mylist
     ]
 
 
-def diff(obj1, obj2, diff_cfg):
+def diff(obj1, obj2, diff_cfg) -> str:
     list1 = stringify_list(create_list(obj1))
     list2 = stringify_list(create_list(obj2))
     if diff_cfg["type"].startswith("unified"):
@@ -121,7 +126,7 @@ def diff(obj1, obj2, diff_cfg):
     return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"]
 
 
-def indent_and_join(text_list):
+def indent_and_join(text_list) -> str:
     return (
         "[\n"
         + ",\n".join([textwrap.indent(text, "  ") for text in text_list])
@@ -129,7 +134,7 @@ def indent_and_join(text_list):
     )
 
 
-def simple_diff(list1, list2, diff_cfg):
+def simple_diff(list1, list2, diff_cfg) -> str:
     max_len = diff_cfg["term_width"]
     str1 = str(list1)
     str2 = str(list2)
@@ -147,7 +152,7 @@ def simple_diff(list1, list2, diff_cfg):
     return diff_text
 
 
-def color_diff_str(str1, str2):
+def color_diff_str(str1, str2) -> str:
     # logging.debug(f"color_diff({str1}, {str2})")
     result = ""
     codes = difflib.SequenceMatcher(a=str1, b=str2).get_opcodes()
@@ -165,11 +170,11 @@ def color_diff_str(str1, str2):
     return result
 
 
-def quote(val):
+def quote(val) -> str:
     return f"'{val}'"
 
 
-def color_diff_list(list1, list2):
+def color_diff_list(list1, list2) -> str:
     result = []
 
     try:
@@ -193,7 +198,7 @@ def color_diff_list(list1, list2):
     return "[" + ",\n\n".join(map(quote, result)) + "]"
 
 
-def comparable_val(val):
+def comparable_val(val) -> list:
     val = val or ""
     if type(val) is not list:
         val = [val]
@@ -210,18 +215,18 @@ def comparable_val(val):
     return val
 
 
-def compare(val1, val2):
+def compare(val1, val2) -> bool:
     return comparable_val(val1) == comparable_val(val2)
 
 
-def create_list(obj):
+def create_list(obj) -> list:
     if type(obj) is not list:
         return [obj]
     else:
         return obj
 
 
-def validate_html(html_dir, args, tidyrc):
+def validate_html(html_dir, args, tidyrc) -> None:
     html_files = []
     for root, dirs, files in os.walk(html_dir):
         for file in files:
@@ -256,7 +261,7 @@ def validate_html(html_dir, args, tidyrc):
                         wfh.write(ret.stdout)
 
 
-def validate_xml(xml_file, schema_file):
+def validate_xml(xml_file, schema_file) -> None:
     xmllint = shutil.which("xmllint")
     if xmllint:
         return util.do_cmd(
@@ -272,7 +277,7 @@ def validate_xml(xml_file, schema_file):
             raise e
 
 
-def load_thefuzz():
+def load_thefuzz() -> None:
     for libname in ["fuzz", "process"]:
         try:
             lib = import_module(f"thefuzz.{libname}")
@@ -282,7 +287,7 @@ def load_thefuzz():
             globals()[libname] = lib
 
 
-def get_term_width():
+def get_term_width() -> int:
     try:
         term_size = os.get_terminal_size()
         term_width = term_size.columns
@@ -291,7 +296,7 @@ def get_term_width():
     return term_width
 
 
-def format_vals(vals):
+def format_vals(vals) -> str:
     if type(vals) is dict:
         return "\n".join([f"Line {k}: '{v}'" for k, v in vals.items()])
     else:
@@ -299,13 +304,13 @@ def format_vals(vals):
         return str(vals)
 
 
-def passed_str(passed):
+def passed_str(passed) -> str:
     status = "PASS" if passed else "FAIL"
     status = pass_color[passed](status)
     return status
 
 
-def check_retval(retval, name):
+def check_retval(retval, name) -> None:
     if retval is not None and not isinstance(retval, ResultSet):
         raise ValueError(
             f"Expected ResultSet for {name}, got {retval} instead."
@@ -318,7 +323,7 @@ def validate_component(
     config,
     basedir,
     lock,
-):
+) -> List[str]:
     errors = Errors(config.get("exit_on_error", False))
 
     global ead
@@ -441,7 +446,7 @@ def validate_component(
     return errors
 
 
-def get_comp_dirs(elem, comp_dirs, depth, elem_dir, presentation_cids):
+def get_comp_dirs(elem, comp_dirs, depth, elem_dir, presentation_cids) -> None:
     for c in elem.component():
         if c.id in presentation_cids:
             c_dir = presentation_cids[c.id]
@@ -453,33 +458,33 @@ def get_comp_dirs(elem, comp_dirs, depth, elem_dir, presentation_cids):
         get_comp_dirs(c, comp_dirs, depth + 1, c_dir, presentation_cids)
 
 
-def build_level_tree(elem, parent):
+def build_level_tree(elem, parent) -> None:
     for c in elem.component():
         child = Node((c.id, c.level), parent=parent)
         build_level_tree(c, child)
 
 
-def render_level_tree(elem, root_name):
+def render_level_tree(elem, root_name) -> List[str]:
     root = Node(root_name)
     build_level_tree(elem, root)
     return [f"{pre}{node.name}\n" for pre, fill, node in RenderTree(root)]
 
 
-def read_config(config_file):
+def read_config(config_file) -> dict:
     with open(config_file, "rb") as f:
         data = tomli.load(f)
     return data
 
 
-def get_values(rs):
+def get_values(rs) -> ResultSet:
     return rs.string_values() if rs else None
 
 
-def isnewer(file1, file2):
+def isnewer(file1, file2) -> bool:
     return os.stat(file1).st_mtime > os.stat(file2).st_mtime
 
 
-def main():
+def main() -> None:
     start_time = time.time()
 
     if not sys.version_info >= (3, 7):
@@ -531,7 +536,10 @@ def main():
     parser.add_argument(
         "--indent-dir",
         default=os.getcwd(),
-        help="Directory where indented xml files are stored (default: %(default)s)",
+        help=(
+            "Directory where indented xml files are stored (default:"
+            " %(default)s)"
+        ),
     )
     parser.add_argument(
         "-b", "--broken-links", action="store_true", help="Find broken urls"
