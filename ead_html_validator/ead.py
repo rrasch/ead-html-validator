@@ -3,7 +3,7 @@ from ead_html_validator.component import Component
 from ead_html_validator.constants import LONGTEXT_XPATH
 from ead_html_validator.resultset import ResultSet
 from lxml import etree as ET
-from pprint import pprint
+from typing import List
 import ead_html_validator.util as util
 import logging
 import os.path
@@ -39,30 +39,30 @@ class Ead:
 
         self._set_archdesc_xpath()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"EAD({self.eadid}):\nurl = {self.url}\n"
 
-    def abstract(self):
+    def abstract(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/did/abstract")
 
-    def accessrestrict(self):
+    def accessrestrict(self) -> ResultSet:
         return self.get_text(
             f"{self.archdesc_xpath}/accessrestrict/*[not(self::head)]",
         )
 
-    def accruals(self):
+    def accruals(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/accruals/p")
 
-    def acqinfo(self):
+    def acqinfo(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/acqinfo/p")
 
-    def altformavail(self):
+    def altformavail(self) -> ResultSet:
         return self.get_archdesc("altformavail")
 
-    def appraisal(self):
+    def appraisal(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/appraisal/p")
 
-    def _author(self):
+    def _author(self) -> ResultSet:
         expr = "eadheader/filedesc/titlestmt/author"
         nodes = self.root.xpath("eadheader/filedesc/titlestmt/author")
         if not nodes:
@@ -74,18 +74,18 @@ class Ead:
                 results.add(node.name, author, node.sourceline)
         return result
 
-    def author(self):
+    def author(self) -> ResultSet:
         return self.get_text("eadheader/filedesc/titlestmt/author")
 
-    def bioghist(self):
+    def bioghist(self) -> ResultSet:
         return self.get_text_long(
             f"{self.archdesc_xpath}/bioghist/{LONGTEXT_XPATH}"
         )
 
-    def c_count(self):
+    def c_count(self) -> int:
         return int(self.root.xpath("count(//c)"))
 
-    def chronlist(self):
+    def chronlist(self) -> ResultSet:
         expr = (
             f"{self.archdesc_xpath}/*[name() !="
             " 'dsc']//chronlist/chronitem"
@@ -103,42 +103,42 @@ class Ead:
             result.add(item.tag, {date: events}, item.sourceline)
         return result
 
-    def chronlist_heading(self):
+    def chronlist_heading(self) -> ResultSet:
         return self.get_text(
             f"{self.archdesc_xpath}/*[name()  !='dsc']//chronlist/head"
         )
 
-    def collection(self):
+    def collection(self) -> ResultSet:
         return self.unittitle()
 
-    def collection_unitid(self):
+    def collection_unitid(self) -> ResultSet:
         return self.unitid()
 
-    def get_component(self, cid):
+    def get_component(self, cid) -> ET._Element:
         c = self.root.xpath(f"//c[@id='{cid}']")
         return c[0] if c else None
 
-    def component(self):
+    def component(self) -> List[Component]:
         components = []
         for c in self.root.xpath("//c[not(ancestor::c)]"):
             components.append(Component(c, self))
         return components
 
-    def all_components(self):
+    def all_components(self) -> List[Component]:
         return [Component(c, self) for c in self.root.xpath("//c")]
 
-    def all_component_ids(self):
+    def all_component_ids(self) -> List[str]:
         return [c.get("id") for c in self.root.xpath("//c")]
 
-    def corpname(self):
+    def corpname(self) -> ResultSet:
         return self.get_archdesc_nodsc("corpname")
 
-    def creation_date(self):
+    def creation_date(self) -> ResultSet:
         return self.get_text(
             "/ead/eadheader[1]/profiledesc[1]/creation[1]/date[1]"
         )
 
-    def creator(self):
+    def creator(self) -> ResultSet:
         creators = ResultSet()
         for field in ["corpname", "famname", "persname"]:
             expr = (
@@ -150,7 +150,7 @@ class Ead:
                 creators.append(result)
         return creators if creators else None
 
-    def creators(self):
+    def creators(self) -> ResultSet:
         creator_tags = ["corpname", "famname", "persname"]
         creator_expr = " or ".join(
             [f"name() = '{tag}'" for tag in creator_tags]
@@ -164,31 +164,31 @@ class Ead:
         logging.debug(creator_xpath)
         return self.get_text(creator_xpath)
 
-    def custodhist(self):
+    def custodhist(self) -> ResultSet:
         return self.get_text_long(f"{self.archdesc_xpath}/custodhist/p")
 
-    def dao(self):
+    def dao(self) -> ResultSet:
         return self.get_text("//dao")
 
-    def eadid(self):
+    def eadid(self) -> ResultSet:
         return self.get_text("eadheader/eadid")
 
-    def famname(self):
+    def famname(self) -> ResultSet:
         return self.get_archdesc_nodsc("famname")
 
-    def function(self):
+    def function(self) -> ResultSet:
         return self.get_archdesc_nodsc("function")
 
-    def genreform(self):
+    def genreform(self) -> ResultSet:
         return self.get_archdesc_nodsc("genreform")
 
-    def geogname(self):
+    def geogname(self) -> ResultSet:
         return self.get_archdesc_nodsc("geogname")
 
-    def get_archdesc(self, field, tag="p"):
+    def get_archdesc(self, field, tag="p") -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/{field}/{tag}")
 
-    def get_archdesc_nodsc(self, field, **kwargs):
+    def get_archdesc_nodsc(self, field, **kwargs) -> ResultSet:
         return util.xpath(
             self.root,
             f"{self.archdesc_xpath}/*[name() != 'dsc']//{field}",
@@ -196,7 +196,7 @@ class Ead:
             **kwargs,
         )
 
-    def get_archdesc_nodsc_join(self, field, **kwargs):
+    def get_archdesc_nodsc_join(self, field, **kwargs) -> ResultSet:
         return self.get_archdesc_nodsc(
             field,
             # all_text=True,
@@ -205,20 +205,20 @@ class Ead:
             **kwargs
         )
 
-    def get_text(self, expr, **kwargs):
+    def get_text(self, expr, **kwargs) -> ResultSet:
         return util.xpath(self.root, expr, all_text=True, **kwargs)
 
-    def get_text_ignore_space(self, expr, **kwargs):
+    def get_text_ignore_space(self, expr, **kwargs) -> ResultSet:
         return util.xpath(
             self.root, expr, all_text=True, ignore_space=True, **kwargs
         )
 
-    def get_text_join(self, expr, **kwargs):
+    def get_text_join(self, expr, **kwargs) -> ResultSet:
         return util.xpath(
             self.root, expr, all_text=True, join_text=True, **kwargs
         )
 
-    def get_text_long(self, expr, **kwargs):
+    def get_text_long(self, expr, **kwargs) -> ResultSet:
         return util.xpath(
             self.root,
             expr,
@@ -230,7 +230,7 @@ class Ead:
             **kwargs,
         )
 
-    def get_text_join_semi(self, expr, **kwargs):
+    def get_text_join_semi(self, expr, **kwargs) -> ResultSet:
         return util.xpath(
             self.root,
             expr,
@@ -240,7 +240,7 @@ class Ead:
             **kwargs,
         )
 
-    def get_text_no_lineno(self, expr, return_list=True):
+    def get_text_no_lineno(self, expr, return_list=True) -> ResultSet:
         node_text_list = set()
 
         for node in self.root.xpath(expr):
@@ -254,30 +254,30 @@ class Ead:
         else:
             return ", ".join(list(node_text_list))
 
-    def heading(self):
+    def heading(self) -> ResultSet:
         return self.unittitle()
 
-    def langcode(self):
+    def langcode(self) -> ResultSet:
         return self.get_text(
             "eadheader/profiledesc/langusage/language/@langcode"
         )
 
-    def language(self):
+    def language(self) -> ResultSet:
         return self.get_text("eadheader/profiledesc/langusage/language")
 
-    def langusage(self):
+    def langusage(self) -> ResultSet:
         return self.get_text("eadheader/profiledesc/langusage")
 
-    def materialspec(self):
+    def materialspec(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/did/materialspec")
 
-    def material_type(self):
+    def material_type(self) -> ResultSet:
         return self.get_text("//genreform")
 
-    def name(self):
+    def name(self) -> ResultSet:
         return self.get_archdesc_nodsc("name")
 
-    def names(self):
+    def names(self) -> ResultSet:
         names = ResultSet(sort=True)
         result = self.get_text("//*[local-name() != 'repository']/corpname")
         if result:
@@ -289,39 +289,39 @@ class Ead:
                 names.append(result)
         return names if names else None
 
-    def note(self):
+    def note(self) -> ResultSet:
         return self.get_text("eadheader/filedesc/notestmt/note/p")
 
-    def occupation(self):
+    def occupation(self) -> ResultSet:
         return self.get_archdesc_nodsc("occupation")
 
-    def originalsloc(self):
+    def originalsloc(self) -> ResultSet:
         return self.get_archdesc("originalsloc")
 
-    def persname(self):
+    def persname(self) -> ResultSet:
         return self.get_archdesc_nodsc("persname")
 
-    def phystech(self):
+    def phystech(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/phystech/p")
 
-    def place(self):
+    def place(self) -> ResultSet:
         return self.get_text("//geogname")
 
-    def prefercite(self):
+    def prefercite(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/prefercite/p")
 
-    def repository(self):
+    def repository(self) -> ResultSet:
         return self.get_archdesc_nodsc("repository")
 
-    def scopecontent(self):
+    def scopecontent(self) -> ResultSet:
         return self.get_text_long(
             f"{self.archdesc_xpath}/scopecontent/{LONGTEXT_XPATH}",
         )
 
-    def separatedmaterial(self):
+    def separatedmaterial(self) -> ResultSet:
         return self.get_archdesc("separatedmaterial", LONGTEXT_XPATH)
 
-    def _set_archdesc_xpath(self):
+    def _set_archdesc_xpath(self) -> None:
         self.archdesc_xpath = None
         for level in ["collection", "series"]:
             xpath = f"(archdesc[@level='{level}'])[1]"
@@ -331,13 +331,13 @@ class Ead:
         if not self.archdesc_xpath:
             raise ValueError("Can't")
 
-    def sponsor(self):
+    def sponsor(self) -> ResultSet:
         return self.get_text("eadheader/filedesc/titlestmt/sponsor")
 
-    def subject(self):
+    def subject(self) -> ResultSet:
         return self.get_archdesc_nodsc("subject")
 
-    def subjects(self):
+    def subjects(self) -> ResultSet:
         return self.get_text(
             """
             //*[not(ancestor::c) and (local-name()='subject' or
@@ -346,13 +346,13 @@ class Ead:
             """
         )
 
-    def subtitle(self):
+    def subtitle(self) -> ResultSet:
         return self.get_text("//titlestmt/subtitle")
 
-    def title(self):
+    def title(self) -> ResultSet:
         return self.get_archdesc_nodsc("title")
 
-    def unitdate(self, expr):
+    def unitdate(self, expr) -> ResultSet:
         date_xpath = f"{self.archdesc_xpath}/did/unitdate{expr}"
         unitdates = ResultSet(xpath=date_xpath)
 
@@ -371,36 +371,36 @@ class Ead:
 
         return unitdates.join(uniq=False, sep="; ") if unitdates else None
 
-    def unitdate_all(self):
+    def unitdate_all(self) -> ResultSet:
         return self.unitdate("[@datechar='creation']")
 
-    def _unitdate_bulk(self):
+    def _unitdate_bulk(self) -> ResultSet:
         return self.unitdate("[@type='bulk']")
 
-    def _unitdate_inclusive(self):
+    def _unitdate_inclusive(self) -> ResultSet:
         return self.unitdate("[@type='inclusive']")
 
-    def _unitdate_normal(self):
+    def _unitdate_normal(self) -> ResultSet:
         return self.unitdate("/@normal")
 
-    def _unitdate_not_type(self):
+    def _unitdate_not_type(self) -> ResultSet:
         return self.unitdate("[not(@type)]")
 
-    def unitid(self):
+    def unitid(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/did/unitid")
 
-    def unittitle(self):
+    def unittitle(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/did/unittitle")
 
-    def url(self):
+    def url(self) -> ResultSet:
         return self.get_text("eadheader/eadid/@url")
 
-    def userestrict(self):
+    def userestrict(self) -> ResultSet:
         return self.get_archdesc("userestrict")
 
     def xpath(
         self, expr, all_text=False, join_text=False, sep="", join_sep=" "
-    ):
+    ) -> ResultSet:
         attrib = None
         match = re.search(r"(/@([A-Za-z]+))$", expr)
         if match:
