@@ -321,8 +321,8 @@ def validate_component(
 ):
     errors = Errors(config.get("exit_on_error", False))
 
-    global my_ead
-    c = Component(my_ead.get_component(cid))
+    global ead
+    c = Component(ead.get_component(cid))
 
     logging.debug("----")
     logging.debug(c.id)
@@ -340,12 +340,12 @@ def validate_component(
             ehtml = ehtml_cache[html_file]
         else:
             logging.debug(f"Adding {html_file} to EADHTML cache.")
-            ehtml = eadhtml.EADHTML(html_file, parser=config["html_parser"])
+            ehtml = EADHTML(html_file, parser=config["html_parser"])
             ehtml_cache[html_file] = ehtml
 
     try:
         chtml = ehtml.find_component(c.id)
-    except eadhtml.ComponentNotFoundError as e:
+    except ComponentNotFoundError as e:
         # errors.append(traceback.format_exc())
         errors.append(repr(e))
         return
@@ -398,7 +398,7 @@ def validate_component(
                     "html",
                     html_file,
                     format_vals(comp_retval),
-                    my_ead.ead_file,
+                    ead.ead_file,
                 )
             )
         elif comp_retval is None and chtml_retval is not None:
@@ -407,7 +407,7 @@ def validate_component(
                     method_name,
                     c.id,
                     "ead xml",
-                    my_ead.ead_file,
+                    ead.ead_file,
                     format_vals(chtml_retval),
                     html_file,
                 )
@@ -417,7 +417,7 @@ def validate_component(
             if not passed_check:
                 errors.append(
                     f"field '{method_name}' differs for c id='{c.id}'\nDIFF:\n"
-                    + f"{my_ead.ead_file}\n"
+                    + f"{ead.ead_file}\n"
                     + f"{html_file}\n"
                     + diff(comp_values, chtml_values, config["diff"])
                 )
@@ -641,20 +641,20 @@ def main():
     tidyrc = os.path.join(script_dir, "tidyrc")
     validate_html(html_dir, args, tidyrc)
 
-    global my_ead
-    my_ead = ead.Ead(ead_file)
+    global ead
+    ead = Ead(ead_file)
 
-    num_comp = my_ead.c_count()
+    num_comp = ead.c_count()
     p = inflect.engine()
     p.num(num_comp)
     logging.info(f"The EAD has {p.no('component')}.")
 
     top_html_file = os.path.join(html_dir, "index.html")
-    top_ehtml = eadhtml.EADHTML(top_html_file, parser=args.html_parser)
+    top_ehtml = EADHTML(top_html_file, parser=args.html_parser)
 
     logging.info(f"FASB Version: {top_ehtml.fasb_version()}")
 
-    ead_date = my_ead.creation_date().values()[0]
+    ead_date = ead.creation_date().values()[0]
     html_date = top_ehtml.creation_date().values()[0]
     if ead_date != html_date:
         print(f"Creation date mismatch: '{ead_date}' != '{html_date}'")
@@ -665,7 +665,7 @@ def main():
     logging.debug(pformat(rqm.find_links()))
 
     all_html_file = os.path.join(html_dir, "all", "index.html")
-    all_ehtml = eadhtml.EADHTML(all_html_file, parser=args.html_parser)
+    all_ehtml = EADHTML(all_html_file, parser=args.html_parser)
 
     load_thefuzz()
 
@@ -684,7 +684,7 @@ def main():
     logging.info("Performing top level checks.")
 
     for method_name in config["checks"]["top-level"]:
-        ead_method = getattr(my_ead, method_name)
+        ead_method = getattr(ead, method_name)
 
         logging.debug(f"calling EAD.{method_name}()")
         ead_retval = ead_method()
@@ -747,7 +747,7 @@ def main():
 
         logging.info(f"{method_name}: [{passed_str(passed_check)}]")
 
-    ead_comps = my_ead.component()
+    ead_comps = ead.component()
     ead_cids = [(c.id, c.level) for c in ead_comps]
 
     # html_cids = all_ehtml.component_id_level()
@@ -758,7 +758,7 @@ def main():
 
     logging.info("Performing nesting level check.")
 
-    ead_tree = render_level_tree(my_ead, ead_file)
+    ead_tree = render_level_tree(ead, ead_file)
     ead_tree_str = "".join(ead_tree)
     logging.debug(f"EAD Nesting Level Tree\n{ead_tree_str}")
 
@@ -787,13 +787,13 @@ def main():
             f" got:\n{pformat(html_cids)}"
         )
 
-    progress_bar = tqdm(total=my_ead.c_count()) if args.progress_bar else None
+    progress_bar = tqdm(total=ead.c_count()) if args.progress_bar else None
 
     global ehtml_cache
     ehtml_cache = EHTMLCache(maxsize=10)
 
     comp_dirs = {}
-    get_comp_dirs(my_ead, comp_dirs, 0, "", presentation_cids)
+    get_comp_dirs(ead, comp_dirs, 0, "", presentation_cids)
 
     if args.multiprocessing or args.threading:
         try:
@@ -838,7 +838,7 @@ def main():
                     html_dir,
                     lock,
                 ): cid
-                for cid in sorted(my_ead.all_component_ids())
+                for cid in sorted(ead.all_component_ids())
             }
 
             for future in as_completed(tasks):
@@ -861,7 +861,7 @@ def main():
         from contextlib import nullcontext
         dummy_lock = nullcontext()
 
-        for cid in sorted(my_ead.all_component_ids()):
+        for cid in sorted(ead.all_component_ids()):
             result = validate_component(
                 cid, comp_dirs[cid], config, html_dir, dummy_lock
             )
