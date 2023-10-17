@@ -431,7 +431,7 @@ class Component:
         return unitdates.join(uniq=False, sep="; ") if unitdates else None
 
     def unitid(self) -> ResultSet:
-        return self.get_text("did/unitid")
+        return self.get_text("did/unitid[not(@type)]")
 
     def unittitle(self) -> ResultSet:
         return self.get_text_join("did/unittitle")

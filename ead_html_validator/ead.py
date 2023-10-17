@@ -387,7 +387,7 @@ class Ead:
         return self.unitdate("[not(@type)]")
 
     def unitid(self) -> ResultSet:
-        return self.get_text(f"{self.archdesc_xpath}/did/unitid")
+        return self.get_text(f"{self.archdesc_xpath}/did/unitid[not(@type)]")
 
     def unittitle(self) -> ResultSet:
         return self.get_text(f"{self.archdesc_xpath}/did/unittitle")
