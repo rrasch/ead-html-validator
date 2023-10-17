@@ -51,14 +51,6 @@ class EHTMLCache(LRUCache):
         return html_file, ehtml
 
 
-# def colorize(r, g, b, text) -> str:
-#     return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
-#
-# red   = lambda text: colorize(255, 0, 0, text)
-# green = lambda text: colorize(0, 255, 0, text)
-# blue  = lambda text: colorize(0, 0, 255, text)
-
-
 def colorize(text, *color_codes) -> str:
     color_seq = ";".join(map(str, color_codes))
     return f"\033[{color_seq}m{text}\033[0m" if colors_enabled else text
@@ -145,8 +137,8 @@ def simple_diff(list1, list2, diff_cfg) -> str:
     ):
         sep = " "
     else:
-        str1 = indent_and_join(list1)
-        str2 = indent_and_join(list2)
+        str1 = pformat(list1)
+        str2 = pformat(list2)
         sep = "\n"
     diff_text = f"{str1}{sep}!={sep}{str2}"
     return diff_text
