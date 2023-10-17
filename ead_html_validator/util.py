@@ -145,6 +145,16 @@ def create_args_str(*args, **kwargs) -> str:
         return kw_str
 
 
+def colorize_rgb(r, g, b, text) -> str:
+    """
+    example usage:
+    red   = lambda text: colorize(255, 0, 0, text)
+    green = lambda text: colorize(0, 255, 0, text)
+    blue  = lambda text: colorize(0, 0, 255, text)
+    """
+    return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
+
+
 def do_cmd(cmdlist, allowed_returncodes=None, **kwargs) -> CompletedProcess:
     cmd = list(map(str, cmdlist))
     logging.debug("Running command: %s", " ".join(cmd))
