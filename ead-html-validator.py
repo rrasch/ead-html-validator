@@ -245,7 +245,7 @@ def validate_html(html_dir, args, tidyrc) -> None:
             logging.warn("The following links are broken {broken_links}")
 
     path_tidy = shutil.which("tidy")
-    if (args.tidy or args.indent) and path_tidy:
+    if args.tidy and path_tidy:
         for file in html_files:
             ret = util.do_cmd(
                 [path_tidy, "-config", tidyrc, file],
@@ -531,7 +531,7 @@ def main() -> None:
         "-i",
         "--indent",
         action="store_true",
-        help="Indent XML with xsltproc and HTML files using tidy.",
+        help="Indent XML with xsltproc.",
     )
     parser.add_argument(
         "--indent-dir",
