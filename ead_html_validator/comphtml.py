@@ -1,5 +1,7 @@
+from __future__ import annotations
 from bs4 import BeautifulSoup, NavigableString, Tag
 from ead_html_validator.resultset import ResultSet
+from typing import List
 import ead_html_validator.util as util
 import logging
 import os.path
@@ -14,53 +16,53 @@ class CompHTML:
         self.level, self.recursion = self._level()
         self.present_id = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         # return str(self.c)
         return self.c.prettify()
 
-    def accessrestrict(self):
+    def accessrestrict(self) -> ResultSet:
         return self.formatted_note_text("accessrestrict")
 
-    def accessrestrict_heading(self):
+    def accessrestrict_heading(self) -> ResultSet:
         return self.formatted_note_heading("accessrestrict")
 
-    def accruals(self):
+    def accruals(self) -> ResultSet:
         return self.formatted_note_text("accruals")
 
-    def accruals_heading(self):
+    def accruals_heading(self) -> ResultSet:
         return self.formatted_note_heading("accruals")
 
-    def acqinfo(self):
+    def acqinfo(self) -> ResultSet:
         return self.formatted_note_text("acqinfo")
 
-    def acqinfo_heading(self):
+    def acqinfo_heading(self) -> ResultSet:
         return self.formatted_note_heading("acqinfo")
 
-    def altformavail(self):
+    def altformavail(self) -> ResultSet:
         return self.formatted_note_text("altformavail")
 
-    def altformavail_heading(self):
+    def altformavail_heading(self) -> ResultSet:
         return self.formatted_note_heading("altformavail")
 
-    def appraisal(self):
+    def appraisal(self) -> ResultSet:
         return self.formatted_note_text("appraisal")
 
-    def appraisal_heading(self):
+    def appraisal_heading(self) -> ResultSet:
         return self.formatted_note_heading("appraisal")
 
-    def arrangement(self):
+    def arrangement(self) -> ResultSet:
         return self.formatted_note_long("arrangement")
 
-    def arrangement_heading(self):
+    def arrangement_heading(self) -> ResultSet:
         return self.formatted_note_heading("arrangement")
 
-    def bioghist(self):
+    def bioghist(self) -> ResultSet:
         return self.formatted_note_long("bioghist")
 
-    def bioghist_heading(self):
+    def bioghist_heading(self) -> ResultSet:
         return self.formatted_note_heading("bioghist")
 
-    def component(self):
+    def component(self) -> List[CompHTML]:
         regex = re.compile(r"^level")
         first_c = self.c.find("div", class_=regex)
         if first_c is None:
@@ -74,7 +76,7 @@ class CompHTML:
             comps.append(CompHTML(c, cid))
         return comps
 
-    def component_id_level(self):
+    def component_id_level(self) -> List[Tuple[str, str]]:
         regex = re.compile(r"^level")
         first_c = self.c.find("div", class_=regex)
         if first_c is None:
@@ -88,7 +90,7 @@ class CompHTML:
             id_level.append((cid, util.parse_level(c)[0]))
         return id_level
 
-    def container(self):
+    def container(self) -> ResultSet:
         wrapper = self.md_group("ead-container-wrapper")
         if not wrapper:
             return None
@@ -96,13 +98,13 @@ class CompHTML:
             wrapper, class_="ead-container", ignore_space=False
         )
 
-    def contents(self):
+    def contents(self) -> List[str]:
         return [text for text in self.c.stripped_strings]
 
-    def control_access(self):
+    def control_access(self) -> Tag:
         return self.md_group("controlaccess")
 
-    def control_group(self, field):
+    def control_group(self, field) -> ResultSet:
         ctrl_access = self.md_group("controlaccess")
         if not ctrl_access:
             return None
@@ -117,7 +119,7 @@ class CompHTML:
         else:
             return None
 
-    def control_group_val(self, field):
+    def control_group_val(self, field) -> ResultSet:
         ctrl_access = self.control_access()
         if not ctrl_access:
             return None
@@ -128,10 +130,10 @@ class CompHTML:
             return None
         return CompHTML.find_all(ctrl_group, class_="controlaccess-value")
 
-    def corpname(self):
+    def corpname(self) -> ResultSet:
         return self.control_group_val("corpname")
 
-    def creator(self):
+    def creator(self) -> ResultSet:
         origin = self.md_group("origination")
         if origin is None:
             return None
@@ -139,20 +141,20 @@ class CompHTML:
             origin, "div", class_=re.compile(r"name$"), get_text=False
         )
 
-    def custodhist(self):
+    def custodhist(self) -> ResultSet:
         return self.formatted_note_text("custodhist")
 
-    def custodhist_heading(self):
+    def custodhist_heading(self) -> ResultSet:
         return self.formatted_note_heading("custodhist")
 
-    def _dao(self, dao_type=""):
+    def _dao(self, dao_type="") -> List[Tag]:
         return self.c.find_all(
             "div",
             class_=re.compile(rf"^md-group dao-item {dao_type}"),
             recursive=False,
         )
 
-    def dao(self, html_dir, roles):
+    def dao(self, html_dir, roles) -> ResultSet:
         daos = self._dao()
         if not daos:
             return None
@@ -187,7 +189,7 @@ class CompHTML:
 
         return dao_set if dao_set else None
 
-    def dao_desc(self):
+    def dao_desc(self) -> ResultSet:
         daos = self._dao()
         if daos is None:
             return None
@@ -205,10 +207,10 @@ class CompHTML:
         # return list(descriptions) if descriptions else None
         return descriptions if descriptions else None
 
-    # def dao_desc(self):
+    # def dao_desc(self) -> ResultSet:
     #     return self.dao_title()
 
-    def dao_link(self):
+    def dao_link(self) -> ResultSet:
         # daos = self._dao("external-link")
         daos = self._dao()
         if daos is None:
@@ -222,7 +224,7 @@ class CompHTML:
         # return sorted(list(links)) if links else None
         return links if links else None
 
-    def dao_title(self):
+    def dao_title(self) -> ResultSet:
         daos = self._dao()
         if daos is None:
             return None
@@ -248,19 +250,19 @@ class CompHTML:
         # return list(titles) if titles else None
         return titles if titles else None
 
-    def dimensions(self):
+    def dimensions(self) -> ResultSet:
         return self.physdesc("dimensions")
 
-    def extent(self):
+    def extent(self) -> ResultSet:
         return self.physdesc("extent")
 
-    def famname(self):
+    def famname(self) -> ResultSet:
         return self.control_group_val("famname")
 
-    def fileplan(self):
+    def fileplan(self) -> ResultSet:
         return self.formatted_note_text("fileplan")
 
-    def fileplan_heading(self):
+    def fileplan_heading(self) -> ResultSet:
         return self.formatted_note_heading("fileplan")
 
     @staticmethod
@@ -276,7 +278,7 @@ class CompHTML:
         ignore_space=False,
         clean_txt=True,
         **kwargs,
-    ):
+    ) -> ResultSet:
         nodes = root.find_all(*args, **kwargs)
         if not nodes:
             return None
@@ -314,12 +316,12 @@ class CompHTML:
 
         return result.rs_or_none()
 
-    def formatted_note(self, field):
+    def formatted_note(self, field) -> List[Tag]:
         return self.c.find_all(
             "div", class_=f"md-group formattednote {field}", recursive=False
         )
 
-    def formatted_note_heading(self, field):
+    def formatted_note_heading(self, field) -> ResultSet:
         notes = self.formatted_note(field)
         if not notes:
             return None
@@ -335,7 +337,7 @@ class CompHTML:
                 heading.append(hdr)
         return heading if heading else None
 
-    def formatted_note_long(self, *args, **kwargs):
+    def formatted_note_long(self, *args, **kwargs) -> ResultSet:
         notes = self.formatted_note_text(
             *args,
             sep=" ",
@@ -344,7 +346,7 @@ class CompHTML:
         )
         return notes.join(sep=" ") if notes else None
 
-    def formatted_note_text(self, field, **kwargs):
+    def formatted_note_text(self, field, **kwargs) -> ResultSet:
         notes = self.formatted_note(field)
         if not notes:
             return None
@@ -359,19 +361,19 @@ class CompHTML:
                 text.append(values)
         return text if text else None
 
-    def function(self):
+    def function(self) -> ResultSet:
         return self.control_group("function")
 
-    def genreform(self):
+    def genreform(self) -> ResultSet:
         return self.control_group_val("genreform")
 
-    def geogname(self):
+    def geogname(self) -> ResultSet:
         return self.control_group_val("geogname")
 
-    def _id(self):
+    def _id(self) -> str:
         return self.id
 
-    def _lang_material(self, lang_type):
+    def _lang_material(self, lang_type) -> ResultSet:
         type_num = {
             "language": 1,
             "langmaterial": 2,
@@ -386,13 +388,13 @@ class CompHTML:
             class_=f"ead-{lang_type}"
         )
 
-    def langmaterial(self):
+    def langmaterial(self) -> ResultSet:
         return self._lang_material("langmaterial")
 
-    def language(self):
+    def language(self) -> ResultSet:
         return self._lang_material("language")
 
-    def _level(self):
+    def _level(self) -> Tuple[str, int]:
         if (
             self.c.name == "div"
             and self.c.has_attr("class")
@@ -404,39 +406,39 @@ class CompHTML:
             recursion = None
         return (lvl, recursion)
 
-    def materialspec(self):
+    def materialspec(self) -> ResultSet:
         return self.formatted_note_text("materialspec")
 
-    def md_group(self, group_name):
+    def md_group(self, group_name) -> Tag:
         return self.c.find(
             "div", class_=f"md-group {group_name}", recursive=False
         )
 
-    def name(self):
+    def name(self) -> None:
         pass
 
-    def occupation(self):
+    def occupation(self) -> ResultSet:
         return self.control_group_val("occupation")
 
-    def odd(self):
+    def odd(self) -> ResultSet:
         return self.formatted_note_long("odd")
 
-    def odd_heading(self):
+    def odd_heading(self) -> ResultSet:
         return self.formatted_note_heading("odd")
 
-    def originalsloc(self):
+    def originalsloc(self) -> ResultSet:
         return self.formatted_note_text("originalsloc")
 
-    def originalsloc_heading(self):
+    def originalsloc_heading(self) -> ResultSet:
         return self.formatted_note_heading("originalsloc")
 
-    def otherfindaid(self):
+    def otherfindaid(self) -> ResultSet:
         return self.formatted_note_text("otherfindaid")
 
-    def otherfindaid_heading(self):
+    def otherfindaid_heading(self) -> ResultSet:
         return self.formatted_note_heading("otherfindaid")
 
-    def permalink(self, link, html_dir):
+    def permalink(self, link, html_dir) -> str:
         dirparts = link.strip(os.sep).split(os.sep)
         partner = dirparts[0]
         eadid = dirparts[1]
@@ -456,10 +458,10 @@ class CompHTML:
         logging.debug(f"permalink for {link} is {url}")
         return url
 
-    def persname(self):
+    def persname(self) -> ResultSet:
         return self.control_group_val("persname")
 
-    def physdesc(self, field):
+    def physdesc(self, field) -> ResultSet:
         phys_desc = self.formatted_note("physdesc")
         if not phys_desc:
             return None
@@ -482,67 +484,67 @@ class CompHTML:
                 result.append(val)
         return result if result else None
 
-    def physfacet(self):
+    def physfacet(self) -> ResultSet:
         return self.physdesc("physfacet")
 
-    def physloc(self):
+    def physloc(self) -> ResultSet:
         loc = self.formatted_note("physloc")
         if not loc:
             return None
         return CompHTML.find_all(loc[0], "span", id=True)
 
-    def physloc_heading(self):
+    def physloc_heading(self) -> ResultSet:
         return self.formatted_note_heading("physloc")
 
-    def phystech(self):
+    def phystech(self) -> ResultSet:
         return self.formatted_note_text("phystech")
 
-    def phystech_heading(self):
+    def phystech_heading(self) -> ResultSet:
         return self.formatted_note_heading("phystech")
 
-    def prefercite(self):
+    def prefercite(self) -> ResultSet:
         return self.formatted_note_text("prefercite")
 
-    def prefercite_heading(self):
+    def prefercite_heading(self) -> ResultSet:
         return self.formatted_note_heading("prefercite")
 
-    def processinfo(self):
+    def processinfo(self) -> ResultSet:
         return self.formatted_note_text("processinfo")
 
-    def processinfo_heading(self):
+    def processinfo_heading(self) -> ResultSet:
         return self.formatted_note_heading("processinfo")
 
-    def relatedmaterial(self):
+    def relatedmaterial(self) -> ResultSet:
         return self.formatted_note_text("relatedmaterial")
 
-    def relatedmaterial_heading(self):
+    def relatedmaterial_heading(self) -> ResultSet:
         return self.formatted_note_heading("relatedmaterial")
 
     @staticmethod
-    def resultset(node, xpath=None, sep=""):
+    def resultset(node, xpath=None, sep="") -> ResultSet:
         return ResultSet(xpath=xpath).add(
             node.name, util.clean_text(node.get_text(sep)), node.sourceline
         )
 
-    def separatedmaterial(self):
+    def separatedmaterial(self) -> ResultSet:
         return self.formatted_note_text("separatedmaterial")
 
-    def separatedmaterial_heading(self):
+    def separatedmaterial_heading(self) -> ResultSet:
         return self.formatted_note_heading("separatedmaterial")
 
-    def scopecontent(self):
+    def scopecontent(self) -> ResultSet:
         return self.formatted_note_long("scopecontent")
 
-    def scopecontent_heading(self):
+    def scopecontent_heading(self) -> ResultSet:
         return self.formatted_note_heading("scopecontent")
 
-    def sub_components(self):
+    def sub_components(self) -> List[CompHTML]:
         return self.components()
 
-    def subject(self):
+    def subject(self) -> ResultSet:
         return self.control_group_val("subject")
 
-    def title(self):
+    def title(self) -> ResultSet:
         text = ""
         unit_title = self.c.find(
             re.compile("h\d"), class_="unittitle", recursive=False
@@ -560,7 +562,7 @@ class CompHTML:
         else:
             return None
 
-    def unitdate(self):
+    def unitdate(self) -> ResultSet:
         unit_title = self.c.find(
             re.compile(r"^h\d$"), class_="unittitle", recursive=False
         )
@@ -573,18 +575,18 @@ class CompHTML:
             dates = dates.update_values(util.clean_date)
         return dates
 
-    def unitid(self):
+    def unitid(self) -> ResultSet:
         odd = self.formatted_note("odd")
         if odd is None:
             return None
         # return odd.find("span", class_="ead-num").get_text()
         return CompHTML.find_all(odd, "span", class_="ead-num")
 
-    def unittitle(self):
+    def unittitle(self) -> ResultSet:
         return self.title()
 
-    def userestrict(self):
+    def userestrict(self) -> ResultSet:
         return self.formatted_note_text("userestrict")
 
-    def userestrict_heading(self):
+    def userestrict_heading(self) -> ResultSet:
         return self.formatted_note_heading("userestrict")
