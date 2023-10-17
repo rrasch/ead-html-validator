@@ -79,7 +79,7 @@ class Component:
                 data["id"] = str(uuid4())
             data.update(
                 {
-                    "name": container.text.strip(),
+                    "name": (container.text or "").strip(),
                     "child": [],
                     "tag": container.tag,
                     "lineno": container.sourceline,
