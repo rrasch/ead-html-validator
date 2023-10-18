@@ -98,23 +98,45 @@ def stringify_list(mylist) -> List[str]:
     ]
 
 
-def diff(obj1, obj2, diff_cfg) -> str:
-    list1 = stringify_list(create_list(obj1))
-    list2 = stringify_list(create_list(obj2))
-    if diff_cfg["type"].startswith("unified"):
-        text = ""
-        for uni_diff in difflib.unified_diff(list1, list2):
-            if diff_cfg["type"].endswith("color") and uni_diff[0] in diff_color:
-                text += diff_color[uni_diff[0]](uni_diff) + "\n"
-            else:
-                text += uni_diff + "\n"
-    elif diff_cfg["type"] == "color":
-        if util.is_str(list1) and util.is_str(list2):
-            text = color_diff_str(list1[0], list2[0])
-        else:
-            text = color_diff_list(list1, list2)
+def diff(data1, data2, diff_cfg) -> str:
+    if type(data1) != type(data2):
+        raise TypeError("Diff args must be same type.")
+
+    types = [list, ResultSet]
+    if not any([isinstance(data1, t) for t in types]):
+        raise TypeError(f"Diff args must be list be {types}")
+
+    list1 = None
+    list2 = None
+
+    if isinstance(data1, list):
+        list1 = data1
+        list2 = data2
+
+    if diff_cfg["type"] == "simple":
+        if list1 is None:
+            list1 = data1.values()
+            list2 = data2.values()
+        text = simple_diff(list1, list2, diff_cfg)
     else:
-        text = simple_diff(obj1, obj2, diff_cfg)
+        if list1 is None:
+            list1 = data1.string_values()
+            list2 = data2.string_values()
+        if diff_cfg["type"].startswith("unified"):
+            text = ""
+            for uni_diff in difflib.unified_diff(list1, list2):
+                if (
+                    diff_cfg["type"].endswith("color")
+                    and uni_diff[0] in diff_color
+                ):
+                    text += diff_color[uni_diff[0]](uni_diff) + "\n"
+                else:
+                    text += uni_diff + "\n"
+        else:
+            if util.is_str(list1) and util.is_str(list2):
+                text = color_diff_str(list1[0], list2[0])
+            else:
+                text = color_diff_list(list1, list2)
     return diff_cfg["sep"] + "\n" + text.strip() + "\n" + diff_cfg["sep"]
 
 
@@ -137,8 +159,8 @@ def simple_diff(list1, list2, diff_cfg) -> str:
     ):
         sep = " "
     else:
-        str1 = indent_and_join(list1)
-        str2 = indent_and_join(list2)
+        str1 = pformat(list1)
+        str2 = pformat(list2)
         sep = "\n"
     diff_text = f"{str1}{sep}!={sep}{str2}"
     return diff_text
@@ -190,32 +212,11 @@ def color_diff_list(list1, list2) -> str:
     return "[" + ",\n\n".join(map(quote, result)) + "]"
 
 
-def comparable_val(val) -> list:
-    val = val or ""
-    if type(val) is not list:
-        val = [val]
-    try:
-        if type(val[0]) is str:
-            val = sorted(val)
-        elif type(val[0]) is dict:
-            val = sorted(val, key=lambda x: next(iter(x)))
-        else:
-            val = val.sort()
-    except TypeError as e:
-        logging.error(f"val1: {pformat(val)}")
-        raise e
-    return val
-
-
-def compare(val1, val2) -> bool:
-    return comparable_val(val1) == comparable_val(val2)
-
-
-def create_list(obj) -> list:
-    if type(obj) is not list:
-        return [obj]
-    else:
-        return obj
+# XXX: Add logic to ResultSet
+def compare(rs1, rs2) -> bool:
+    list1 = rs1.string_values() if rs1 else []
+    list2 = rs2.string_values() if rs2 else []
+    return sorted(list2) == sorted(list2)
 
 
 def validate_html(html_dir, args, tidyrc) -> None:
@@ -367,8 +368,6 @@ def validate_component(
         logging.debug(f"retval={comp_retval}")
         check_retval(comp_retval, method_name)
 
-        comp_values = get_values(comp_retval)
-
         logging.debug(f"calling CompHTML.{method_name}()")
         chtml_method = getattr(chtml, method_name)
         args = []
@@ -377,8 +376,6 @@ def validate_component(
         chtml_retval = chtml_method(*args)
         logging.debug(f"retval={chtml_retval}")
         check_retval(chtml_retval, method_name)
-
-        chtml_values = get_values(chtml_retval)
 
         missing_err_template = (
             "Value not set for field '{}' in component"
@@ -394,7 +391,7 @@ def validate_component(
                     c.id,
                     "html",
                     html_file,
-                    format_vals(comp_retval),
+                    comp_retval,
                     ead.ead_file,
                 )
             )
@@ -405,12 +402,12 @@ def validate_component(
                     c.id,
                     "ead xml",
                     ead.ead_file,
-                    format_vals(chtml_retval),
+                    chtml_retval,
                     html_file,
                 )
             )
         else:
-            passed_check = compare(comp_values, chtml_values)
+            passed_check = compare(comp_retval, chtml_retval)
             if not passed_check:
                 errors.append(
                     f"field '{method_name}' differs for c id='{c.id}'\nDIFF:\n"
@@ -691,8 +688,6 @@ def main() -> None:
         logging.debug(f"retval={ead_retval}")
         check_retval(ead_retval, method_name)
 
-        ead_values = get_values(ead_retval)
-
         logging.debug(f"calling EADHTML.{method_name}()")
         if method_name in config["all-html"]["fields"]:
             logging.debug("Using all html.")
@@ -705,8 +700,6 @@ def main() -> None:
         ehtml_retval = ehtml_method()
         logging.debug(f"retval={ehtml_retval}")
         check_retval(ehtml_retval, method_name)
-
-        ehtml_values = get_values(ehtml_retval)
 
         missing_err_template = (
             "Value not set for {} field '{}'"
@@ -721,7 +714,7 @@ def main() -> None:
                     "html",
                     bold(method_name),
                     html_file,
-                    format_vals(ead_retval),
+                    ead_retval,
                     ead_file,
                 )
             )
@@ -731,18 +724,18 @@ def main() -> None:
                     "ead",
                     bold(method_name),
                     ead_file,
-                    format_vals(ehtml_retval),
+                    ehtml_retval,
                     html_file,
                 )
             )
         else:
-            passed_check = compare(ead_values, ehtml_values)
+            passed_check = compare(ead_retval, ehtml_retval)
             if not passed_check:
                 errors.append(
                     f"ead field '{method_name}' differs'\nDIFF:\n"
                     + f"{ead_file}\n"
                     + f"{html_file}\n"
-                    + diff(ead_values, ehtml_values, config["diff"])
+                    + diff(ead_retval, ehtml_retval, config["diff"])
                 )
 
         logging.info(f"{method_name}: [{passed_str(passed_check)}]")
@@ -770,7 +763,8 @@ def main() -> None:
     logging.info(f"nesting levels: [{passed_str(passed_check)}]")
     if not passed_check:
         errors.append(
-            "Nesting error" + diff(ead_tree_str, html_tree_str, config["diff"])
+            "Nesting error"
+            + diff([ead_tree_str], [html_tree_str], config["diff"])
         )
 
     del all_ehtml, top_ehtml, rqm
