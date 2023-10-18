@@ -319,11 +319,7 @@ def get_xpaths(tsv_file) -> Dict[str, str]:
         read_tsv = csv.reader(f, delimiter="\t")
         next(read_tsv)
         for row in read_tsv:
-            # logging.debug(row)
             xpath[row[0]] = row[1]
-            # logging.debug(f"    def {row[0]}(self):")
-            # logging.debug(f'        xpath("{row[1]}")')
-            # logging.debug()
     return xpath
 
 

@@ -86,7 +86,6 @@ class EADHTML:
     def class_values(
         self, class_regex, all_values=False, get_text=False
     ) -> ResultSet:
-        # return self.find_all(class_=re.compile(class_regex), get_text=get_text)
         return self.class_values_helper(
             re.compile(class_regex), all_values=all_values, get_text=get_text
         )
@@ -350,7 +349,6 @@ class EADHTML:
 
         result = ResultSet()
         for note in notes:
-            # search_root = note.div if note.select(":scope > div > p,div")
             if note.select(":scope > div > p"):
                 logging.debug("Setting search root to child div.")
                 search_root = note.div

@@ -433,28 +433,3 @@ class Ead:
             result = result.join(join_sep)
 
         return result if result else None
-
-    #     def unitdate_parse(self, expr):
-    #         dates = self.root.xpath(
-    #             f"{self.archdesc_xpath}/did/unitdate{expr}"
-    #         )
-    #         return [date.text for date in dates]
-
-    #     def date_range(self):
-    #         return self.root.xpath("get_date_range_facets,")
-    #
-    #     def unitdate_start(self):
-    #         return self.root.xpath("start_dates.compact,")
-    #
-    #     def unitdate_end(self):
-    #         return self.root.xpath("end_dates.compact,")
-    #
-    #     def unitdate(self):
-    #         return self.root.xpath("ead_date_display,")
-    #
-    #
-    #     def parent_unittitles(self):
-    #         return self.root.xpath("parent_unittitle_list(node)")
-
-    #     def series(self):
-    #         return self.root.xpath("")

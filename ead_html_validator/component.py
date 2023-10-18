@@ -60,8 +60,6 @@ class Component:
         return self.get_text("arrangement/head")
 
     def bioghist(self) -> ResultSet:
-        # return self.get_text("bioghist/*[self::p or self::list]")
-        # return self.get_text("bioghist/p")
         return self.get_text_long(f"bioghist/{LONGTEXT_XPATH}")
 
     def bioghist_heading(self) -> ResultSet:
@@ -73,7 +71,6 @@ class Component:
     def container(self) -> ResultSet:
         containers = {}
         for container in self.c.xpath("did/container"):
-            # data = {k: v.strip() for k, v in container.attrib.items()}
             data = dict(container.attrib)
             if "id" not in data:
                 data["id"] = str(uuid4())
@@ -135,7 +132,6 @@ class Component:
             return None
 
     def dao(self, roles) -> ResultSet:
-        # xpath_dao = "did/*[self::dao or self::daogrp]"
         xpath_dao = ["did/dao", "did/daogrp"]
         xpath_fields = {
             "role": "(.|.//*)/@role",

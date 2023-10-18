@@ -113,7 +113,6 @@ class CompHTML:
         )
         if ctrl_group is None:
             return None
-        # return ctrl_group.div.get_text(strip=True)
         if ctrl_group.div:
             return CompHTML.find_all(ctrl_group, "div")
         else:
@@ -201,27 +200,19 @@ class CompHTML:
                     for string in desc.strings
                     if not re.match("https?://", string)
                 ]
-                # descriptions.add("".join(text).strip())
                 text = util.clean_text("".join(text))
                 descriptions.add(desc.name, text, desc.sourceline)
-        # return list(descriptions) if descriptions else None
         return descriptions if descriptions else None
 
-    # def dao_desc(self) -> ResultSet:
-    #     return self.dao_title()
-
     def dao_link(self) -> ResultSet:
-        # daos = self._dao("external-link")
         daos = self._dao()
         if daos is None:
             return None
         links = ResultSet()
         for dao in daos:
-            # links.update({a["href"] for a in dao.find_all("a")})
             link = CompHTML.find_all(dao, "a", attrib="href")
             if link:
                 links.append(link)
-        # return sorted(list(links)) if links else None
         return links if links else None
 
     def dao_title(self) -> ResultSet:
@@ -232,22 +223,13 @@ class CompHTML:
         titles = ResultSet()
         for dao in daos:
             for title in dao.find_all(class_=re.compile(r"item-title")):
-                # text = [
-                #     child
-                #     for child in title.contents
-                #     if isinstance(child, NavigableString)
-                # ]
                 text = [
                     string
                     for string in title.strings
                     if not re.match("https?://", string)
                 ]
-                # titles.add("".join(text).strip().rsplit(":", 1)[0])
-                # titles.add(util.strip_date("".join(text).strip()))
-                # titles.add("".join(text).strip())
                 text = util.clean_text("".join(text))
                 titles.add(title.name, text, title.sourceline)
-        # return list(titles) if titles else None
         return titles if titles else None
 
     def dimensions(self) -> ResultSet:
@@ -384,7 +366,6 @@ class CompHTML:
             return None
         return CompHTML.find_all(
             lang_group,
-            # class_=re.compile(rf"^langmaterial{lang_type_num}")
             class_=f"ead-{lang_type}"
         )
 
@@ -554,7 +535,6 @@ class CompHTML:
                 isinstance(child, Tag)
                 and child.get("class") in ["dates", "delim"]
             ):
-                # text += child.get_text()
                 text += util.strings(child)
         text = util.clean_text(text)
         if text:
@@ -579,7 +559,6 @@ class CompHTML:
         odd = self.formatted_note("odd")
         if odd is None:
             return None
-        # return odd.find("span", class_="ead-num").get_text()
         return CompHTML.find_all(odd, "span", class_="ead-num")
 
     def unittitle(self) -> ResultSet:
