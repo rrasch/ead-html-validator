@@ -137,8 +137,8 @@ def simple_diff(list1, list2, diff_cfg) -> str:
     ):
         sep = " "
     else:
-        str1 = pformat(list1)
-        str2 = pformat(list2)
+        str1 = indent_and_join(list1)
+        str2 = indent_and_join(list2)
         sep = "\n"
     diff_text = f"{str1}{sep}!={sep}{str2}"
     return diff_text
