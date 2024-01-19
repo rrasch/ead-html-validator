@@ -448,7 +448,7 @@ class CompHTML:
             return None
         result = ResultSet()
         for header in phys_desc[0].find_all(
-            re.compile("h\d"), class_=re.compile(field)
+            re.compile(r"h\d"), class_=re.compile(field)
         ):
             div = header.find_next_sibling("div")
             if not (div and div.contents):
@@ -528,7 +528,7 @@ class CompHTML:
     def title(self) -> ResultSet:
         text = ""
         unit_title = self.c.find(
-            re.compile("h\d"), class_="unittitle", recursive=False
+            re.compile(r"h\d"), class_="unittitle", recursive=False
         )
         for child in unit_title:
             if not (

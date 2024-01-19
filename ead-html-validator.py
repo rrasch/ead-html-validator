@@ -58,7 +58,7 @@ def colorize(text, *color_codes) -> str:
 
 def colorize_space(text, color_text, color_space) -> str:
     new_text = ""
-    for s in re.split("(\s+)", text):
+    for s in re.split(r"(\s+)", text):
         if s.isspace():
             new_text += color_space(s)
         elif s:
